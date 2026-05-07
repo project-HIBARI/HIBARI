@@ -1,0 +1,150 @@
+/* Design tokens — 昭和歌謡 × モダンUI */
+:root {
+  /* Palette — 紅墨金 */
+  --ink-900: #15110e;
+  --ink-800: #231b16;
+  --ink-700: #3a2b22;
+  --ink-500: #6b5a4c;
+
+  --paper-50: #faf5ea;
+  --paper-100: #f4ede0;
+  --paper-200: #ede3cf;
+  --paper-300: #e0d2b6;
+
+  --beni-900: #5e1111;
+  --beni-800: #7a1818;
+  --beni-700: #8b1a1a;   /* 紅 primary */
+  --beni-600: #a8262b;
+  --beni-500: #c0342f;   /* 朱 accent */
+
+  --kin-600: #a8873f;
+  --kin-500: #c9a961;    /* 金 */
+  --kin-400: #d9bd7d;
+
+  --fuji-500: #7a6a9a;   /* 藤 accent */
+  --fuji-300: #b5a8cc;
+
+  --sumi: #1a1410;
+
+  /* Type */
+  --ff-mincho: 'Shippori Mincho', 'Noto Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+  --ff-serif:  'Noto Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+  --ff-latin:  'Playfair Display', 'EB Garamond', Georgia, serif;
+  --ff-sans-jp:'Noto Sans JP', 'Hiragino Sans', sans-serif;
+  --ff-mono:   'JetBrains Mono', 'Courier New', monospace;
+
+  /* Size scale — honors 大中小 toggle via [data-text-size] on <html> */
+  --size-base: 16px;
+  --leading: 1.85;
+
+  /* Spacing */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;  --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;  --sp-8: 64px;
+  --sp-9: 96px;
+
+  /* Borders */
+  --hair: 1px solid rgba(26,20,16,0.12);
+  --hair-heavy: 1px solid rgba(26,20,16,0.22);
+  --hair-gold: 1px solid var(--kin-500);
+}
+
+html[data-text-size="s"]  { --size-base: 14px; }
+html[data-text-size="m"]  { --size-base: 16px; }
+html[data-text-size="l"]  { --size-base: 19px; }
+html[data-text-size="xl"] { --size-base: 22px; }
+
+/* Paper / washi texture — subtle */
+.washi {
+  background-color: var(--paper-100);
+  background-image:
+    radial-gradient(rgba(90,60,30,0.05) 1px, transparent 1px),
+    radial-gradient(rgba(90,60,30,0.04) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(200,160,90,0.04), rgba(90,60,30,0.02));
+  background-size: 3px 3px, 7px 7px, 100% 100%;
+  background-position: 0 0, 1px 2px, 0 0;
+}
+.washi-dark {
+  background-color: var(--sumi);
+  background-image:
+    radial-gradient(rgba(240,210,140,0.04) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(200,50,50,0.08), rgba(0,0,0,0.0));
+  background-size: 3px 3px, 100% 100%;
+}
+
+/* Photo placeholder — diagonal stripes + caption */
+.photo-ph {
+  background:
+    repeating-linear-gradient(135deg,
+      rgba(26,20,16,0.06) 0 6px,
+      rgba(26,20,16,0.02) 6px 12px),
+    var(--paper-200);
+  border: var(--hair);
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  color: var(--ink-700);
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 8px 10px;
+  overflow: hidden;
+}
+.photo-ph.dark {
+  background:
+    repeating-linear-gradient(135deg,
+      rgba(255,240,210,0.05) 0 6px,
+      rgba(255,240,210,0.02) 6px 12px),
+    #2a201a;
+  color: var(--paper-200);
+  border-color: rgba(201,169,97,0.35);
+}
+.photo-ph.sepia {
+  background:
+    repeating-linear-gradient(135deg,
+      rgba(90,50,20,0.1) 0 6px,
+      rgba(90,50,20,0.04) 6px 12px),
+    #d9c7a6;
+  color: #4a2f1a;
+}
+
+/* Vertical writing utility */
+.tategaki {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-feature-settings: "vert";
+}
+
+/* Hair ornament line */
+.hr-gold {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--kin-500) 20%, var(--kin-500) 80%, transparent);
+  border: 0;
+}
+.hr-double {
+  border: 0;
+  height: 4px;
+  border-top: 1px solid var(--kin-500);
+  border-bottom: 1px solid var(--kin-500);
+}
+
+/* Seal (hanko) */
+.hanko {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ff-mincho);
+  font-weight: 700;
+  color: var(--paper-50);
+  background: var(--beni-700);
+  border: 2px solid var(--beni-800);
+  border-radius: 4px;
+  letter-spacing: 0;
+  line-height: 1;
+  box-shadow: inset 0 0 0 2px var(--beni-700), inset 0 0 8px rgba(0,0,0,0.2);
+  transform: rotate(-3deg);
+}
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; }
+button { font: inherit; color: inherit; }

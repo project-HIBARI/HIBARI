@@ -1,0 +1,67 @@
+/* 全体レイアウト・アニメーション（元デザイン HTML から移植） */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; min-height: 100%; }
+body {
+  background: var(--sumi);
+  color: var(--paper-100);
+  font-family: 'Noto Serif JP', serif;
+}
+#app { min-height: 100vh; }
+
+.pc-only { display: flex !important; }
+.sp-only { display: none !important; }
+.main-pad { padding: 48px 64px !important; }
+
+@media (max-width: 767px) {
+  .pc-only { display: none !important; }
+  .sp-only { display: flex !important; }
+  .main-pad { padding: 24px 16px !important; }
+  .hero-grid { grid-template-columns: 1fr !important; }
+  .hero-grid > div:last-child { display: none; }
+  .two-col { grid-template-columns: 1fr !important; }
+  .prof-grid { grid-template-columns: 1fr !important; }
+  .map-grid { grid-template-columns: 1fr !important; }
+  .mem-grid { grid-template-columns: 1fr !important; }
+  .sp-hide { display: none !important; }
+  .page-h1-scale { font-size: 13vw !important; }
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes particleFade {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-60px) scale(0.4); }
+}
+
+:focus-visible {
+  outline: 2px solid var(--kin-500);
+  outline-offset: 2px;
+}
+
+input, textarea, select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+}
+
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(-2%, 1%); }
+  66% { transform: translate(1%, -2%); }
+  100% { transform: translate(-1%, 1%); }
+}
+
+.opening-film-root {
+  width: 100vw !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 767px) {
+  .of-title-main { font-size: clamp(36px, 11vw, 72px) !important; }
+  .of-title-sub { font-size: clamp(14px, 4vw, 20px) !important; }
+  .of-ctrl-btn { min-height: 44px !important; min-width: 88px !important; }
+}
