@@ -1,38 +1,60 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
-import mysql.connector
+import os
+
+from flask import Flask, render_template
+from dotenv import load_dotenv
+
+from sqlalchemy import create_engine
+from sqlalchemy import text
 
 
 
+load_dotenv()
 app = Flask(__name__)
 app.secret_key = "qawsedrftgyhujikolp"
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True
+)
 
-
-############################################################################
-### 関数の定義
-############################################################################
-
-# db接続用関数
-def conn_db():
-    conn = mysql.connector.connect(
-        host="127.0.0.1",
-        user="root",
-        password="root",
-        db="dbname",
-        charset="utf8"
-    )
-    return conn
 
 
 ############################################################################
-### パスの定義
+### 関数
 ############################################################################
 
-# TOP
+# SQL実行関数
+def execute_query(sql, params=None):
+    with engine.connect() as conn:
+
+        result = conn.execute(
+            text(sql),
+            params or {}
+        )
+
+        return result
+    
+
+############################################################################
+### パス
+############################################################################
+
 @app.route('/')
 def index():
-    return render_template("index.html")
 
+    result = execute_query("""
+        SELECT *
+        FROM accounts
+    """)
+
+    users = result.fetchall()
+    print(users)
+
+    return render_template(
+        "index.html",
+        users=users
+    )
 
 
 ############################################################################
