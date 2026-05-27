@@ -35,4 +35,4 @@ instance/
 
 # virtual env
 venv/
-.env/
+../.env/
