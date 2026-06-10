@@ -221,6 +221,7 @@ def messages(room_id):
         }), 500
 
 
+# AIチャット応答生成
 @app.route("/api/chat", methods=["POST"])
 def chat():
     try:
