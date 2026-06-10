@@ -207,7 +207,7 @@
                 formData.append("room_id", currentRoomId);
             }
 
-            const response = await fetch("/chat", {
+            const response = await fetch("/api/chat", {
                 method:"POST",
                 body:formData
             });
@@ -260,7 +260,7 @@
         }
 
         async function loadRooms(){
-            const response = await fetch("/rooms");
+            const response = await fetch("/api/rooms");
             const rooms = await response.json();
 
             const roomList = document.getElementById("roomList");
@@ -284,7 +284,7 @@
             currentRoomId = roomId;
             setChatHeader(roomName);
 
-            const response = await fetch(`/messages/${roomId}`);
+            const response = await fetch(`/api/messages/${roomId}`);
             const messages = await response.json();
 
             const chatArea = document.getElementById("chatArea");

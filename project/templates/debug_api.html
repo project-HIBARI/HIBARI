@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>API デバッグ</title>
+  <style>
+    body{background:#0d0b0a;color:#efe7dc;font-family:Arial,Helvetica,sans-serif;padding:20px}
+    .box{background:#0b0a09;border:1px solid rgba(201,169,97,0.12);padding:14px;margin-bottom:12px;border-radius:6px}
+    label{display:block;margin-bottom:6px;color:#c9a961}
+    input,textarea,select{width:100%;padding:8px;margin-bottom:8px;border-radius:4px;border:1px solid #222;background:#090808;color:#efe7dc}
+    button{padding:8px 12px;margin-right:8px}
+    pre{background:#080707;color:#cfc7b8;padding:12px;border-radius:6px;overflow:auto}
+  </style>
+</head>
+<body>
+  <h1>掲示板デバッグ（表示）</h1>
+  <p>既存の API を使って掲示板風に表示・操作できます。</p>
+
+  <div class="box">
+    <h2>投稿を作成</h2>
+    <label>曲<select id="post-song-id"><option value="">(曲を選択)</option></select></label>
+    <label>タイトル<input id="post-title" placeholder="タイトル（任意）" /></label>
+    <label>本文<textarea id="post-content" placeholder="本文"></textarea></label>
+    <label>投稿者<input id="post-name" placeholder="名前" /></label>
+    <label>年齢<input id="post-age" type="number" min="0" placeholder="年齢（任意）" /></label>
+    <label>場所<input id="post-location" placeholder="場所（任意）" /></label>
+    <label>画像パス<input id="post-image-path" placeholder="画像 URL または パス" /></label>
+    <button id="btn-create-post">投稿する</button>
+    <div id="create-result" style="margin-top:8px;color:#c9a961"></div>
+  </div>
+
+  <div class="box">
+    <h2>投稿一覧</h2>
+    <div id="posts-grid" style="display:grid; grid-template-columns: repeat(1,1fr); gap:16px"></div>
+    <div style="margin-top:18px"><button id="btn-refresh">再読み込み</button></div>
+  </div>
+
+<script>
+async function jsonFetch(url, opts){
+  const res = await fetch(url, opts);
+  const text = await res.text();
+  try { return JSON.parse(text); } catch(e) { return text }
+}
+
+let songsById = {};
+async function loadSongs(){
+  const data = await jsonFetch('/api/songs');
+  if(Array.isArray(data)){
+    songsById = {};
+    const select = document.getElementById('post-song-id');
+    select.innerHTML = '<option value="">(曲を選択)</option>';
+    data.forEach(song => {
+      songsById[song.song_id] = song;
+      const option = document.createElement('option');
+      option.value = song.song_id;
+      option.textContent = song.title + (song.release_year ? ' (' + song.release_year + ')' : '');
+      select.appendChild(option);
+    });
+  }
+}
+
+function renderPosts(posts){
+  const grid = document.getElementById('posts-grid');
+  grid.innerHTML = '';
+  if(!posts || posts.length === 0){
+    grid.innerHTML = '<div style="color:var(--paper-300)">投稿がありません。</div>';
+    return;
+  }
+
+  posts.forEach(async p => {
+    const card = document.createElement('div');
+    card.style.padding = '16px';
+    card.style.background = 'rgba(250,245,234,0.03)';
+    card.style.border = '1px solid rgba(201,169,97,0.2)';
+    card.style.display = 'block';
+
+    const title = document.createElement('div');
+    title.style.fontWeight = '700';
+    title.textContent = p.title || '';
+
+    const body = document.createElement('div');
+    body.style.fontSize = '14px';
+    body.style.lineHeight = '1.9';
+    body.style.color = '#efe7dc';
+    body.style.marginTop = '8px';
+    body.textContent = p.content || '';
+
+    const songTitle = songsById[p.song_id] ? songsById[p.song_id].title : (p.song_id ? '不明な曲ID:' + p.song_id : '曲なし');
+    const meta = document.createElement('div');
+    meta.style.marginTop = '10px';
+    meta.style.fontSize = '11px';
+    meta.style.color = '#c9a961';
+    meta.style.letterSpacing = '0.08em';
+    meta.textContent = `— ${p.name || '名無し'} · ${p.location || ''} · ${p.age != null ? p.age + '歳' : ''} · ${songTitle} · ${p.created_at || ''} · 👍 ${p.like_count || 0}`;
+
+    if(p.image_path){
+      const img = document.createElement('img');
+      img.src = p.image_path;
+      img.style.width = '100%';
+      img.style.maxHeight = '220px';
+      img.style.objectFit = 'cover';
+      img.style.marginTop = '10px';
+      img.style.borderRadius = '6px';
+      card.appendChild(img);
+    }
+
+    const actions = document.createElement('div');
+    actions.style.marginTop = '8px';
+
+    const likeBtn = document.createElement('button');
+    likeBtn.textContent = 'いいね切替';
+    likeBtn.addEventListener('click', async ()=>{
+      likeBtn.disabled = true;
+      await jsonFetch('/api/posts/' + encodeURIComponent(p.post_id) + '/likes', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ account_id: 1 }) });
+      await loadPosts();
+      likeBtn.disabled = false;
+    });
+
+    const replyFormToggle = document.createElement('button');
+    replyFormToggle.textContent = '返信を表示/非表示';
+    replyFormToggle.style.marginLeft = '8px';
+
+    const repliesContainer = document.createElement('div');
+    repliesContainer.style.marginTop = '12px';
+    repliesContainer.style.paddingLeft = '8px';
+    repliesContainer.style.borderLeft = '2px solid rgba(201,169,97,0.08)';
+
+    replyFormToggle.addEventListener('click', async ()=>{
+      if(repliesContainer.childElementCount === 0){
+        repliesContainer.textContent = '読み込み中...';
+        const repl = await jsonFetch('/api/posts/' + encodeURIComponent(p.post_id) + '/replies');
+        repliesContainer.innerHTML = '';
+
+        // build tree
+        const map = {};
+        (Array.isArray(repl) ? repl : []).forEach(r => { r.children = []; map[r.reply_id] = r; });
+        const roots = [];
+        (Array.isArray(repl) ? repl : []).forEach(r => {
+          if(r.parent_reply_id && map[r.parent_reply_id]){
+            map[r.parent_reply_id].children.push(r);
+          } else {
+            roots.push(r);
+          }
+        });
+
+        function renderReplyNode(node, container, indent){
+          const rdiv = document.createElement('div');
+          rdiv.style.marginBottom = '8px';
+          rdiv.style.paddingLeft = (indent * 12) + 'px';
+          const replyMeta = `${node.name || '名無し'}${node.age != null ? ' · ' + node.age + '歳' : ''}${node.location ? ' · ' + node.location : ''}`;
+          rdiv.innerHTML = `<div style="font-size:13px;font-weight:600">${replyMeta} <span style=\"font-family:monospace;font-size:11px;color:#c9a961\">${node.created_at}</span></div><div style=\"margin-top:6px\">${node.content}</div>`;
+          if(node.image_path){
+            const replyImg = document.createElement('img');
+            replyImg.src = node.image_path;
+            replyImg.style.width = '100%';
+            replyImg.style.maxHeight = '180px';
+            replyImg.style.objectFit = 'cover';
+            replyImg.style.marginTop = '8px';
+            replyImg.style.borderRadius = '6px';
+            rdiv.appendChild(replyImg);
+          }
+
+          const ractions = document.createElement('div');
+          ractions.style.marginTop = '6px';
+
+          const replyToThis = document.createElement('button');
+          replyToThis.textContent = 'このリプライに返信';
+          replyToThis.style.marginLeft = '8px';
+          replyToThis.addEventListener('click', ()=>{
+            // prevent multiple forms
+            if(rdiv.querySelector('textarea')) return;
+            const form = document.createElement('div');
+            form.style.marginTop = '8px';
+            form.innerHTML = '<textarea placeholder="返信内容" style="width:100%;height:60px"></textarea><input placeholder="名前" style="width:100%;margin-top:6px"/><input placeholder="年齢" type="number" min="0" style="width:100%;margin-top:6px"/><input placeholder="所在地" style="width:100%;margin-top:6px"/><input placeholder="画像パス" style="width:100%;margin-top:6px"/>';
+            const ta = form.querySelector('textarea');
+            const nm = form.querySelectorAll('input')[0];
+            const ageInput = form.querySelectorAll('input')[1];
+            const locInput = form.querySelectorAll('input')[2];
+            const imgInput = form.querySelectorAll('input')[3];
+            const send = document.createElement('button');
+            send.textContent = '送信';
+            send.style.marginTop = '6px';
+            send.addEventListener('click', async ()=>{
+              send.disabled = true;
+              await jsonFetch('/api/posts/' + encodeURIComponent(p.post_id) + '/replies', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ content: ta.value, name: nm.value, age: ageInput.value || null, location: locInput.value || null, image_path: imgInput.value || null, parent_reply_id: node.reply_id }) });
+              repliesContainer.innerHTML = '';
+              await loadPosts();
+            });
+            rdiv.appendChild(form);
+            rdiv.appendChild(send);
+          });
+
+          // like button for reply
+          const replyLikeBtn = document.createElement('button');
+          replyLikeBtn.textContent = 'いいね';
+          replyLikeBtn.style.marginLeft = '8px';
+          replyLikeBtn.addEventListener('click', async ()=>{
+            replyLikeBtn.disabled = true;
+            await jsonFetch('/api/replies/' + encodeURIComponent(node.reply_id) + '/likes', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ account_id: 1 }) });
+            repliesContainer.innerHTML = '';
+            await loadPosts();
+          });
+
+          const likeCountSpan = document.createElement('span');
+          likeCountSpan.style.marginLeft = '8px';
+          likeCountSpan.style.color = '#c9a961';
+          likeCountSpan.textContent = '👍 ' + (node.like_count || 0);
+
+          ractions.appendChild(replyToThis);
+          ractions.appendChild(replyLikeBtn);
+          ractions.appendChild(likeCountSpan);
+          rdiv.appendChild(ractions);
+
+          container.appendChild(rdiv);
+
+          if(node.children && node.children.length){
+            node.children.forEach(child => renderReplyNode(child, container, indent + 1));
+          }
+        }
+
+        // render roots
+        if(roots.length){
+          roots.forEach(root => renderReplyNode(root, repliesContainer, 0));
+        } else {
+          repliesContainer.innerHTML = '<div style="color:#c9a961">リプライはありません。</div>';
+        }
+
+        // top-level reply form (reply to post)
+        const form = document.createElement('div');
+        form.style.marginTop = '8px';
+        form.innerHTML = '<textarea placeholder="返信内容（投稿へ）" style="width:100%;height:60px"></textarea><input placeholder="名前" style="width:100%;margin-top:6px"/><input placeholder="年齢" type="number" min="0" style="width:100%;margin-top:6px"/><input placeholder="所在地" style="width:100%;margin-top:6px"/><input placeholder="画像パス" style="width:100%;margin-top:6px"/>';
+        const ta = form.querySelector('textarea');
+        const nm = form.querySelectorAll('input')[0];
+        const ageInput = form.querySelectorAll('input')[1];
+        const locInput = form.querySelectorAll('input')[2];
+        const imgInput = form.querySelectorAll('input')[3];
+        const send = document.createElement('button');
+        send.textContent = '投稿に返信送信';
+        send.style.marginTop = '6px';
+        send.addEventListener('click', async ()=>{
+          send.disabled = true;
+          await jsonFetch('/api/posts/' + encodeURIComponent(p.post_id) + '/replies', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ content: ta.value, name: nm.value, age: ageInput.value || null, location: locInput.value || null, image_path: imgInput.value || null, parent_reply_id: null }) });
+          repliesContainer.innerHTML = '';
+          await loadPosts();
+        });
+        repliesContainer.appendChild(form);
+        repliesContainer.appendChild(send);
+      } else {
+        repliesContainer.innerHTML = '';
+      }
+    });
+
+    actions.appendChild(likeBtn);
+    actions.appendChild(replyFormToggle);
+
+    card.appendChild(title);
+    card.appendChild(body);
+    card.appendChild(meta);
+    card.appendChild(actions);
+    card.appendChild(repliesContainer);
+    grid.appendChild(card);
+  });
+}
+
+async function loadPosts(){
+  const data = await jsonFetch('/api/posts');
+  renderPosts(Array.isArray(data) ? data : []);
+}
+
+document.getElementById('btn-refresh').addEventListener('click', loadPosts);
+
+document.getElementById('btn-create-post').addEventListener('click', async ()=>{
+  const songId = document.getElementById('post-song-id').value || null;
+  const title = document.getElementById('post-title').value;
+  const content = document.getElementById('post-content').value;
+  const name = document.getElementById('post-name').value || 'デバッグ';
+  const age = document.getElementById('post-age').value || null;
+  const location = document.getElementById('post-location').value;
+  const imagePath = document.getElementById('post-image-path').value || null;
+  document.getElementById('create-result').textContent = '送信中...';
+  const res = await jsonFetch('/api/posts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ song_id: songId, title, content, name, age, location, image_path: imagePath }) });
+  document.getElementById('create-result').textContent = JSON.stringify(res);
+  await loadPosts();
+});
+
+window.addEventListener('load', async ()=>{
+  await loadSongs();
+  await loadPosts();
+});
+</script>
+</body>
+</html>

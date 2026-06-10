@@ -133,20 +133,27 @@ def build_prompt_hibari(history, user_input):
 ### パス
 ############################################################################
 
-# TOP
+# デバッグ用 TOP
 @app.route("/")
 def index():
-
     return render_template(
         "index.html"
     )
+    
+# デバッグ用 API 呼び出しページ
+@app.route('/debug/api')
+def debug_api():
+    try:
+        return render_template('debug_api.html')
+    except Exception as e:
+        print(e)
+        return f"テンプレート読み込みエラー: {e}", 500
+
 
 # ルーム一覧取得
-@app.route("/rooms")
+@app.route("/api/rooms")
 def rooms():
-
     try:
-
         rows = fetch_all(
             """
             SELECT
@@ -161,7 +168,6 @@ def rooms():
         room_list = []
 
         for row in rows:
-
             room_list.append({
                 "ai_chat_room_id": row.ai_chat_room_id,
                 "room_name": row.room_name,
@@ -171,19 +177,15 @@ def rooms():
         return jsonify(room_list)
 
     except Exception as e:
-
         print(e)
-
         return jsonify({
             "error": "ルーム取得エラー"
         }), 500
 
 # メッセージ一覧取得
-@app.route("/messages/<int:room_id>")
+@app.route("/api/messages/<int:room_id>")
 def messages(room_id):
-
     try:
-
         rows = fetch_all(
             """
             SELECT
@@ -203,7 +205,6 @@ def messages(room_id):
         message_list = []
 
         for row in rows:
-
             message_list.append({
                 "ai_chat_message_id": row.ai_chat_message_id,
                 "sender": row.sender,
@@ -214,15 +215,13 @@ def messages(room_id):
         return jsonify(message_list)
 
     except Exception as e:
-
         print(e)
-
         return jsonify({
             "error": "メッセージ取得エラー"
         }), 500
 
 
-@app.route("/chat", methods=["POST"])
+@app.route("/api/chat", methods=["POST"])
 def chat():
     try:
         # リクエスト取得
@@ -392,8 +391,365 @@ def chat():
         }), 500
 
 
+# 投稿一覧取得
+@app.route("/api/posts")
+def get_posts():
+    try:
+        rows = fetch_all(
+            """
+            SELECT
+                p.post_id,
+                p.song_id,
+                p.title,
+                p.content,
+                p.created_at,
+                p.name,
+                p.age,
+                p.location,
+                p.image_path,
+                (
+                    SELECT COUNT(*)
+                    FROM likes l
+                    WHERE l.post_id = p.post_id
+                ) AS like_count
+            FROM posts p
+            ORDER BY p.created_at DESC
+            """
+        )
+        post_list = []
+
+        for row in rows:
+            post_list.append({
+                "post_id": row.post_id,
+                "song_id": row.song_id,
+                "title": row.title,
+                "content": row.content,
+                "created_at": str(row.created_at),
+                "name": row.name,
+                "age": row.age,
+                "location": row.location,
+                "image_path": row.image_path,
+                "like_count": row.like_count
+            })
+
+        return jsonify(post_list)
+
+    except Exception as e:
+        print(e)
+        return jsonify({
+            "error": "投稿取得エラー"
+        }), 500
+
+
+# 曲一覧取得
+@app.route("/api/songs")
+def get_songs():
+    try:
+        rows = fetch_all(
+            """
+            SELECT
+                song_id,
+                title,
+                romanized_title,
+                release_year
+            FROM songs
+            ORDER BY release_year DESC, title ASC
+            """
+        )
+
+        song_list = []
+        for row in rows:
+            song_list.append({
+                "song_id": row.song_id,
+                "title": row.title,
+                "romanized_title": row.romanized_title,
+                "release_year": row.release_year
+            })
+
+        return jsonify(song_list)
+
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "曲一覧取得エラー"}), 500
+
+
+# 投稿作成
+@app.route("/api/posts", methods=["POST"])
+def create_post():
+    try:
+        data = request.get_json()
+        post_id = execute_insert(
+            """
+            INSERT INTO posts (
+                song_id,
+                title,
+                content,
+                name,
+                age,
+                location,
+                image_path
+            )
+            VALUES (
+                :song_id,
+                :title,
+                :content,
+                :name,
+                :age,
+                :location,
+                :image_path
+            )
+            RETURNING post_id
+            """,
+            {
+                "song_id": data.get("song_id"),
+                "title": data.get("title"),
+                "content": data.get("content"),
+                "name": data.get("name"),
+                "age": data.get("age"),
+                "location": data.get("location"),
+                "image_path": data.get("image_path")
+            }
+        )
+
+        return jsonify({
+            "message": "投稿しました",
+            "post_id": post_id
+        })
+
+    except Exception as e:
+        print(e)
+        return jsonify({
+            "error": "投稿作成エラー"
+        }), 500
+
+
+# リプライ作成
+@app.route("/api/posts/<int:post_id>/replies", methods=["POST"])
+def create_reply(post_id):
+    try:
+        data = request.get_json()
+        reply_id = execute_insert(
+            """
+            INSERT INTO replies (
+                parent_post_id,
+                parent_reply_id,
+                content,
+                name,
+                age,
+                location,
+                image_path
+            )
+            VALUES (
+                :parent_post_id,
+                :parent_reply_id,
+                :content,
+                :name,
+                :age,
+                :location,
+                :image_path
+            )
+            RETURNING reply_id
+            """,
+            {
+                "parent_post_id": post_id,
+                "parent_reply_id": data.get("parent_reply_id"),
+                "content": data.get("content"),
+                "name": data.get("name"),
+                "age": data.get("age"),
+                "location": data.get("location"),
+                "image_path": data.get("image_path")
+            }
+        )
+
+        return jsonify({
+            "message": "リプライしました",
+            "reply_id": reply_id
+        })
+
+    except Exception as e:
+        print(e)
+        return jsonify({
+            "error": "リプライ作成エラー"
+        }), 500
+
+
+@app.route("/api/posts/<int:post_id>/replies", methods=["GET"])
+def get_replies(post_id):
+    try:
+        rows = fetch_all(
+            """
+            SELECT
+                reply_id,
+                parent_post_id,
+                parent_reply_id,
+                content,
+                name,
+                age,
+                location,
+                image_path,
+                created_at,
+                (
+                    SELECT COUNT(*)
+                    FROM likes l
+                    WHERE l.reply_id = replies.reply_id
+                ) AS like_count
+            FROM replies
+            WHERE parent_post_id = :post_id
+            ORDER BY created_at ASC
+            """,
+            {"post_id": post_id}
+        )
+
+        reply_list = []
+        for row in rows:
+            reply_list.append({
+                "reply_id": row.reply_id,
+                "parent_post_id": row.parent_post_id,
+                "parent_reply_id": row.parent_reply_id,
+                "content": row.content,
+                "name": row.name,
+                "age": row.age,
+                "location": row.location,
+                "image_path": row.image_path,
+                "created_at": str(row.created_at),
+                "like_count": row.like_count
+            })
+
+        return jsonify(reply_list)
+
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "リプライ取得エラー"}), 500
+
+
+# 投稿いいね切替
+@app.route("/api/posts/<int:post_id>/likes", methods=["POST"])
+def toggle_post_like(post_id):
+    try:
+        data = request.get_json()
+        account_id = data.get("account_id")
+        rows = fetch_all(
+            """
+            SELECT like_id
+            FROM likes
+            WHERE account_id = :account_id
+            AND post_id = :post_id
+            """,
+            {
+                "account_id": account_id,
+                "post_id": post_id
+            }
+        )
+
+        if rows:
+            execute(
+                """
+                DELETE FROM likes
+                WHERE like_id = :like_id
+                """,
+                {
+                    "like_id": rows[0].like_id
+                }
+            )
+
+            liked = False
+
+        else:
+            execute(
+                """
+                INSERT INTO likes (
+                    account_id,
+                    post_id
+                )
+                VALUES (
+                    :account_id,
+                    :post_id
+                )
+                """,
+                {
+                    "account_id": account_id,
+                    "post_id": post_id
+                }
+            )
+
+            liked = True
+
+        return jsonify({
+            "liked": liked
+        })
+
+    except Exception as e:
+        print(e)
+        return jsonify({
+            "error": "いいねエラー"
+        }), 500
+
+
+# リプライいいね切替
+@app.route("/api/replies/<int:reply_id>/likes", methods=["POST"])
+def toggle_reply_like(reply_id):
+    try:
+        data = request.get_json()
+        account_id = data.get("account_id")
+
+        rows = fetch_all(
+            """
+            SELECT like_id
+            FROM likes
+            WHERE account_id = :account_id
+            AND reply_id = :reply_id
+            """,
+            {
+                "account_id": account_id,
+                "reply_id": reply_id
+            }
+        )
+
+        if rows:
+            execute(
+                """
+                DELETE FROM likes
+                WHERE like_id = :like_id
+                """,
+                {
+                    "like_id": rows[0].like_id
+                }
+            )
+            liked = False
+
+        else:
+            execute(
+                """
+                INSERT INTO likes (
+                    account_id,
+                    reply_id
+                )
+                VALUES (
+                    :account_id,
+                    :reply_id
+                )
+                """,
+                {
+                    "account_id": account_id,
+                    "reply_id": reply_id
+                }
+            )
+            liked = True
+
+        return jsonify({
+            "liked": liked
+        })
+
+    except Exception as e:
+        print(e)
+        return jsonify({
+            "error": "いいねエラー"
+        }), 500
+        
+
 ############################################################################
 ### 実行制御
 ############################################################################
 if __name__ == "__main__":
     app.run(debug=True)
+    
