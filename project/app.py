@@ -451,7 +451,12 @@ def get_songs():
                 song_id,
                 title,
                 romanized_title,
-                release_year
+                lyrics_by,
+                composed_by,
+                arrangement,
+                release_year,
+                description,
+                audio_path
             FROM songs
             ORDER BY release_year DESC, title ASC
             """
@@ -463,7 +468,12 @@ def get_songs():
                 "song_id": row.song_id,
                 "title": row.title,
                 "romanized_title": row.romanized_title,
-                "release_year": row.release_year
+                "lyrics_by": row.lyrics_by,
+                "composed_by": row.composed_by,
+                "arrangement": row.arrangement,
+                "release_year": row.release_year,
+                "description": row.description,
+                "audio_path": row.audio_path
             })
 
         return jsonify(song_list)
@@ -573,6 +583,7 @@ def create_reply(post_id):
         }), 500
 
 
+# 指定された投稿のリプライ一覧を取得
 @app.route("/api/posts/<int:post_id>/replies", methods=["GET"])
 def get_replies(post_id):
     try:
