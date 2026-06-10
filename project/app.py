@@ -141,10 +141,10 @@ def index():
     )
     
 # デバッグ用 API 呼び出しページ
-@app.route('/debug/api')
+@app.route('/debug/post')
 def debug_api():
     try:
-        return render_template('debug_api.html')
+        return render_template('debug_post.html')
     except Exception as e:
         print(e)
         return f"テンプレート読み込みエラー: {e}", 500
