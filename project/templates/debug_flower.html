@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>【デバッグ画面】花 献花・メッセージ機能検証</title>
+    <style>
+        /* 画像のデザイン（高級感のある黒・茶・金・赤）を再現 */
+        body {
+            background-color: #14100d;
+            color: #ebdcb9;
+            font-family: "Hiragino Mincho ProN", "Georgia", serif;
+            margin: 0;
+            padding: 40px 20px 200px 20px; /* 下部コンソールのために余白を広く確保 */
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        /* デバッグ画面であることが分かりやすいヘッダーバッジ */
+        .debug-badge {
+            background-color: #d9534f;
+            color: white;
+            font-family: monospace;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 3px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: normal;
+            border-bottom: 1px solid #352920;
+            padding-bottom: 12px;
+            margin-bottom: 25px;
+            color: #c0a470;
+            margin-top: 0;
+        }
+        h1 span {
+            font-size: 11px;
+            color: #8c7353;
+            display: block;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+        
+        /* 献花入力フォームエリア */
+        .form-box {
+            border: 1px solid #c0a470;
+            padding: 25px;
+            background-color: #1b1612;
+            margin-bottom: 40px;
+        }
+        .form-title {
+            font-size: 18px;
+            margin: 0 0 5px 0;
+            color: #ebdcb9;
+        }
+        .form-desc {
+            font-size: 11px;
+            color: #907a5e;
+            margin-bottom: 20px;
+        }
+
+        /* 花種選択ボタン（グリッド） */
+        .flower-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .flower-btn {
+            border: 1px solid #403227;
+            background-color: #14100d;
+            padding: 12px 5px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 11px;
+            color: #907a5e;
+            transition: all 0.2s;
+        }
+        .flower-btn:hover {
+            border-color: #c0a470;
+        }
+        .flower-btn.selected {
+            border-color: #a02020;
+            background-color: #451212;
+            color: #ffffff;
+        }
+        .flower-btn span {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        /* 入力フォームの装飾 */
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            background-color: #100c0a;
+            border: 1px solid #403227;
+            color: #ebdcb9;
+            padding: 12px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 13px;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #c0a470;
+        }
+        textarea {
+            height: 90px;
+            resize: none;
+            margin-bottom: 20px;
+        }
+
+        /* ボタン */
+        .submit-button {
+            background-color: #851c1c;
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+        }
+        .submit-button:hover {
+            background-color: #a02525;
+        }
+        .refresh-button {
+            background-color: #352920;
+            color: #ebdcb9;
+            border: 1px solid #c0a470;
+            padding: 11px 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+            margin-left: 10px;
+        }
+
+        /* 寄せられたメッセージ */
+        .list-title {
+            font-size: 16px;
+            border-bottom: 1px solid #352920;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            color: #c0a470;
+        }
+        .message-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .message-card {
+            border: 1px solid #28201a;
+            background-color: #1b1612;
+            padding: 18px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .card-content {
+            color: #ebdcb9;
+            margin-bottom: 12px;
+            min-height: 40px;
+        }
+        .card-meta {
+            font-size: 11px;
+            color: #8c7353;
+        }
+
+        /* 固定配置される API 通信ログ (デバッグコンソール) */
+        .debug-console {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 160px;
+            background-color: #0b0908;
+            border-top: 2px solid #d4af37;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
+            font-family: Consolas, Monaco, monospace;
+            z-index: 1000;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        .console-header {
+            background-color: #1a1512;
+            padding: 6px 15px;
+            font-size: 12px;
+            color: #d4af37;
+            font-weight: bold;
+            border-bottom: 1px solid #28201a;
+            display: flex;
+            justify-content: space-between;
+        }
+        .console-body {
+            padding: 10px 15px;
+            font-size: 12px;
+            overflow-y: auto;
+            flex-grow: 1;
+            line-height: 1.4;
+        }
+        .log-entry {
+            margin: 4px 0;
+            white-space: pre-wrap;
+        }
+        .log-info { color: #5bc0de; }
+        .log-success { color: #5cb85c; }
+        .log-error { color: #d9534f; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="debug-badge">🔧 DEBUGGING MODE (API TESTER)</div>
+    
+    <h1>花 献花・メッセージ <span>Offering - 新生 五月二十九日 ・ 不死鳥忌 六月二十四日</span></h1>
+
+    <div class="form-box">
+        <div class="form-title">献花する</div>
+        <div class="section-desc" style="font-size: 11px; color:#907a5e; margin-bottom:20px;">お花を選び、短いメッセージをお書きください。</div>
+
+        <form id="offeringForm">
+            <div class="flower-grid">
+                <div class="flower-btn selected" onclick="selectFlower('向日葵', this)"><span>🌻</span>向日葵</div>
+                <div class="flower-btn" onclick="selectFlower('紅薔薇', this)"><span>🌹</span>紅薔薇</div>
+                <div class="flower-btn" onclick="selectFlower('白菊', this)"><span>💮</span>白菊</div>
+                <div class="flower-btn" onclick="selectFlower('かすみ草', this)"><span>🌿</span>かすみ草</div>
+                <div class="flower-btn" onclick="selectFlower('胡蝶蘭', this)"><span>🔔</span>胡蝶蘭</div>
+                <div class="flower-btn" onclick="selectFlower('小手毬', this)"><span>🍃</span>小手毬</div>
+            </div>
+            <input type="hidden" id="flower_type" value="向日葵">
+
+            <div class="input-row">
+                <input type="text" id="name" placeholder="お名前（匿名可）">
+                <input type="text" id="location" placeholder="お住まい">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <input type="number" id="age" placeholder="年齢（任意）" style="width: 49%;">
+            </div>
+
+            <textarea id="content" placeholder="ひばりさんへ、一言――" required></textarea>
+
+            <button type="submit" class="submit-button">献花する ＋</button>
+            <button type="button" class="refresh-button" onclick="loadMessages()">最新データに更新 ↻</button>
+        </form>
+    </div>
+
+    <div class="list-title">寄せられたメッセージ</div>
+    <div class="message-grid" id="messageList">
+        </div>
+</div>
+
+<div class="debug-console">
+    <div class="console-header">
+        <span>📡 API 通信ログ (リアルタイムデバッグコンソール)</span>
+        <span style="color: #8c7353; font-size: 10px; cursor: pointer;" onclick="document.getElementById('consoleBody').innerHTML=''">ログクリア</span>
+    </div>
+    <div class="console-body" id="consoleBody">
+        <div class="log-entry log-info">[SYSTEM] 画面が起動しました。API接続を待機中...</div>
+    </div>
+</div>
+
+<script>
+    const API_URL = "/api/flower-offerings";
+    const icons = { '向日葵': '🌻', '紅薔薇': '🌹', '白菊': '💮', 'かすみ草': '🌿', '胡蝶蘭': '🔔', '小手毬': '🍃' };
+
+    // コンソールにログを出力するデバッグ関数
+    function appendLog(message, type = 'info') {
+        const consoleBody = document.getElementById('consoleBody');
+        const entry = document.createElement('div');
+        entry.className = `log-entry log-${type}`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        consoleBody.appendChild(entry);
+        consoleBody.scrollTop = consoleBody.scrollHeight; // 常に最新のログにスクロール
+    }
+
+    // 起動時にデータを取得
+    window.addEventListener('DOMContentLoaded', loadMessages);
+
+    function selectFlower(type, target) {
+        document.querySelectorAll('.flower-btn').forEach(el => el.classList.remove('selected'));
+        target.classList.add('selected');
+        document.getElementById('flower_type').value = type;
+        appendLog(`[UI] 花の種類を「${type}」に変更しました。`, 'info');
+    }
+
+    // 【GET】一覧を取得して下部を書き換える
+    async function loadMessages() {
+        appendLog(`[GET] ${API_URL} へリクエスト送信中...`, 'info');
+        try {
+            const response = await fetch(API_URL);
+            const offerings = await response.json();
+            
+            appendLog(`[GET RESPONSE] 成功。受信データ数: ${offerings.length} 件 \n${JSON.stringify(offerings, null, 2)}`, 'success');
+            
+            const listContainer = document.getElementById('messageList');
+            listContainer.innerHTML = ''; 
+
+            if (offerings.length === 0) {
+                listContainer.innerHTML = '<p style="grid-column: 1/-1; color: #8a7353; text-align: center;">まだメッセージがありません</p>';
+                return;
+            }
+
+            offerings.forEach(item => {
+                const icon = icons[item.flower_type] || '🌸';
+                const ageInfo = item.age ? ` ${item.age}歳` : '';
+                const locInfo = item.location ? ` ・ ${item.location}` : '';
+                
+                listContainer.innerHTML += `
+                    <div class="message-card">
+                        <div class="card-content">${escapeHtml(item.content)}</div>
+                        <div class="card-meta">
+                            ${icon} ― ${escapeHtml(item.name)}${ageInfo}${locInfo} - ${item.offered_at.substring(0, 16)}
+                        </div>
+                    </div>
+                `;
+            });
+        } catch (err) {
+            appendLog(`[GET ERROR] 取得失敗。Flaskサーバーが起動しているか確認してください。内容: ${err}`, 'error');
+        }
+    }
+
+    // 【POST】フォーム送信イベント（JSONで送信）
+    document.getElementById('offeringForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const payload = {
+            flower_type: document.getElementById('flower_type').value,
+            name: document.getElementById('name').value,
+            location: document.getElementById('location').value,
+            age: document.getElementById('age').value ? parseInt(document.getElementById('age').value) : null,
+            content: document.getElementById('content').value
+        };
+
+        appendLog(`[POST REQUEST] 新しいデータを送信します...\n送信JSON: ${JSON.stringify(payload, null, 2)}`, 'info');
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const resJson = await response.json();
+
+            if (response.ok) {
+                appendLog(`[POST RESPONSE] 登録成功しました。サーバー応答:\n${JSON.stringify(resJson, null, 2)}`, 'success');
+                document.getElementById('content').value = ''; // 入力欄をクリア
+                await loadMessages(); // リロードなしで再取得
+            } else {
+                appendLog(`[POST RESPONSE ERROR] サーバーがエラーを返しました。ステータス: ${response.status}\n応答: ${JSON.stringify(resJson, null, 2)}`, 'error');
+                alert("送信エラー: " + resJson.error);
+            }
+        } catch (error) {
+            appendLog(`[POST ERROR] 通信に失敗しました。サーバーが停止しているか、ネットワークエラーです。詳細: ${error}`, 'error');
+            alert("サーバーへの接続に失敗しました。");
+        }
+    });
+
+    function escapeHtml(str) {
+        if(!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+</script>
+</body>
+</html>

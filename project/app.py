@@ -46,6 +46,7 @@ def fetch_all(sql, params=None):
 
         return result.fetchall()
 
+
 #   INSERT UPDATE DELETE
 def execute(sql, params=None):
     with engine.begin() as conn:
@@ -56,6 +57,7 @@ def execute(sql, params=None):
         )
 
         return result
+    
     
 #   INSERT後ID取得用
 def execute_insert(sql, params=None):
@@ -141,14 +143,15 @@ def utc_to_jst(utc_dt):
 ### パス
 ############################################################################
 
-# デバッグ用 TOP
+# デバッグ用 AI美空ひばり
 @app.route("/")
 def index():
     return render_template(
         "index.html"
     )
     
-# デバッグ用 API 呼び出しページ
+    
+# デバッグ用 掲示板呼び出しページ
 @app.route('/debug/post')
 def debug_api():
     try:
@@ -157,6 +160,16 @@ def debug_api():
         print(e)
         return f"テンプレート読み込みエラー: {e}", 500
 
+
+# デバッグ用 献花呼び出しページ        
+@app.route('/debug/flower-offerings')
+def debug_flower_api():
+    try:
+        return render_template('debug_flower.html')
+    except Exception as e:
+        print(e)
+        return f"テンプレート読み込みエラー: {e}", 500    
+    
 
 # ルーム一覧取得
 @app.route("/api/rooms")
@@ -189,6 +202,7 @@ def rooms():
         return jsonify({
             "error": "ルーム取得エラー"
         }), 500
+
 
 # メッセージ一覧取得
 @app.route("/api/messages/<int:room_id>")
@@ -766,6 +780,110 @@ def toggle_reply_like(reply_id):
             "error": "いいねエラー"
         }), 500
         
+
+# 献花一覧取得
+@app.route("/api/flower-offerings", methods=["GET"])
+def get_flower_offerings():
+    try:
+        rows = fetch_all(
+            """
+            SELECT
+                f.flower_offering_id,
+                f.content,
+                f.offered_at,
+                f.name,
+                f.age,
+                f.location,
+                f.flower_type
+            FROM flower_offerings f
+            ORDER BY f.offered_at DESC
+            """
+        )
+        offering_list = []
+
+        for row in rows:
+            offering_list.append({
+                "flower_offering_id": row.flower_offering_id,
+                "content": row.content,
+                "offered_at": str(row.offered_at),
+                "name": row.name,
+                "age": row.age,
+                "location": row.location,
+                "flower_type": row.flower_type
+            })
+
+        return jsonify(offering_list)
+
+    except Exception as e:
+        print(e)
+        return jsonify({
+            "error": "献花情報の取得エラー"
+        }), 500
+        
+        
+# 【POST】新しい献花データをJSONで受信して登録
+@app.route("/api/flower-offerings", methods=["POST"])
+def create_flower_offering():
+    try:
+        # フロントエンドから送信されたJSONデータを取得
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "JSONデータが空です"}), 400
+            
+        content = data.get("content")
+        flower_type = data.get("flower_type")
+        name = data.get("name")
+        age = data.get("age")
+        location = data.get("location")
+
+        # 必須入力チェック
+        if not content or not flower_type:
+            return jsonify({"error": "本文と花の種類は必須項目です"}), 400
+
+        # 値の整形（空欄の場合はデフォルト値を設定）
+        name_val = name.strip() if name and name.strip() else "匿名希望"
+        age_val = int(age) if age else None
+        location_val = location.strip() if location and location.strip() else None
+
+        # -------------------------------------------------------------
+        # （参考）google-genai を使用したAI watcher処理を入れる場合
+        # -------------------------------------------------------------
+        # response = ai_client.models.generate_content(
+        #      model='gemini-2.5-flash',
+        #      contents=f"以下の献花メッセージに不適切な表現が含まれるか判定してください: {content}"
+        # )
+        # -------------------------------------------------------------
+
+        # ★コメントアウトを解除し、SQLAlchemyの書き方（text関数）に修正しました
+        # NOW() の部分はデータベース側で自動で現在日時が入る、またはそのままSQL内で実行されます
+        query = text("""
+            INSERT INTO flower_offerings (content, offered_at, name, age, location, flower_type)
+            VALUES (:content, NOW(), :name, :age, :location, :flower_type)
+        """)
+        
+        # SQLAlchemyのengineを使ってデータベースに安全にコミット（保存）します
+        with engine.begin() as conn:
+            conn.execute(query, {
+                "content": content,
+                "name": name_val,
+                "age": age_val,
+                "location": location_val,
+                "flower_type": flower_type
+            })
+
+        return jsonify({
+            "success": True, 
+            "message": "献花が完了しました"
+        }), 201
+
+    except ValueError:
+        return jsonify({"error": "年齢には数値を入力してください"}), 400
+    except Exception as e:
+        print(e)
+        return jsonify({
+            "error": "献花登録エラー"
+        }), 500
+
 
 ############################################################################
 ### 実行制御
