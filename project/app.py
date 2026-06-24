@@ -160,14 +160,14 @@ def to_jst_str(dt):
 
 
 # ユーザーキャッシュ管理
+#   キャッシュからユーザーを取得
 def get_cached_user(email):
-    """キャッシュからユーザーを取得（有効期限チェック付き）"""
     if email not in user_cache:
         return None
     
     cached_data = user_cache[email]
     
-    # 有効期限チェック（30分）
+    # 有効期限チェック
     if datetime.now() > cached_data['expire_at']:
         del user_cache[email]
         return None
@@ -175,11 +175,11 @@ def get_cached_user(email):
     return cached_data['user']
 
 
+#   ユーザーをキャッシュに保存
 def cache_user(email, user):
-    """ユーザーをキャッシュに保存（有効期限: 30分）"""
     user_cache[email] = {
         'user': user,
-        'expire_at': datetime.now() + timedelta(minutes=30)
+        'expire_at': datetime.now() + timedelta(minutes=30) # 有効期限: 30分
     }
 
 
