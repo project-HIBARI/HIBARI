@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta, timezone
 
 from flask import Flask, render_template, jsonify, request
 from dotenv import load_dotenv
@@ -29,6 +30,9 @@ engine = create_engine(
 client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
 )
+
+# ユーザーキャッシュ（email -> {user_data, expire_at}）
+user_cache = {}
 
 
 ############################################################################
@@ -155,8 +159,36 @@ def to_jst_str(dt):
         return str(dt)
 
 
+# ユーザーキャッシュ管理
+def get_cached_user(email):
+    """キャッシュからユーザーを取得（有効期限チェック付き）"""
+    if email not in user_cache:
+        return None
+    
+    cached_data = user_cache[email]
+    
+    # 有効期限チェック（30分）
+    if datetime.now() > cached_data['expire_at']:
+        del user_cache[email]
+        return None
+    
+    return cached_data['user']
+
+
+def cache_user(email, user):
+    """ユーザーをキャッシュに保存（有効期限: 30分）"""
+    user_cache[email] = {
+        'user': user,
+        'expire_at': datetime.now() + timedelta(minutes=30)
+    }
+
+
 ############################################################################
 ### パス
+############################################################################
+
+############################################################################
+### デバッグページ
 ############################################################################
 
 # デバッグ用 AI美空ひばり
@@ -195,8 +227,143 @@ def debug_account():
     except Exception as e:
         print(e)
         return f"テンプレート読み込みエラー: {e}", 500
+
+
+# デバッグ用 ログインページ
+@app.route('/debug/login')
+def debug_login():
+    try:
+        return render_template('debug_login.html')
+    except Exception as e:
+        print(e)
+        return f"テンプレート読み込みエラー: {e}", 500
+
+
+############################################################################
+### API パス
+############################################################################
+
+# アカウント新規登録
+@app.route("/api/accounts", methods=["POST"])
+def create_account():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "JSONデータが空です"}), 400
+            
+        name = data.get("name")
+        email = data.get("email")
+        password = data.get("password")
+
+        if not name or not email or not password:
+            return jsonify({"error": "名前、メールアドレス、パスワードは必須項目です"}), 400
+
+        name_val = name.strip()
+        email_val = email.strip()
+        password_val = generate_password_hash(password, method="scrypt")
+
+        # 住所は一律でNULLに設定
+        address_val = None
+
+        account_id = execute_insert(
+            """
+            INSERT INTO accounts (
+                name,
+                email,
+                password,
+                address
+            )
+            VALUES (
+                :name,
+                :email,
+                :password,
+                :address
+            )
+            RETURNING account_id
+            """,
+            {
+                "name": name_val,
+                "email": email_val,
+                "password": password_val,
+                "address": address_val
+            }
+        )
+
+        return jsonify({
+            "success": True,
+            "message": "登録できました",
+            "account_id": account_id
+        }), 201
+
+    except Exception as e:
+        print(e)
+        return jsonify({
+            "error": "アカウント登録エラー"
+        }), 500
+        
+        
+# ログイン
+@app.route("/api/login", methods=["POST"])
+def login():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "JSONデータが空です"}), 400
+        
+        email = data.get("email")
+        password = data.get("password")
+        
+        if not email or not password:
+            return jsonify({"error": "メールアドレスとパスワードは必須項目です"}), 400
+        
+        email = email.strip()
+        
+        # キャッシュからユーザーをチェック
+        cached_user = get_cached_user(email)
+        if cached_user and check_password_hash(cached_user['password'], password):
+            return jsonify({
+                "success": True,
+                "user": {
+                    "account_id": cached_user['account_id'],
+                    "name": cached_user['name'],
+                    "email": cached_user['email']
+                },
+                "cached": True
+            })
+        
+        # DB から検索
+        result = fetch_all(
+            "SELECT account_id, name, email, password FROM accounts WHERE email = :email",
+            {"email": email}
+        )
+        
+        if not result:
+            return jsonify({"error": "認証に失敗しました"}), 401
+        
+        user = dict(result[0])
+        
+        # パスワード確認
+        if not check_password_hash(user['password'], password):
+            return jsonify({"error": "認証に失敗しました"}), 401
+        
+        # キャッシュに保存
+        cache_user(email, user)
+        
+        return jsonify({
+            "success": True,
+            "user": {
+                "account_id": user['account_id'],
+                "name": user['name'],
+                "email": user['email']
+            },
+            "cached": False
+        })
     
-    
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "ログインエラー"}), 500
+
+
 # ルーム一覧取得
 @app.route("/api/rooms")
 def rooms():
@@ -910,65 +1077,6 @@ def create_flower_offering():
             "error": "献花登録エラー"
         }), 500
 
-
-# アカウント新規登録
-@app.route("/api/accounts", methods=["POST"])
-def create_account():
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "JSONデータが空です"}), 400
-            
-        name = data.get("name")
-        email = data.get("email")
-        password = data.get("password")
-
-        if not name or not email or not password:
-            return jsonify({"error": "名前、メールアドレス、パスワードは必須項目です"}), 400
-
-        name_val = name.strip()
-        email_val = email.strip()
-        password_val = generate_password_hash(password, method="scrypt")
-
-        # 住所は一律でNULLに設定
-        address_val = None
-
-        account_id = execute_insert(
-            """
-            INSERT INTO accounts (
-                name,
-                email,
-                password,
-                address
-            )
-            VALUES (
-                :name,
-                :email,
-                :password,
-                :address
-            )
-            RETURNING account_id
-            """,
-            {
-                "name": name_val,
-                "email": email_val,
-                "password": password_val,
-                "address": address_val
-            }
-        )
-
-        return jsonify({
-            "success": True,
-            "message": "登録できました",
-            "account_id": account_id
-        }), 201
-
-    except Exception as e:
-        print(e)
-        return jsonify({
-            "error": "アカウント登録エラー"
-        }), 500
-        
 
 ############################################################################
 ### 実行制御
