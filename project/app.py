@@ -139,6 +139,21 @@ def utc_to_jst(utc_dt):
     return utc_dt.astimezone(jst_tz)
 
 
+# datetime を受け取り JST の ISO 文字列にするヘルパー
+def to_jst_str(dt):
+    if dt is None:
+        return None
+    # タイムゾーン情報が無い場合は UTC と見なす
+    if dt.tzinfo is None:
+        from datetime import timezone
+        dt = dt.replace(tzinfo=timezone.utc)
+    try:
+        jst_dt = utc_to_jst(dt)
+        return jst_dt.strftime("%Y-%m-%d %H:%M:%S")
+    except Exception:
+        return str(dt)
+
+
 ############################################################################
 ### パス
 ############################################################################
@@ -161,7 +176,7 @@ def debug_api():
         return f"テンプレート読み込みエラー: {e}", 500
 
 
-# デバッグ用 献花呼び出しページ        
+# デバッグ用 献花呼び出しページ
 @app.route('/debug/flower-offerings')
 def debug_flower_api():
     try:
@@ -192,7 +207,7 @@ def rooms():
             room_list.append({
                 "ai_chat_room_id": row.ai_chat_room_id,
                 "room_name": row.room_name,
-                "created_at": str(row.created_at)
+                "created_at": to_jst_str(row.created_at)
             })
 
         return jsonify(room_list)
@@ -231,7 +246,7 @@ def messages(room_id):
                 "ai_chat_message_id": row.ai_chat_message_id,
                 "sender": row.sender,
                 "content": row.content,
-                "created_at": str(row.created_at)
+                "created_at": to_jst_str(row.created_at)
             })
 
         return jsonify(message_list)
@@ -447,7 +462,7 @@ def get_posts():
                 "song_id": row.song_id,
                 "title": row.title,
                 "content": row.content,
-                "created_at": str(row.created_at),
+                "created_at": to_jst_str(row.created_at),
                 "name": row.name,
                 "age": row.age,
                 "location": row.location,
@@ -645,7 +660,7 @@ def get_replies(post_id):
                 "age": row.age,
                 "location": row.location,
                 "image_path": row.image_path,
-                "created_at": str(row.created_at),
+                "created_at": to_jst_str(row.created_at),
                 "like_count": row.like_count
             })
 
@@ -805,7 +820,7 @@ def get_flower_offerings():
             offering_list.append({
                 "flower_offering_id": row.flower_offering_id,
                 "content": row.content,
-                "offered_at": str(row.offered_at),
+                "offered_at": to_jst_str(row.offered_at),
                 "name": row.name,
                 "age": row.age,
                 "location": row.location,
