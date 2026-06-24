@@ -8,6 +8,8 @@ from sqlalchemy import text
 
 from google import genai
 
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 # 初期設定
@@ -128,6 +130,12 @@ def build_prompt_hibari(history, user_input):
         assistant:
     """
     
+
+# UTCを日本時間に変換する関数
+def utc_to_jst(utc_dt):
+    jst_tz = ZoneInfo("Asia/Tokyo")
+    return utc_dt.astimezone(jst_tz)
+
 
 ############################################################################
 ### パス
