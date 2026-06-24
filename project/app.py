@@ -8,8 +8,9 @@ from sqlalchemy import text
 
 from google import genai
 
-from datetime import datetime
 from zoneinfo import ZoneInfo
+
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 # 初期設定
@@ -168,7 +169,7 @@ def index():
     
 # デバッグ用 掲示板呼び出しページ
 @app.route('/debug/post')
-def debug_api():
+def debug_post():
     try:
         return render_template('debug_post.html')
     except Exception as e:
@@ -178,7 +179,7 @@ def debug_api():
 
 # デバッグ用 献花呼び出しページ
 @app.route('/debug/flower-offerings')
-def debug_flower_api():
+def debug_flower_offerings():
     try:
         return render_template('debug_flower.html')
     except Exception as e:
@@ -186,6 +187,16 @@ def debug_flower_api():
         return f"テンプレート読み込みエラー: {e}", 500    
     
 
+# デバッグ用 アカウント登録ページ
+@app.route('/debug/account')
+def debug_account():
+    try:
+        return render_template('debug_accounts.html')
+    except Exception as e:
+        print(e)
+        return f"テンプレート読み込みエラー: {e}", 500
+    
+    
 # ルーム一覧取得
 @app.route("/api/rooms")
 def rooms():
@@ -899,6 +910,65 @@ def create_flower_offering():
             "error": "献花登録エラー"
         }), 500
 
+
+# アカウント新規登録
+@app.route("/api/accounts", methods=["POST"])
+def create_account():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "JSONデータが空です"}), 400
+            
+        name = data.get("name")
+        email = data.get("email")
+        password = data.get("password")
+
+        if not name or not email or not password:
+            return jsonify({"error": "名前、メールアドレス、パスワードは必須項目です"}), 400
+
+        name_val = name.strip()
+        email_val = email.strip()
+        password_val = generate_password_hash(password, method="scrypt")
+
+        # 住所は一律でNULLに設定
+        address_val = None
+
+        account_id = execute_insert(
+            """
+            INSERT INTO accounts (
+                name,
+                email,
+                password,
+                address
+            )
+            VALUES (
+                :name,
+                :email,
+                :password,
+                :address
+            )
+            RETURNING account_id
+            """,
+            {
+                "name": name_val,
+                "email": email_val,
+                "password": password_val,
+                "address": address_val
+            }
+        )
+
+        return jsonify({
+            "success": True,
+            "message": "登録できました",
+            "account_id": account_id
+        }), 201
+
+    except Exception as e:
+        print(e)
+        return jsonify({
+            "error": "アカウント登録エラー"
+        }), 500
+        
 
 ############################################################################
 ### 実行制御
