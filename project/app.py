@@ -821,11 +821,10 @@ def get_flower_offerings():
         }), 500
         
         
-# 【POST】新しい献花データをJSONで受信して登録
+#新しい献花登録
 @app.route("/api/flower-offerings", methods=["POST"])
 def create_flower_offering():
     try:
-        # フロントエンドから送信されたJSONデータを取得
         data = request.get_json()
         if not data:
             return jsonify({"error": "JSONデータが空です"}), 400
@@ -836,45 +835,46 @@ def create_flower_offering():
         age = data.get("age")
         location = data.get("location")
 
-        # 必須入力チェック
         if not content or not flower_type:
             return jsonify({"error": "本文と花の種類は必須項目です"}), 400
 
-        # 値の整形（空欄の場合はデフォルト値を設定）
         name_val = name.strip() if name and name.strip() else "匿名希望"
         age_val = int(age) if age else None
         location_val = location.strip() if location and location.strip() else None
 
-        # -------------------------------------------------------------
-        # （参考）google-genai を使用したAI watcher処理を入れる場合
-        # -------------------------------------------------------------
-        # response = ai_client.models.generate_content(
-        #      model='gemini-2.5-flash',
-        #      contents=f"以下の献花メッセージに不適切な表現が含まれるか判定してください: {content}"
-        # )
-        # -------------------------------------------------------------
-
-        # ★コメントアウトを解除し、SQLAlchemyの書き方（text関数）に修正しました
-        # NOW() の部分はデータベース側で自動で現在日時が入る、またはそのままSQL内で実行されます
-        query = text("""
-            INSERT INTO flower_offerings (content, offered_at, name, age, location, flower_type)
-            VALUES (:content, NOW(), :name, :age, :location, :flower_type)
-        """)
-        
-        # SQLAlchemyのengineを使ってデータベースに安全にコミット（保存）します
-        with engine.begin() as conn:
-            conn.execute(query, {
+        flower_offering_id = execute_insert(
+            """
+            INSERT INTO flower_offerings (
+                content,
+                offered_at,
+                name,
+                age,
+                location,
+                flower_type
+            )
+            VALUES (
+                :content,
+                NOW(),
+                :name,
+                :age,
+                :location,
+                :flower_type
+            )
+            RETURNING flower_offering_id
+            """,
+            {
                 "content": content,
                 "name": name_val,
                 "age": age_val,
                 "location": location_val,
                 "flower_type": flower_type
-            })
+            }
+        )
 
         return jsonify({
-            "success": True, 
-            "message": "献花が完了しました"
-        }), 201
+            "message": "献花が完了しました",
+            "flower_offering_id": flower_offering_id
+        })
 
     except ValueError:
         return jsonify({"error": "年齢には数値を入力してください"}), 400
