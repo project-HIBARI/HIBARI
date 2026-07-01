@@ -129,11 +129,26 @@
             font-weight: bold;
             margin-left: 10px;
         }
+        .register-link {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+            color: #0c5aa0;
+        }
+        .register-link a {
+            color: #0c5aa0;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .register-link a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
+
     <h2>ログイン</h2>
     
     <div class="info-box">
@@ -151,6 +166,11 @@
         </div>
         <button type="submit" class="btn">ログインする</button>
         
+        <div class="register-link">
+            アカウントをお持ちでない方は
+            <a href="/debug/account">新規登録</a>
+        </div>
+
         <div id="responseMessage" class="message"></div>
     </form>
 
@@ -194,6 +214,7 @@
             if (response.ok && result.success) {
                 // ログイン成功時の処理
                 messageDiv.textContent = 'ログインに成功しました';
+                window.location.href = '/debug/post';
                 messageDiv.classList.add('success');
                 
                 // ユーザー情報を表示

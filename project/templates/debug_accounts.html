@@ -94,11 +94,26 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        .login-link {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+            color: #0c5aa0;
+        }
+        .login-link a {
+            color: #0c5aa0;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
+
     <h2>アカウント登録</h2>
     
     <form id="registerForm">
@@ -116,6 +131,11 @@
         </div>
         <button type="submit" class="btn">登録する</button>
         
+        <div class="login-link">
+            すでにアカウントをお持ちの方は
+            <a href="/debug/login">ログイン</a>
+        </div>
+
         <div id="responseMessage" class="message"></div>
     </form>
 </div>

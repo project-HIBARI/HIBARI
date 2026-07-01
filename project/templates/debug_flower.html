@@ -222,6 +222,8 @@
 <body>
 
 <div class="container">
+    {% include '_debug_auth.html' %}
+
     <div class="debug-badge">🔧 DEBUGGING MODE (API TESTER)</div>
     
     <h1>花 献花・メッセージ <span>Offering - 新生 五月二十九日 ・ 不死鳥忌 六月二十四日</span></h1>
@@ -273,6 +275,7 @@
 
 <script>
     const API_URL = "/api/flower-offerings";
+    const currentUser = {{ current_user | tojson if current_user else 'null' }};
     const icons = { '向日葵': '🌻', '紅薔薇': '🌹', '白菊': '💮', 'かすみ草': '🌿', '胡蝶蘭': '🔔', '小手毬': '🍃' };
 
     // コンソールにログを出力するデバッグ関数

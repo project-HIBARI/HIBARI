@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, session, redirect
 from dotenv import load_dotenv
 
 from sqlalchemy import create_engine
@@ -183,6 +183,26 @@ def cache_user(email, user):
     }
 
 
+# セッションからユーザー情報取得
+#   全体取得
+def get_current_user_from_session():
+    if "account_id" not in session:
+        return None
+
+    return {
+        "account_id": session["account_id"],
+        "name": session.get("name"),
+        "email": session.get("email")
+    }
+
+#   アカウントIDのみ取得
+def get_session_account_id():
+    account_id = session.get("account_id")
+    if account_id is None:
+        raise ValueError("ログインが必要です")
+    return account_id
+
+
 ############################################################################
 ### パス
 ############################################################################
@@ -194,16 +214,32 @@ def cache_user(email, user):
 # デバッグ用 AI美空ひばり
 @app.route("/")
 def index():
-    return render_template(
-        "index.html"
-    )
+    try:
+        current_user = get_current_user_from_session()
+        if not current_user:
+            return redirect('/debug/login')
+        return render_template(
+            "index.html",
+            current_user=current_user,
+            is_logged_in=True
+        )
+    except Exception as e:
+        print(e)
+        return f"テンプレート読み込みエラー: {e}", 500
     
-    
+
 # デバッグ用 掲示板呼び出しページ
 @app.route('/debug/post')
 def debug_post():
     try:
-        return render_template('debug_post.html')
+        current_user = get_current_user_from_session()
+        if not current_user:
+            return redirect('/debug/login')
+        return render_template(
+            'debug_post.html',
+            current_user=current_user,
+            is_logged_in=True
+        )
     except Exception as e:
         print(e)
         return f"テンプレート読み込みエラー: {e}", 500
@@ -213,7 +249,12 @@ def debug_post():
 @app.route('/debug/flower-offerings')
 def debug_flower_offerings():
     try:
-        return render_template('debug_flower.html')
+        current_user = get_current_user_from_session()
+        return render_template(
+            'debug_flower.html',
+            current_user=current_user,
+            is_logged_in=current_user is not None
+        )
     except Exception as e:
         print(e)
         return f"テンプレート読み込みエラー: {e}", 500    
@@ -223,7 +264,12 @@ def debug_flower_offerings():
 @app.route('/debug/account')
 def debug_account():
     try:
-        return render_template('debug_accounts.html')
+        current_user = get_current_user_from_session()
+        return render_template(
+            'debug_accounts.html',
+            current_user=current_user,
+            is_logged_in=current_user is not None
+        )
     except Exception as e:
         print(e)
         return f"テンプレート読み込みエラー: {e}", 500
@@ -233,7 +279,12 @@ def debug_account():
 @app.route('/debug/login')
 def debug_login():
     try:
-        return render_template('debug_login.html')
+        current_user = get_current_user_from_session()
+        return render_template(
+            'debug_login.html',
+            current_user=current_user,
+            is_logged_in=current_user is not None
+        )
     except Exception as e:
         print(e)
         return f"テンプレート読み込みエラー: {e}", 500
@@ -321,6 +372,11 @@ def login():
         # キャッシュからユーザーをチェック
         cached_user = get_cached_user(email)
         if cached_user and check_password_hash(cached_user['password'], password):
+            # Sessionへ保存
+            session["account_id"] = cached_user["account_id"]
+            session["name"] = cached_user["name"]
+            session["email"] = cached_user["email"]
+            
             return jsonify({
                 "success": True,
                 "user": {
@@ -349,6 +405,11 @@ def login():
         # キャッシュに保存
         cache_user(email, user)
         
+        # Sessionへ保存
+        session["account_id"] = user["account_id"]
+        session["name"] = user["name"]
+        session["email"] = user["email"]
+        
         return jsonify({
             "success": True,
             "user": {
@@ -364,10 +425,47 @@ def login():
         return jsonify({"error": "ログインエラー"}), 500
 
 
+# ログアウト
+@app.route("/api/logout", methods=["POST"])
+def logout():
+    session.clear()
+    
+    return jsonify({
+        "success": True
+    })
+
+
+# ログイン確認
+@app.route("/api/me", methods=["GET"])
+def me():
+
+    if "account_id" not in session:
+        return jsonify({
+            "login": False
+        }), 401
+
+    return jsonify({
+        "login": True,
+        "user": {
+            "account_id": session["account_id"],
+            "name": session["name"],
+            "email": session["email"]
+        }
+    })
+    
+
 # ルーム一覧取得
 @app.route("/api/rooms")
 def rooms():
     try:
+        try:
+            account_id = get_session_account_id()
+        except ValueError:
+            return jsonify({
+                "error": "ログインが必要です",
+                "redirect": "/debug/login"
+            }), 401
+
         rows = fetch_all(
             """
             SELECT
@@ -375,8 +473,10 @@ def rooms():
                 room_name,
                 created_at
             FROM ai_chat_rooms
+            WHERE account_id = :account_id
             ORDER BY created_at DESC
-            """
+            """,
+            {"account_id": account_id}
         )
 
         room_list = []
@@ -401,6 +501,32 @@ def rooms():
 @app.route("/api/messages/<int:room_id>")
 def messages(room_id):
     try:
+        try:
+            account_id = get_session_account_id()
+        except ValueError:
+            return jsonify({
+                "error": "ログインが必要です",
+                "redirect": "/debug/login"
+            }), 401
+
+        room_rows = fetch_all(
+            """
+            SELECT ai_chat_room_id
+            FROM ai_chat_rooms
+            WHERE ai_chat_room_id = :room_id
+            AND account_id = :account_id
+            """,
+            {
+                "room_id": room_id,
+                "account_id": account_id
+            }
+        )
+
+        if not room_rows:
+            return jsonify({
+                "error": "このルームにはアクセスできません"
+            }), 403
+
         rows = fetch_all(
             """
             SELECT
@@ -440,8 +566,13 @@ def messages(room_id):
 @app.route("/api/chat", methods=["POST"])
 def chat():
     try:
-        # リクエスト取得
-        account_id = 1
+        try:
+            account_id = get_session_account_id()
+        except ValueError:
+            return jsonify({
+                "error": "ログインが必要です",
+                "redirect": "/debug/login"
+            }), 401
 
         room_id = request.form.get("room_id")
         if room_id and room_id.isdigit():
@@ -500,14 +631,18 @@ def chat():
                 SELECT room_name
                 FROM ai_chat_rooms
                 WHERE ai_chat_room_id = :room_id
+                AND account_id = :account_id
                 """,
                 {
-                    "room_id": room_id
+                    "room_id": room_id,
+                    "account_id": account_id
                 }
             )
 
             if not room_rows:
-                raise ValueError("ルームが見つかりません")
+                return jsonify({
+                    "error": "このルームにはアクセスできません"
+                }), 403
 
             room_name = room_rows[0].room_name
 
@@ -853,8 +988,13 @@ def get_replies(post_id):
 @app.route("/api/posts/<int:post_id>/likes", methods=["POST"])
 def toggle_post_like(post_id):
     try:
-        data = request.get_json()
-        account_id = data.get("account_id")
+        try:
+            account_id = get_session_account_id()
+        except ValueError:
+            return jsonify({
+                "error": "ログインが必要です",
+                "redirect": "/debug/login"
+            }), 401
         rows = fetch_all(
             """
             SELECT like_id
@@ -916,8 +1056,13 @@ def toggle_post_like(post_id):
 @app.route("/api/replies/<int:reply_id>/likes", methods=["POST"])
 def toggle_reply_like(reply_id):
     try:
-        data = request.get_json()
-        account_id = data.get("account_id")
+        try:
+            account_id = get_session_account_id()
+        except ValueError:
+            return jsonify({
+                "error": "ログインが必要です",
+                "redirect": "/debug/login"
+            }), 401
 
         rows = fetch_all(
             """

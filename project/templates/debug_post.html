@@ -14,6 +14,8 @@
   </style>
 </head>
 <body>
+  {% include '_debug_auth.html' %}
+
   <h1>掲示板デバッグ（表示）</h1>
   <p>既存の API を使って掲示板風に表示・操作できます。</p>
 
@@ -42,6 +44,9 @@ async function jsonFetch(url, opts){
   const text = await res.text();
   try { return JSON.parse(text); } catch(e) { return text }
 }
+
+const currentUser = {{ current_user | tojson if current_user else 'null' }};
+const activeAccountId = currentUser ? currentUser.account_id : null;
 
 let songsById = {};
 async function loadSongs(){
@@ -111,8 +116,12 @@ function renderPosts(posts){
     const likeBtn = document.createElement('button');
     likeBtn.textContent = 'いいね切替';
     likeBtn.addEventListener('click', async ()=>{
+      if (!currentUser) {
+        window.location.href = '/debug/login';
+        return;
+      }
       likeBtn.disabled = true;
-      await jsonFetch('/api/posts/' + encodeURIComponent(p.post_id) + '/likes', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ account_id: 1 }) });
+      await jsonFetch('/api/posts/' + encodeURIComponent(p.post_id) + '/likes', { method: 'POST', headers: {'Content-Type':'application/json'} });
       await loadPosts();
       likeBtn.disabled = false;
     });
@@ -196,8 +205,12 @@ function renderPosts(posts){
           replyLikeBtn.textContent = 'いいね';
           replyLikeBtn.style.marginLeft = '8px';
           replyLikeBtn.addEventListener('click', async ()=>{
+            if (!currentUser) {
+              window.location.href = '/debug/login';
+              return;
+            }
             replyLikeBtn.disabled = true;
-            await jsonFetch('/api/replies/' + encodeURIComponent(node.reply_id) + '/likes', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ account_id: 1 }) });
+            await jsonFetch('/api/replies/' + encodeURIComponent(node.reply_id) + '/likes', { method: 'POST', headers: {'Content-Type':'application/json'} });
             repliesContainer.innerHTML = '';
             await loadPosts();
           });
@@ -285,6 +298,9 @@ document.getElementById('btn-create-post').addEventListener('click', async ()=>{
 });
 
 window.addEventListener('load', async ()=>{
+  if (currentUser) {
+    document.getElementById('post-name').value = currentUser.name || '';
+  }
   await loadSongs();
   await loadPosts();
 });

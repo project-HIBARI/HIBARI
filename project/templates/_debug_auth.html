@@ -1,0 +1,93 @@
+<style>
+  .debug-auth {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    background: rgba(7, 7, 7, 0.96);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px;
+    font-size: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 1100;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  }
+  .debug-auth__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .debug-auth__pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #2c7be5;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .debug-auth__pill--muted {
+    background: #6c757d;
+  }
+  .debug-auth__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .debug-auth__link,
+  .debug-auth__btn {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.16);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .debug-auth__btn {
+    font-family: inherit;
+  }
+</style>
+
+<div class="debug-auth">
+  <div class="debug-auth__meta">
+    <strong>ログイン状態</strong>
+    {% if is_logged_in and current_user %}
+      <span>{{ current_user.name }} / {{ current_user.email }}</span>
+      <span class="debug-auth__pill">ログイン中</span>
+    {% else %}
+      <span>未ログイン</span>
+      <span class="debug-auth__pill debug-auth__pill--muted">未ログイン</span>
+    {% endif %}
+  </div>
+  <div class="debug-auth__actions">
+    {% if is_logged_in %}
+      <button type="button" class="debug-auth__btn" onclick="logoutFromDebug()">ログアウト</button>
+    {% else %}
+      <a href="/debug/login" class="debug-auth__link">ログイン</a>
+    {% endif %}
+    <a href="/" class="debug-auth__link">HIBARICHAT</a>
+    <a href="/debug/post" class="debug-auth__link">掲示板</a>
+    <a href="/debug/flower-offerings" class="debug-auth__link">献花</a>
+    <a href="/debug/account" class="debug-auth__link">新規登録</a>
+  </div>
+</div>
+
+<script>
+  async function logoutFromDebug() {
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+</script>
