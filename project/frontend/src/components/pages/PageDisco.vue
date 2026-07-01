@@ -1,156 +1,169 @@
 <script setup>
 /**
  * ページ: ディスコグラフィ（曲）
+ * 構成: ヒーロー / PV / フィルタ / 楽曲グリッド / ページネーション / AI / 関連導線
  */
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import PageHead from '../ui/PageHead.vue'
-import RecordChip from '../ui/RecordChip.vue'
-import UiIco from '../ui/UiIco.vue'
+import DiscoHeroSection from './disco/DiscoHeroSection.vue'
+import DiscoPvSection from './disco/DiscoPvSection.vue'
+import DiscoFilterPanel from './disco/DiscoFilterPanel.vue'
+import DiscoSongGrid from './disco/DiscoSongGrid.vue'
+import DiscoPagination from './disco/DiscoPagination.vue'
+import DiscoAiCard from './disco/DiscoAiCard.vue'
+import DiscoRelatedCards from './disco/DiscoRelatedCards.vue'
 import DiscoDetailDialog from './disco/DiscoDetailDialog.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
-import { inputDark } from '../../utils/hibaru.js'
+
+const FAV_KEY = 'hbr-disco-favorites'
+const PAGE_SIZE = 8
+
+const emit = defineEmits(['navigate', 'open-auth', 'open-modal'])
 
 const query = ref('')
-const filter = ref('all')
+const typeFilter = ref('all')
 const genre = ref('all')
-const year = ref([1949, 1989])
+const sort = ref('year-asc')
+const yearStart = ref(HIBARU_DATA.discographyStats.yearStart)
+const yearEnd = ref(HIBARU_DATA.discographyStats.yearEnd)
+const currentPage = ref(1)
 const detail = ref(null)
+const favorites = ref(new Set())
 
-function setYearStart(v) {
-  const next = [...year.value]
-  next[0] = v
-  if (next[0] > next[1]) next[1] = next[0]
-  year.value = next
-}
-function setYearEnd(v) {
-  const next = [...year.value]
-  next[1] = v
-  if (next[1] < next[0]) next[0] = next[1]
-  year.value = next
+onMounted(() => {
+  try {
+    const raw = localStorage.getItem(FAV_KEY)
+    if (raw) {
+      const ids = JSON.parse(raw)
+      if (Array.isArray(ids)) favorites.value = new Set(ids)
+    }
+  } catch {
+    /* ignore */
+  }
+})
+
+function saveFavorites() {
+  try {
+    localStorage.setItem(FAV_KEY, JSON.stringify([...favorites.value]))
+  } catch {
+    /* ignore */
+  }
 }
 
-const items = computed(() =>
-  HIBARU_DATA.discography.filter((d) => {
-    const q = query.value.toLowerCase()
+function toggleFavorite(id) {
+  const next = new Set(favorites.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  favorites.value = next
+  saveFavorites()
+}
+
+const filteredItems = computed(() => {
+  let list = HIBARU_DATA.discography.filter((d) => {
+    const q = query.value.toLowerCase().trim()
     const matchQ =
-      !q || d.title.includes(query.value) || d.romaji.toLowerCase().includes(q) || d.lyric.includes(query.value) || d.music.includes(query.value)
-    const matchT = filter.value === 'all' || d.type === filter.value
+      !q ||
+      d.title.includes(query.value) ||
+      d.romaji.toLowerCase().includes(q) ||
+      d.lyric.includes(query.value) ||
+      d.music.includes(query.value)
     const matchG = genre.value === 'all' || d.genre === genre.value
-    const matchY = d.year >= year.value[0] && d.year <= year.value[1]
+    const matchY = d.year >= yearStart.value && d.year <= yearEnd.value
+
+    if (typeFilter.value === 'favorites') {
+      return matchQ && matchG && matchY && favorites.value.has(d.id)
+    }
+    if (typeFilter.value === 'アルバム') {
+      return false
+    }
+    const matchT = typeFilter.value === 'all' || d.type === typeFilter.value
     return matchQ && matchT && matchG && matchY
-  }),
-)
+  })
+
+  const sorted = [...list]
+  if (sort.value === 'year-asc') sorted.sort((a, b) => a.year - b.year)
+  else if (sort.value === 'year-desc') sorted.sort((a, b) => b.year - a.year)
+  else if (sort.value === 'title-asc') sorted.sort((a, b) => a.title.localeCompare(b.title, 'ja'))
+
+  return sorted
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredItems.value.length / PAGE_SIZE)))
+
+const paginatedItems = computed(() => {
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  return filteredItems.value.slice(start, start + PAGE_SIZE)
+})
+
+const emptyType = computed(() => {
+  if (typeFilter.value === 'アルバム') return 'album'
+  if (typeFilter.value === 'favorites') return 'favorites'
+  return 'search'
+})
+
+watch([query, typeFilter, genre, sort, yearStart, yearEnd], () => {
+  currentPage.value = 1
+})
+
+function openDetail(song) {
+  detail.value = song
+}
 </script>
 
 <template>
-  <div>
+  <div class="page-disco">
     <PageHead kanji="曲" title="ディスコグラフィ" sub="Discography · MISORA HIBARI · 1949—1989" />
 
-    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px">
-      <div style="position: relative">
-        <input
-          v-model="query"
-          placeholder="曲名・作詞・作曲で検索"
-          aria-label="楽曲を検索"
-          :style="{ ...inputDark, paddingLeft: '36px', background: 'rgba(10,6,4,0.8)' }"
-        />
-        <div style="position: absolute; top: 50%; left: 12px; transform: translateY(-50%); pointer-events: none">
-          <UiIco name="search" :size="15" color="var(--kin-500)" />
-        </div>
-      </div>
-      <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
-        <button
-          v-for="[k, l] in [
-            ['all', '全作品'],
-            ['シングル', 'シングル'],
-            ['アルバム', 'アルバム'],
-          ]"
-          :key="k"
-          type="button"
-          :style="{
-            background: filter === k ? 'var(--beni-700)' : 'transparent',
-            color: filter === k ? 'var(--paper-50)' : 'var(--paper-200)',
-            border: '1px solid rgba(201,169,97,0.4)',
-            padding: '7px 18px',
-            cursor: 'pointer',
-            fontFamily: 'var(--ff-mincho)',
-            fontSize: '12px',
-            letterSpacing: '0.1em',
-          }"
-          @click="filter = k"
-        >
-          {{ l }}
-        </button>
-        <select v-model="genre" :style="{ ...inputDark, width: 'auto', background: 'rgba(10,6,4,0.8)' }" aria-label="ジャンル">
-          <option value="all">全ジャンル</option>
-          <option v-for="g in ['演歌', '歌謡曲', '民謡', 'ポップス']" :key="g" :value="g">{{ g }}</option>
-        </select>
-        <div style="display: flex; align-items: center; gap: 8px; font-family: var(--ff-mono); font-size: 11px; color: var(--paper-300)">
-          <span>{{ year[0] }}年</span>
-          <input
-            type="range"
-            min="1949"
-            max="1989"
-            :value="year[0]"
-            aria-label="開始年"
-            style="accent-color: var(--beni-700)"
-            @input="setYearStart(+$event.target.value)"
-          />
-          <span>〜</span>
-          <input
-            type="range"
-            min="1949"
-            max="1989"
-            :value="year[1]"
-            aria-label="終了年"
-            style="accent-color: var(--beni-700)"
-            @input="setYearEnd(+$event.target.value)"
-          />
-          <span>{{ year[1] }}年</span>
-        </div>
-      </div>
-    </div>
+    <DiscoHeroSection @open-detail="openDetail" />
 
-    <div v-if="items.length === 0" style="text-align: center; padding: 80px 0; color: var(--paper-300); font-family: var(--ff-mincho); font-size: 16px">
-      該当する楽曲が見つかりませんでした
-    </div>
-    <div v-else style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px">
-      <button
-        v-for="(d, i) in items"
-        :key="i"
-        type="button"
-        style="display: grid; grid-template-columns: 96px 1fr auto; gap: 18px; background: rgba(201,169,97,0.04); border: 1px solid rgba(201,169,97,0.22); padding: 18px; align-items: center; cursor: pointer; text-align: left; color: var(--paper-100)"
-        :aria-label="d.title + 'の詳細を見る'"
-        @click="detail = d"
-        @mouseenter="(e) => (e.currentTarget.style.background = 'rgba(201,169,97,0.1)')"
-        @mouseleave="(e) => (e.currentTarget.style.background = 'rgba(201,169,97,0.04)')"
-      >
-        <RecordChip :no="d.no" :color="i % 3 === 0 ? 'var(--beni-700)' : i % 3 === 1 ? '#3a2a1a' : '#2a2040'" />
-        <div>
-          <div style="font-family: var(--ff-mono); font-size: 10px; color: var(--kin-500); letter-spacing: 0.2em; margin-bottom: 4px">
-            {{ d.year }} · {{ d.no }} · {{ d.genre }}
-          </div>
-          <div style="font-family: var(--ff-mincho); font-size: 20px; font-weight: 700; letter-spacing: 0.05em">{{ d.title }}</div>
-          <div style="font-family: var(--ff-latin); font-style: italic; font-size: 12px; color: var(--paper-300); margin-top: 2px">{{ d.romaji }}</div>
-          <div style="font-size: 11px; color: var(--paper-300); margin-top: 5px">作詞：{{ d.lyric }} / 作曲：{{ d.music }}</div>
-          <div v-if="d.note" style="font-size: 11px; color: var(--paper-200); margin-top: 4px">{{ d.note }}</div>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 8px; align-items: center">
-          <span
-            style="background: transparent; border: 1px solid var(--kin-500); color: var(--kin-500); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center"
-            aria-hidden="true"
-          >
-            <UiIco name="play" :size="13" color="var(--kin-500)" />
-          </span>
-          <span
-            v-if="d.note && d.note.includes('賞')"
-            style="font-size: 9px; color: var(--kin-500); border: 1px solid var(--kin-500); padding: 2px 6px; letter-spacing: 0.1em; font-family: var(--ff-mincho); text-align: center"
-            >受賞</span
-          >
-        </div>
-      </button>
-    </div>
+    <DiscoPvSection @coming-soon="emit('open-auth', 'pv')" />
+
+    <DiscoFilterPanel
+      :query="query"
+      :type-filter="typeFilter"
+      :genre="genre"
+      :sort="sort"
+      :year-start="yearStart"
+      :year-end="yearEnd"
+      :result-count="filteredItems.length"
+      :favorite-count="favorites.size"
+      @update:query="query = $event"
+      @update:type-filter="typeFilter = $event"
+      @update:genre="genre = $event"
+      @update:sort="sort = $event"
+      @update:year-start="yearStart = $event"
+      @update:year-end="yearEnd = $event"
+    />
+
+    <DiscoSongGrid
+      :items="paginatedItems"
+      :favorites="favorites"
+      :empty-type="emptyType"
+      @open="openDetail"
+      @toggle-favorite="toggleFavorite"
+    />
+
+    <DiscoPagination
+      :page="currentPage"
+      :total-pages="totalPages"
+      :total-items="filteredItems.length"
+      :page-size="PAGE_SIZE"
+      @update:page="currentPage = $event"
+    />
+
+    <DiscoAiCard @open-ai="emit('open-modal', 'ai')" />
+
+    <DiscoRelatedCards
+      @navigate="(id) => emit('navigate', id)"
+      @coming-soon="(mode) => emit('open-auth', mode)"
+    />
 
     <DiscoDetailDialog :detail="detail" @close="detail = null" />
   </div>
 </template>
+
+<style scoped>
+.page-disco {
+  color: var(--site-text);
+}
+</style>

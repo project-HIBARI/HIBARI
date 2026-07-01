@@ -64,5 +64,8 @@ const common = computed(() => ({
       <circle cx="6" cy="12" r="3" />
       <circle cx="18" cy="12" r="3" />
     </template>
+    <template v-else-if="name === 'heart'">
+      <path d="M12 20.5s-7-4.5-7-10a4 4 0 0 1 7-2.5 4 4 0 0 1 7 2.5c0 5.5-7 10-7 10z" />
+    </template>
   </svg>
 </template>

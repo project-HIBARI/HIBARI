@@ -108,8 +108,13 @@ function closeAuth() {
         @open-auth="openAuth"
         @open-modal="(k) => (modal = k)"
       />
-      <PageDisco v-else-if="page === 'disco'" />
-      <PageProfile v-else-if="page === 'profile'" />
+      <PageDisco
+        v-else-if="page === 'disco'"
+        @navigate="goTo"
+        @open-auth="openAuth"
+        @open-modal="(k) => (modal = k)"
+      />
+      <PageProfile v-else-if="page === 'profile'" @open-auth="openAuth" />
       <PagePlaces v-else-if="page === 'map'" />
 
       <div v-else-if="page === 'memories'" class="legacy-page-wrap">
