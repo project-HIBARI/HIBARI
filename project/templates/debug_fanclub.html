@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ファンクラブ登録</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #333333;
+            color: #f8f9fa;
+            margin: 0;
+            padding: 24px 20px 40px;
+            box-sizing: border-box;
+        }
+        .page-shell {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+        .debug-auth {
+            width: 100%;
+            margin: 0 0 24px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #333333;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: min(100%, 420px);
+            max-width: 420px;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+        h2 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 24px;
+            text-align: center;
+            color: #f8f9fa;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group > label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 24px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-bottom: 15px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 15px;
+            display: none;
+        }
+        .message.success {
+            display: block;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            display: block;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+{% include '_debug_auth.html' %}
+
+<div class="container">
+    <h2>ファンクラブ登録</h2>
+
+    <form id="fanclubForm">
+        <div class="form-group">
+            <label>会員種別</label>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="is_premium" value="true">
+                    プレミアム会員
+                </label>
+                <label>
+                    <input type="radio" name="is_premium" value="false">
+                    通常会員
+                </label>
+            </div>
+        </div>
+
+        <button type="submit" class="btn">登録する</button>
+
+        <div id="responseMessage" class="message"></div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('fanclubForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const messageDiv = document.getElementById('responseMessage');
+        messageDiv.className = 'message';
+
+        const checked = document.querySelector('input[name="is_premium"]:checked');
+        if (!checked) {
+            messageDiv.textContent = '会員種別を選択してください';
+            messageDiv.className = 'message error';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/fanclub', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_premium: checked.value === 'true' })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                messageDiv.textContent = 'ファンクラブ登録しました（ID: ' + result.fanclub_join_history_id + '）';
+                messageDiv.className = 'message success';
+                document.getElementById('fanclubForm').reset();
+            } else {
+                messageDiv.textContent = result.detail || result.error || '登録に失敗しました';
+                messageDiv.className = 'message error';
+            }
+        } catch (error) {
+            messageDiv.textContent = 'サーバーとの通信に失敗しました';
+            messageDiv.className = 'message error';
+        }
+    });
+</script>
+
+</body>
+</html>
