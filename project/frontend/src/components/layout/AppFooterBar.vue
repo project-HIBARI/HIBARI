@@ -1,15 +1,59 @@
 <script setup>
 /**
  * 部品名: フッター
+ * 役割: 公式 SNS・各種リンク・著作権表示（全ページ共通）
  */
+const footerLinks = [
+  { label: 'よくある質問', href: '#' },
+  { label: 'お問い合わせ', href: '#' },
+  { label: '利用規約', href: '#' },
+  { label: 'プライバシーポリシー', href: '#' },
+]
+
+const snsItems = [
+  { label: 'YouTube', abbr: 'YT' },
+  { label: 'X', abbr: 'X' },
+  { label: 'Instagram', abbr: 'IG' },
+  { label: 'LINE', abbr: 'LN' },
+  { label: 'Facebook', abbr: 'FB' },
+]
 </script>
 
 <template>
-  <footer
-    role="contentinfo"
-    style="padding: 28px 64px; border-top: 1px solid rgba(201,169,97,0.25); background: #0a0604; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 11px; color: var(--paper-300); font-family: var(--ff-mincho); letter-spacing: 0.15em"
-  >
-    <span>© 美空ひばり ファンの集い · HIBARI PRODUCTION 公認</span>
-    <span>最終更新 · 令和八年 四月二十四日</span>
+  <footer role="contentinfo" class="app-footer">
+    <div
+      style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center"
+      class="footer-grid"
+    >
+      <div class="app-footer__sns">
+        <span class="app-footer__sns-label">公式SNS</span>
+        <a
+          v-for="s in snsItems"
+          :key="s.label"
+          href="#"
+          class="app-footer__sns-link"
+          :aria-label="s.label"
+          @click.prevent
+        >{{ s.abbr }}</a>
+      </div>
+
+      <nav class="app-footer__links" aria-label="フッターリンク">
+        <a v-for="l in footerLinks" :key="l.label" :href="l.href" @click.prevent>{{ l.label }}</a>
+      </nav>
+
+      <div class="app-footer__copy">© Misora Hibari Official Fan Site</div>
+    </div>
   </footer>
 </template>
+
+<style scoped>
+@media (max-width: 767px) {
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    text-align: center;
+  }
+  .app-footer__sns {
+    justify-content: center;
+  }
+}
+</style>

@@ -1,0 +1,100 @@
+<script setup>
+/**
+ * 部品名: 共通ボタン
+ * 用途: ヘッダー・各ページの CTA・フィルタ等で使うライトテーマ用ボタン
+ */
+defineProps({
+  /** primary=紫 / outline=線枠 / ghost=透明 / gold=金アクセント */
+  variant: { type: String, default: 'primary' },
+  /** sm / md / lg */
+  size: { type: String, default: 'md' },
+  /** button / submit / reset */
+  type: { type: String, default: 'button' },
+  /** 無効状態 */
+  disabled: { type: Boolean, default: false },
+})
+
+defineEmits(['click'])
+</script>
+
+<template>
+  <button
+    :type="type"
+    class="ui-btn"
+    :class="[`ui-btn--${variant}`, `ui-btn--${size}`]"
+    :disabled="disabled"
+    @click="$emit('click', $event)"
+  >
+    <slot />
+  </button>
+</template>
+
+<style scoped>
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--ff-sans-jp);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  border-radius: var(--site-radius-sm);
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+.ui-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ui-btn--sm {
+  padding: 6px 14px;
+  font-size: 12px;
+  min-height: 34px;
+}
+.ui-btn--md {
+  padding: 10px 20px;
+  font-size: 13px;
+  min-height: 40px;
+}
+.ui-btn--lg {
+  padding: 14px 28px;
+  font-size: 14px;
+  min-height: 48px;
+}
+.ui-btn--primary {
+  background: var(--murasaki-700);
+  color: #fff;
+  border: 1px solid var(--murasaki-800);
+  box-shadow: 0 2px 8px rgba(93, 58, 107, 0.2);
+}
+.ui-btn--primary:hover:not(:disabled) {
+  background: var(--murasaki-800);
+}
+.ui-btn--outline {
+  background: var(--site-surface);
+  color: var(--murasaki-700);
+  border: 1px solid var(--murasaki-400);
+}
+.ui-btn--outline:hover:not(:disabled) {
+  background: var(--murasaki-100);
+  border-color: var(--murasaki-600);
+}
+.ui-btn--ghost {
+  background: transparent;
+  color: var(--site-text-muted);
+  border: 1px solid var(--site-border);
+}
+.ui-btn--ghost:hover:not(:disabled) {
+  border-color: var(--murasaki-400);
+  color: var(--murasaki-700);
+}
+.ui-btn--gold {
+  background: linear-gradient(180deg, var(--kin-400) 0%, var(--kin-500) 100%);
+  color: var(--ink-900);
+  border: 1px solid var(--kin-600);
+}
+.ui-btn--gold:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+</style>

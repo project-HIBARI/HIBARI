@@ -1,54 +1,143 @@
 <script setup>
 /**
  * 部品名: サイトヘッダー（ロゴ行）
- * 役割: ロゴ・文字サイズ・映像再生・各種モーダル導線・SP はハンバーガー
+ * 役割: ロゴ・検索・ログイン/新規登録・SP はハンバーガー
  */
 import Hanko from '../ui/Hanko.vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
-import { hdrBtn } from '../../utils/hibaru.js'
+import UiButton from '../ui/UiButton.vue'
+import UiIco from '../ui/UiIco.vue'
 
 defineProps({
-  /** モバイル表示か（767px 未満想定は親で付与） */
   isMobile: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['logo', 'replay-film', 'open-modal', 'open-drawer'])
+const emit = defineEmits(['logo', 'open-drawer', 'open-auth', 'open-search'])
 </script>
 
 <template>
-  <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 32px">
+  <div class="header-bar">
     <button
       type="button"
-      style="background: transparent; border: 0; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 0"
-      aria-label="トップへ"
+      class="header-bar__logo"
+      aria-label="ホームへ"
       @click="emit('logo')"
     >
-      <Hanko text="雲雀" :size="38" />
-      <div>
-        <div style="font-family: var(--ff-mincho); font-weight: 800; font-size: 18px; letter-spacing: 0.12em">美空ひばり</div>
-        <div style="font-family: var(--ff-latin); font-style: italic; font-size: 10px; opacity: 0.6; letter-spacing: 0.25em">
-          MISORA HIBARI · 1937–1989
-        </div>
+      <Hanko text="雲雀" :size="40" />
+      <div class="header-bar__brand">
+        <div class="header-bar__title">美空ひばり</div>
+        <div class="header-bar__subtitle">公式ファンサイト</div>
       </div>
     </button>
 
-    <div class="pc-only" style="display: flex; align-items: center; gap: 12px">
-      <TextSizeControl tone="paper" />
-      <button type="button" :style="hdrBtn" aria-label="オープニング映像を再生" @click="emit('replay-film')">▶ 映像</button>
-      <button type="button" :style="hdrBtn" aria-label="ファンクラブ" @click="emit('open-modal', 'fanclub')">ファンクラブ</button>
-      <button type="button" :style="hdrBtn" aria-label="グッズ" @click="emit('open-modal', 'goods')">グッズ</button>
-      <button type="button" :style="hdrBtn" aria-label="AI美空ひばり" @click="emit('open-modal', 'ai')">AI美空ひばり</button>
+    <div class="pc-only header-bar__actions">
+      <TextSizeControl tone="ink" />
+      <button
+        type="button"
+        class="header-bar__search"
+        aria-label="検索（準備中）"
+        @click="emit('open-search')"
+      >
+        <UiIco name="search" :size="18" color="var(--site-text-muted)" />
+      </button>
+      <UiButton variant="outline" size="sm" @click="emit('open-auth', 'login')">ログイン</UiButton>
+      <UiButton variant="primary" size="sm" @click="emit('open-auth', 'register')">新規登録</UiButton>
     </div>
 
     <button
       type="button"
-      class="sp-only"
-      style="background: transparent; border: 0; cursor: pointer; color: var(--paper-100); display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px"
+      class="sp-only header-bar__menu"
       aria-label="メニューを開く"
       @click="emit('open-drawer')"
     >
-      <span v-for="i in 3" :key="i" style="display: block; width: 22px; height: 2px; background: var(--paper-100)" />
-      <span style="font-family: var(--ff-mincho); font-size: 9px; letter-spacing: 0.1em; margin-top: 2px">メニュー</span>
+      <span v-for="i in 3" :key="i" class="header-bar__menu-line" />
+      <span class="header-bar__menu-label">メニュー</span>
     </button>
   </div>
 </template>
+
+<style scoped>
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 32px;
+  gap: 16px;
+}
+.header-bar__logo {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0;
+  text-align: left;
+}
+.header-bar__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.header-bar__title {
+  font-family: var(--ff-mincho);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.14em;
+  color: var(--site-text);
+}
+.header-bar__subtitle {
+  font-family: var(--ff-sans-jp);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--site-text-muted);
+}
+.header-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-bar__search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--site-surface-muted);
+  border: 1px solid var(--site-border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.header-bar__search:hover {
+  border-color: var(--murasaki-400);
+}
+.header-bar__menu {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--site-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px;
+}
+.header-bar__menu-line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--site-text);
+}
+.header-bar__menu-label {
+  font-family: var(--ff-mincho);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  margin-top: 2px;
+}
+@media (max-width: 767px) {
+  .header-bar {
+    padding: 12px 16px;
+  }
+}
+</style>

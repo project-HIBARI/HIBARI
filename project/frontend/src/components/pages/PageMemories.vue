@@ -59,7 +59,7 @@ function like(id) {
 
 <template>
   <div>
-    <PageHead kanji="憶" title="思い出" sub="Memories · 証言と愛唱 · ファンの集い" />
+    <PageHead kanji="憶" title="思い出" sub="Memories · 証言と愛唱 · ファンの集い" tone="legacy" />
     <TabBar
       :tabs="[
         { id: 'memories', label: '思い出投稿', icon: 'chat' },

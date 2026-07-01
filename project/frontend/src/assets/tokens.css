@@ -1,6 +1,32 @@
-/* Design tokens — 昭和歌謡 × モダンUI */
+/* Design tokens — 公式ファンサイト · ライトテーマ（和紙 × 紫 × 金） */
 :root {
-  /* Palette — 紅墨金 */
+  /* —— サイト基調（ライト） —— */
+  --site-bg: #faf8f4;
+  --site-bg-warm: #fff6f2;
+  --site-bg-pink: #fce8ec;
+  --site-surface: #ffffff;
+  --site-surface-muted: #f5f0e8;
+  --site-text: #3a2b22;
+  --site-text-muted: #6b5a4c;
+  --site-text-light: #8a7568;
+  --site-border: rgba(90, 60, 40, 0.12);
+  --site-border-strong: rgba(90, 60, 40, 0.22);
+  --site-shadow: 0 4px 20px rgba(60, 40, 30, 0.06);
+  --site-shadow-md: 0 8px 32px rgba(60, 40, 30, 0.08);
+  --site-radius-sm: 6px;
+  --site-radius-md: 10px;
+  --site-radius-lg: 14px;
+
+  /* —— 紫アクセント（江戸紫） —— */
+  --murasaki-900: #3d2450;
+  --murasaki-800: #4a2d5e;
+  --murasaki-700: #5d3a6b;
+  --murasaki-600: #6b4578;
+  --murasaki-500: #7a5088;
+  --murasaki-400: #9a72a8;
+  --murasaki-100: #f3ebf6;
+
+  /* —— 既存パレット（レガシー領域・判子等で継続利用） —— */
   --ink-900: #15110e;
   --ink-800: #231b16;
   --ink-700: #3a2b22;
@@ -13,70 +39,110 @@
 
   --beni-900: #5e1111;
   --beni-800: #7a1818;
-  --beni-700: #8b1a1a;   /* 紅 primary */
+  --beni-700: #8b1a1a;
   --beni-600: #a8262b;
-  --beni-500: #c0342f;   /* 朱 accent */
+  --beni-500: #c0342f;
 
   --kin-600: #a8873f;
-  --kin-500: #c9a961;    /* 金 */
+  --kin-500: #c9a961;
   --kin-400: #d9bd7d;
 
-  --fuji-500: #7a6a9a;   /* 藤 accent */
+  --fuji-500: #7a6a9a;
   --fuji-300: #b5a8cc;
 
   --sumi: #1a1410;
 
   /* Type */
   --ff-mincho: 'Shippori Mincho', 'Noto Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
-  --ff-serif:  'Noto Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
-  --ff-latin:  'Playfair Display', 'EB Garamond', Georgia, serif;
-  --ff-sans-jp:'Noto Sans JP', 'Hiragino Sans', sans-serif;
-  --ff-mono:   'JetBrains Mono', 'Courier New', monospace;
+  --ff-serif: 'Noto Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+  --ff-latin: 'Playfair Display', 'EB Garamond', Georgia, serif;
+  --ff-sans-jp: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+  --ff-mono: 'JetBrains Mono', 'Courier New', monospace;
 
   /* Size scale — honors 大中小 toggle via [data-text-size] on <html> */
   --size-base: 16px;
   --leading: 1.85;
 
   /* Spacing */
-  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;  --sp-4: 16px;
-  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;  --sp-8: 64px;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
   --sp-9: 96px;
 
   /* Borders */
-  --hair: 1px solid rgba(26,20,16,0.12);
-  --hair-heavy: 1px solid rgba(26,20,16,0.22);
+  --hair: 1px solid rgba(26, 20, 16, 0.12);
+  --hair-heavy: 1px solid rgba(26, 20, 16, 0.22);
   --hair-gold: 1px solid var(--kin-500);
 }
 
-html[data-text-size="s"]  { --size-base: 14px; }
-html[data-text-size="m"]  { --size-base: 16px; }
-html[data-text-size="l"]  { --size-base: 19px; }
-html[data-text-size="xl"] { --size-base: 22px; }
+html[data-text-size='s'] {
+  --size-base: 14px;
+}
+html[data-text-size='m'] {
+  --size-base: 16px;
+}
+html[data-text-size='l'] {
+  --size-base: 19px;
+}
+html[data-text-size='xl'] {
+  --size-base: 22px;
+}
+
+/* サイト全体背景 — 和紙風 */
+.site-bg {
+  background-color: var(--site-bg);
+  background-image:
+    radial-gradient(rgba(180, 140, 100, 0.04) 1px, transparent 1px),
+    radial-gradient(rgba(180, 140, 100, 0.03) 1px, transparent 1px),
+    linear-gradient(180deg, var(--site-bg-warm) 0%, var(--site-bg) 40%, #f7f2ea 100%);
+  background-size: 3px 3px, 7px 7px, 100% 100%;
+  background-position: 0 0, 1px 2px, 0 0;
+}
 
 /* Paper / washi texture — subtle */
 .washi {
   background-color: var(--paper-100);
   background-image:
-    radial-gradient(rgba(90,60,30,0.05) 1px, transparent 1px),
-    radial-gradient(rgba(90,60,30,0.04) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(200,160,90,0.04), rgba(90,60,30,0.02));
+    radial-gradient(rgba(90, 60, 30, 0.05) 1px, transparent 1px),
+    radial-gradient(rgba(90, 60, 30, 0.04) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(200, 160, 90, 0.04), rgba(90, 60, 30, 0.02));
   background-size: 3px 3px, 7px 7px, 100% 100%;
   background-position: 0 0, 1px 2px, 0 0;
 }
 .washi-dark {
   background-color: var(--sumi);
   background-image:
-    radial-gradient(rgba(240,210,140,0.04) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(200,50,50,0.08), rgba(0,0,0,0.0));
+    radial-gradient(rgba(240, 210, 140, 0.04) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(200, 50, 50, 0.08), rgba(0, 0, 0, 0));
   background-size: 3px 3px, 100% 100%;
+}
+
+/* 思い出・献花ページ用 — ダーク領域を局所維持 */
+.legacy-page-wrap {
+  background: linear-gradient(180deg, #1a1410 0%, #231b16 100%);
+  color: var(--paper-100);
+  border-radius: var(--site-radius-lg);
+  border: 1px solid rgba(201, 169, 97, 0.2);
+  padding: var(--sp-7) var(--sp-8);
+  box-shadow: var(--site-shadow-md);
+}
+
+@media (max-width: 767px) {
+  .legacy-page-wrap {
+    padding: var(--sp-5) var(--sp-4);
+    border-radius: var(--site-radius-md);
+  }
 }
 
 /* Photo placeholder — diagonal stripes + caption */
 .photo-ph {
   background:
-    repeating-linear-gradient(135deg,
-      rgba(26,20,16,0.06) 0 6px,
-      rgba(26,20,16,0.02) 6px 12px),
+    repeating-linear-gradient(135deg, rgba(26, 20, 16, 0.06) 0 6px, rgba(26, 20, 16, 0.02) 6px 12px),
     var(--paper-200);
   border: var(--hair);
   position: relative;
@@ -92,18 +158,14 @@ html[data-text-size="xl"] { --size-base: 22px; }
 }
 .photo-ph.dark {
   background:
-    repeating-linear-gradient(135deg,
-      rgba(255,240,210,0.05) 0 6px,
-      rgba(255,240,210,0.02) 6px 12px),
+    repeating-linear-gradient(135deg, rgba(255, 240, 210, 0.05) 0 6px, rgba(255, 240, 210, 0.02) 6px 12px),
     #2a201a;
   color: var(--paper-200);
-  border-color: rgba(201,169,97,0.35);
+  border-color: rgba(201, 169, 97, 0.35);
 }
 .photo-ph.sepia {
   background:
-    repeating-linear-gradient(135deg,
-      rgba(90,50,20,0.1) 0 6px,
-      rgba(90,50,20,0.04) 6px 12px),
+    repeating-linear-gradient(135deg, rgba(90, 50, 20, 0.1) 0 6px, rgba(90, 50, 20, 0.04) 6px 12px),
     #d9c7a6;
   color: #4a2f1a;
 }
@@ -112,7 +174,7 @@ html[data-text-size="xl"] { --size-base: 22px; }
 .tategaki {
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  font-feature-settings: "vert";
+  font-feature-settings: 'vert';
 }
 
 /* Hair ornament line */
@@ -128,7 +190,7 @@ html[data-text-size="xl"] { --size-base: 22px; }
   border-bottom: 1px solid var(--kin-500);
 }
 
-/* Seal (hanko) */
+/* Seal (hanko) — ライトヘッダー向けに紫判子バリアント */
 .hanko {
   display: inline-flex;
   align-items: center;
@@ -136,15 +198,27 @@ html[data-text-size="xl"] { --size-base: 22px; }
   font-family: var(--ff-mincho);
   font-weight: 700;
   color: var(--paper-50);
-  background: var(--beni-700);
-  border: 2px solid var(--beni-800);
+  background: var(--murasaki-700);
+  border: 2px solid var(--murasaki-800);
   border-radius: 4px;
   letter-spacing: 0;
   line-height: 1;
-  box-shadow: inset 0 0 0 2px var(--beni-700), inset 0 0 8px rgba(0,0,0,0.2);
+  box-shadow: inset 0 0 0 2px var(--murasaki-700), inset 0 0 8px rgba(0, 0, 0, 0.15);
   transform: rotate(-3deg);
+}
+.hanko--legacy {
+  background: var(--beni-700);
+  border-color: var(--beni-800);
+  box-shadow: inset 0 0 0 2px var(--beni-700), inset 0 0 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Reset */
-*, *::before, *::after { box-sizing: border-box; }
-button { font: inherit; color: inherit; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+button {
+  font: inherit;
+  color: inherit;
+}

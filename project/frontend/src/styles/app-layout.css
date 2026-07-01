@@ -1,57 +1,234 @@
-/* 全体レイアウト・アニメーション（元デザイン HTML から移植） */
-*, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; min-height: 100%; }
-body {
-  background: var(--sumi);
-  color: var(--paper-100);
-  font-family: 'Noto Serif JP', serif;
+/* 全体レイアウト・アニメーション */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
-#app { min-height: 100vh; }
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+body {
+  background: var(--site-bg);
+  color: var(--site-text);
+  font-family: var(--ff-serif);
+}
+#app {
+  min-height: 100vh;
+}
 
-.pc-only { display: flex !important; }
-.sp-only { display: none !important; }
-.main-pad { padding: 48px 64px !important; }
+.pc-only {
+  display: flex !important;
+}
+.sp-only {
+  display: none !important;
+}
+.main-pad {
+  padding: 48px 64px !important;
+}
+
+/* —— 共通ヘッダー —— */
+.app-header {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--site-border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.app-main-nav {
+  display: flex;
+  border-top: 1px solid var(--site-border);
+  background: rgba(255, 255, 255, 0.85);
+  overflow-x: auto;
+}
+
+.app-main-nav__link {
+  flex: 1;
+  min-width: max-content;
+  border: 0;
+  background: transparent;
+  color: var(--site-text-muted);
+  padding: 14px 16px;
+  cursor: pointer;
+  font-family: var(--ff-sans-jp);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.app-main-nav__link:hover {
+  color: var(--murasaki-700);
+}
+.app-main-nav__link--active {
+  color: var(--murasaki-700);
+  font-weight: 700;
+  border-bottom-color: var(--murasaki-700);
+}
+
+/* —— プレミアムバー —— */
+.premium-bar {
+  background: linear-gradient(90deg, var(--site-bg-pink) 0%, var(--site-surface-muted) 50%, var(--site-bg-warm) 100%);
+  border-bottom: 1px solid var(--site-border);
+  padding: 8px 32px;
+  text-align: center;
+}
+
+/* —— フッター —— */
+.app-footer {
+  padding: 32px 64px 28px;
+  border-top: 1px solid var(--site-border);
+  background: var(--site-surface);
+  color: var(--site-text-muted);
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+}
+.app-footer__sns {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.app-footer__sns-label {
+  font-family: var(--ff-mincho);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--site-text-light);
+  margin-right: 4px;
+}
+.app-footer__sns-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--site-border);
+  background: var(--site-surface-muted);
+  color: var(--site-text-muted);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 700;
+  transition: border-color 0.2s, color 0.2s;
+}
+.app-footer__sns-link:hover {
+  border-color: var(--murasaki-400);
+  color: var(--murasaki-700);
+}
+.app-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  justify-content: center;
+}
+.app-footer__links a {
+  color: var(--site-text-muted);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+.app-footer__links a:hover {
+  color: var(--murasaki-700);
+}
+.app-footer__copy {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--site-text-light);
+  text-align: right;
+}
 
 @media (max-width: 767px) {
-  .pc-only { display: none !important; }
-  .sp-only { display: flex !important; }
-  .main-pad { padding: 24px 16px !important; }
-  .hero-grid { grid-template-columns: 1fr !important; }
-  .hero-grid > div:last-child { display: none; }
-  .two-col { grid-template-columns: 1fr !important; }
-  .prof-grid { grid-template-columns: 1fr !important; }
-  .map-grid { grid-template-columns: 1fr !important; }
-  .mem-grid { grid-template-columns: 1fr !important; }
-  .sp-hide { display: none !important; }
-  .page-h1-scale { font-size: 13vw !important; }
+  .pc-only {
+    display: none !important;
+  }
+  .sp-only {
+    display: flex !important;
+  }
+  .main-pad {
+    padding: 24px 16px !important;
+  }
+  .app-footer {
+    padding: 24px 16px;
+  }
+  .app-footer__copy {
+    text-align: center;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .hero-grid > div:last-child {
+    display: none;
+  }
+  .two-col {
+    grid-template-columns: 1fr !important;
+  }
+  .prof-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .map-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .mem-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .sp-hide {
+    display: none !important;
+  }
+  .page-h1-scale {
+    font-size: 13vw !important;
+  }
 }
 
 @keyframes ticker {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes particleFade {
-  0% { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(-60px) scale(0.4); }
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.4);
+  }
 }
 
 :focus-visible {
-  outline: 2px solid var(--kin-500);
+  outline: 2px solid var(--murasaki-500);
   outline-offset: 2px;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   appearance: none;
   -webkit-appearance: none;
   width: 100%;
 }
 
 @keyframes grain {
-  0% { transform: translate(0, 0); }
-  33% { transform: translate(-2%, 1%); }
-  66% { transform: translate(1%, -2%); }
-  100% { transform: translate(-1%, 1%); }
+  0% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(-2%, 1%);
+  }
+  66% {
+    transform: translate(1%, -2%);
+  }
+  100% {
+    transform: translate(-1%, 1%);
+  }
 }
 
 .opening-film-root {
@@ -61,7 +238,14 @@ input, textarea, select {
 }
 
 @media (max-width: 767px) {
-  .of-title-main { font-size: clamp(36px, 11vw, 72px) !important; }
-  .of-title-sub { font-size: clamp(14px, 4vw, 20px) !important; }
-  .of-ctrl-btn { min-height: 44px !important; min-width: 88px !important; }
+  .of-title-main {
+    font-size: clamp(36px, 11vw, 72px) !important;
+  }
+  .of-title-sub {
+    font-size: clamp(14px, 4vw, 20px) !important;
+  }
+  .of-ctrl-btn {
+    min-height: 44px !important;
+    min-width: 88px !important;
+  }
 }

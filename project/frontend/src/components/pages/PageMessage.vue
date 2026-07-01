@@ -10,7 +10,7 @@ import MessageWallGrid from './message/MessageWallGrid.vue'
 
 <template>
   <div>
-    <PageHead kanji="花" title="献花・メッセージ" sub="Offering · 誕生日 五月二十九日 · 不死鳥忌 六月二十四日" />
+    <PageHead kanji="花" title="献花・メッセージ" sub="Offering · 誕生日 五月二十九日 · 不死鳥忌 六月二十四日" tone="legacy" />
     <MessageAnniversaryCards />
     <MessageOfferingBlock />
     <MessageWallGrid />

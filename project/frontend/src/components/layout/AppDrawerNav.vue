@@ -1,92 +1,140 @@
 <script setup>
 /**
  * 部品名: スマホ用ドロワーナビ
+ * 役割: モバイル時のページ切替・ログイン/新規登録・AI 等への導線
  */
+import UiButton from '../ui/UiButton.vue'
+
 defineProps({
   open: { type: Boolean, default: false },
   items: { type: Array, required: true },
   page: { type: String, required: true },
 })
 
-const emit = defineEmits(['close', 'navigate', 'open-modal', 'replay-film'])
+const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth'])
 </script>
 
 <template>
-  <div v-if="open" role="dialog" aria-modal="true" aria-label="ナビゲーション" style="position: fixed; inset: 0; z-index: 200">
-    <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6)" @click="emit('close')" />
-    <div
-      style="position: absolute; top: 0; right: 0; bottom: 0; width: 280px; background: #0a0604; border-left: 1px solid rgba(201,169,97,0.3); display: flex; flex-direction: column"
-    >
-      <div style="display: flex; justify-content: flex-end; padding: 16px">
-        <button
-          type="button"
-          style="background: transparent; border: 1px solid rgba(201,169,97,0.4); color: var(--paper-100); padding: 8px 14px; cursor: pointer; font-family: var(--ff-mincho); font-size: 12px; min-height: 44px"
-          aria-label="閉じる"
-          @click="emit('close')"
-        >
-          ✕ 閉じる
-        </button>
+  <div v-if="open" role="dialog" aria-modal="true" aria-label="ナビゲーション" class="drawer">
+    <div class="drawer__overlay" @click="emit('close')" />
+    <div class="drawer__panel">
+      <div class="drawer__head">
+        <span class="drawer__head-title">メニュー</span>
+        <button type="button" class="drawer__close" aria-label="閉じる" @click="emit('close')">✕</button>
       </div>
+
       <button
         v-for="n in items"
         :key="n.id"
         type="button"
-        :style="{
-          border: 0,
-          background: page === n.id ? 'var(--beni-800)' : 'transparent',
-          borderLeft: page === n.id ? '3px solid var(--kin-500)' : '3px solid transparent',
-          color: page === n.id ? 'var(--paper-50)' : 'var(--paper-200)',
-          padding: '0 20px',
-          cursor: 'pointer',
-          minHeight: '56px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px',
-          fontFamily: 'var(--ff-mincho)',
-          borderBottom: '1px solid rgba(201,169,97,0.1)',
-        }"
+        class="drawer__link"
+        :class="{ 'drawer__link--active': page === n.id }"
         :aria-current="page === n.id ? 'page' : undefined"
         @click="emit('navigate', n.id)"
       >
-        <span
-          :style="{
-            fontSize: '24px',
-            fontWeight: 700,
-            color: page === n.id ? 'var(--kin-500)' : 'var(--beni-500)',
-            width: '28px',
-          }"
-        >{{ n.kanji }}</span>
-        <span style="font-size: 15px; letter-spacing: 0.1em">{{ n.label }}</span>
+        {{ n.label }}
       </button>
-      <div style="border-top: 1px solid rgba(201,169,97,0.3); margin: 8px 0" />
-      <button
-        type="button"
-        style="border: 0; background: transparent; color: var(--kin-500); padding: 0 20px; cursor: pointer; min-height: 52px; text-align: left; font-family: var(--ff-mincho); font-size: 14px; letter-spacing: 0.15em; border-bottom: 1px solid rgba(201,169,97,0.1)"
-        @click="emit('open-modal', 'fanclub')"
-      >
-        ✦ ファンクラブ
-      </button>
-      <button
-        type="button"
-        style="border: 0; background: transparent; color: var(--kin-500); padding: 0 20px; cursor: pointer; min-height: 52px; text-align: left; font-family: var(--ff-mincho); font-size: 14px; letter-spacing: 0.15em; border-bottom: 1px solid rgba(201,169,97,0.1)"
-        @click="emit('open-modal', 'goods')"
-      >
-        ✦ グッズ
-      </button>
-      <button
-        type="button"
-        style="border: 0; background: transparent; color: var(--kin-500); padding: 0 20px; cursor: pointer; min-height: 52px; text-align: left; font-family: var(--ff-mincho); font-size: 14px; letter-spacing: 0.15em; border-bottom: 1px solid rgba(201,169,97,0.1)"
-        @click="emit('open-modal', 'ai')"
-      >
-        ✦ AI美空ひばり
-      </button>
-      <button
-        type="button"
-        style="border: 0; background: transparent; color: var(--paper-300); padding: 0 20px; cursor: pointer; min-height: 48px; text-align: left; font-family: var(--ff-mincho); font-size: 13px; letter-spacing: 0.1em; margin-top: auto; border-top: 1px solid rgba(201,169,97,0.2)"
-        @click="emit('replay-film')"
-      >
-        ▶ オープニング映像を再生
-      </button>
+
+      <div class="drawer__divider" />
+
+      <div class="drawer__auth">
+        <UiButton variant="outline" size="md" @click="emit('open-auth', 'login')">ログイン</UiButton>
+        <UiButton variant="primary" size="md" @click="emit('open-auth', 'register')">新規登録</UiButton>
+      </div>
+
+      <div class="drawer__divider" />
+
+      <button type="button" class="drawer__sub" @click="emit('open-modal', 'fanclub')">✦ ファンクラブ</button>
+      <button type="button" class="drawer__sub" @click="emit('open-modal', 'ai')">✦ AI美空ひばり</button>
     </div>
   </div>
 </template>
+
+<style scoped>
+.drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+.drawer__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(40, 30, 25, 0.4);
+}
+.drawer__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(300px, 88vw);
+  background: var(--site-surface);
+  border-left: 1px solid var(--site-border);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--site-shadow-md);
+}
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--site-border);
+}
+.drawer__head-title {
+  font-family: var(--ff-mincho);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  color: var(--site-text);
+}
+.drawer__close {
+  background: transparent;
+  border: 1px solid var(--site-border);
+  color: var(--site-text-muted);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--site-radius-sm);
+  cursor: pointer;
+  font-size: 16px;
+}
+.drawer__link {
+  border: 0;
+  background: transparent;
+  color: var(--site-text-muted);
+  padding: 0 20px;
+  min-height: 52px;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--ff-sans-jp);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--site-border);
+}
+.drawer__link--active {
+  background: var(--murasaki-100);
+  color: var(--murasaki-700);
+  font-weight: 700;
+  border-left: 3px solid var(--murasaki-700);
+}
+.drawer__divider {
+  border-top: 1px solid var(--site-border);
+  margin: 8px 0;
+}
+.drawer__auth {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 20px;
+}
+.drawer__sub {
+  border: 0;
+  background: transparent;
+  color: var(--murasaki-700);
+  padding: 0 20px;
+  min-height: 48px;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--ff-mincho);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+}
+</style>
