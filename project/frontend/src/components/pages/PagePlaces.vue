@@ -5,7 +5,6 @@
  *       ギャラリー / エピソード / 関連楽曲 / AI / CTA
  */
 import { ref, computed, watch, onMounted } from 'vue'
-import PageHead from '../ui/PageHead.vue'
 import PlacesHeroSection from './places/PlacesHeroSection.vue'
 import PlacesMapPanel from './places/PlacesMapPanel.vue'
 import PlacesFilterPanel from './places/PlacesFilterPanel.vue'
@@ -108,8 +107,6 @@ function selectSpot(spot) {
 
 <template>
   <div class="page-places">
-    <PageHead kanji="縁" title="ゆかりの地" sub="Places · Pilgrimage · ひばりさんの足跡を訪ねて" />
-
     <PlacesHeroSection @open-ai="emit('open-modal', 'ai')" />
 
     <div class="page-places__map-layout">

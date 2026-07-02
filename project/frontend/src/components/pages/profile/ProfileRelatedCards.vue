@@ -1,7 +1,7 @@
 <script setup>
 /**
- * 部品名: ホーム — 下部カテゴリ導線カード
- * 用途: 各ページや準備中機能への誘導カード5枚を横並びで表示する
+ * 部品名: 歩み — 下部関連ページ導線カード
+ * 用途: ディスコグラフィー・ギャラリー等への誘導カード5枚を表示する
  */
 const emit = defineEmits(['navigate', 'coming-soon'])
 
@@ -43,7 +43,7 @@ const cards = [
     title: 'ファンクラブ',
     desc: '入会・会員特典',
     deco: 'fanclub',
-    action: 'modal',
+    action: 'coming-soon',
     target: 'fanclub',
   },
 ]
@@ -58,103 +58,95 @@ function onClick(card) {
 </script>
 
 <template>
-  <section class="top-categories" aria-label="コンテンツ一覧">
-    <button
-      v-for="c in cards"
-      :key="c.id"
-      type="button"
-      class="top-categories__card"
-      :class="`top-categories__card--${c.deco}`"
-      :aria-label="c.title"
-      @click="onClick(c)"
-    >
-      <div class="top-categories__body">
-        <h3 class="top-categories__title">{{ c.title }}</h3>
-        <p class="top-categories__desc">{{ c.desc }}</p>
-        <span class="top-categories__arrow">›</span>
-      </div>
-      <div class="top-categories__visual" aria-hidden="true" />
-    </button>
+  <!-- 歩みページ下部の各セクションへの導線カード -->
+  <section class="profile-related" aria-label="関連コンテンツ">
+    <div class="profile-related__grid">
+      <button
+        v-for="c in cards"
+        :key="c.id"
+        type="button"
+        class="profile-related__card"
+        :class="`profile-related__card--${c.deco}`"
+        :aria-label="c.title"
+        @click="onClick(c)"
+      >
+        <div class="profile-related__visual" aria-hidden="true" />
+        <div class="profile-related__body">
+          <h3 class="profile-related__title">{{ c.title }}</h3>
+          <p class="profile-related__desc">{{ c.desc }}</p>
+          <span class="profile-related__arrow">›</span>
+        </div>
+      </button>
+    </div>
   </section>
 </template>
 
 <style scoped>
-.top-categories {
+.profile-related {
+  margin-top: var(--sp-8);
+  margin-bottom: var(--sp-6);
+}
+.profile-related__grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
-  margin-bottom: var(--sp-8);
+  gap: 16px;
 }
-.top-categories__card {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
+.profile-related__card {
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-lg);
-  background: linear-gradient(135deg, #fff 0%, #fff9f7 100%);
+  background: var(--site-surface);
   box-shadow: var(--site-shadow);
   overflow: hidden;
   cursor: pointer;
   text-align: left;
   padding: 0;
-  min-height: 118px;
   transition: transform 0.2s, box-shadow 0.2s;
 }
-.top-categories__card:hover {
+.profile-related__card:hover {
   transform: translateY(-2px);
   box-shadow: var(--site-shadow-md);
 }
-.top-categories__body {
-  flex: 1;
-  padding: 18px 14px 18px 18px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.top-categories__visual {
-  width: 42%;
-  min-width: 88px;
-  flex-shrink: 0;
+.profile-related__visual {
+  height: 100px;
   background: var(--site-surface-muted);
-  position: relative;
 }
-.top-categories__card--rose .top-categories__visual {
+.profile-related__card--rose .profile-related__visual {
   background:
     radial-gradient(circle at 30% 60%, rgba(220, 120, 140, 0.35) 0%, transparent 50%),
     radial-gradient(circle at 70% 40%, rgba(240, 160, 180, 0.3) 0%, transparent 45%),
     linear-gradient(160deg, #fce8ec, #f5ebe0);
 }
-.top-categories__card--record .top-categories__visual {
+.profile-related__card--record .profile-related__visual {
   background:
     radial-gradient(circle at center, #2a201a 28%, transparent 29%),
     repeating-radial-gradient(circle at center, #333 0 1px, #222 1px 3px),
     linear-gradient(160deg, #3a2a1a, #1a1410);
+  position: relative;
 }
-.top-categories__card--record .top-categories__visual::after {
+.profile-related__card--record .profile-related__visual::after {
   content: '';
   position: absolute;
   inset: 50% auto auto 50%;
   transform: translate(-50%, -50%);
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   border: 2px solid rgba(201, 169, 97, 0.4);
   background: radial-gradient(circle, var(--beni-700) 0%, #5e1111 100%);
 }
-.top-categories__card--gallery .top-categories__visual {
+.profile-related__card--gallery .profile-related__visual {
   background: linear-gradient(135deg, #d9c7a6 0%, #c4a882 100%);
-  box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.3);
 }
-.top-categories__card--stage .top-categories__visual {
+.profile-related__card--stage .profile-related__visual {
   background:
     radial-gradient(ellipse at 50% 0%, rgba(255, 220, 100, 0.5) 0%, transparent 60%),
     linear-gradient(180deg, #4a1520 0%, #2a0810 100%);
 }
-.top-categories__card--fanclub .top-categories__visual {
+.profile-related__card--fanclub .profile-related__visual {
   background: linear-gradient(135deg, var(--murasaki-700), var(--murasaki-900));
+  position: relative;
 }
-.top-categories__card--fanclub .top-categories__visual::after {
+.profile-related__card--fanclub .profile-related__visual::after {
   content: 'FC';
   position: absolute;
   inset: 0;
@@ -162,42 +154,45 @@ function onClick(card) {
   align-items: center;
   justify-content: center;
   font-family: var(--ff-latin);
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--kin-400);
   letter-spacing: 0.1em;
 }
-.top-categories__title {
+.profile-related__body {
+  padding: 16px 18px 18px;
+  position: relative;
+}
+.profile-related__title {
   margin: 0 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--site-text);
-  line-height: 1.45;
 }
-.top-categories__desc {
+.profile-related__desc {
   margin: 0;
-  font-size: 11px;
-  line-height: 1.55;
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--site-text-muted);
 }
-.top-categories__arrow {
+.profile-related__arrow {
   position: absolute;
-  right: 12px;
-  bottom: 16px;
-  font-size: 18px;
+  right: 16px;
+  bottom: 18px;
+  font-size: 20px;
   color: var(--murasaki-500);
   line-height: 1;
 }
 
-@media (max-width: 1200px) {
-  .top-categories {
+@media (max-width: 1024px) {
+  .profile-related__grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 @media (max-width: 767px) {
-  .top-categories {
+  .profile-related__grid {
     grid-template-columns: 1fr;
   }
 }

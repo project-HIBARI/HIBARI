@@ -27,8 +27,12 @@ function onGuideNavigate(target) {
   }
 }
 
-function onComingSoon(mode) {
-  emit('open-auth', mode)
+function onComingSoon(target) {
+  if (target === 'fanclub') {
+    emit('open-modal', 'fanclub')
+  } else {
+    emit('open-auth', target)
+  }
 }
 </script>
 
@@ -40,23 +44,28 @@ function onComingSoon(mode) {
       @open-ai="emit('open-modal', 'ai')"
     />
 
-    <section class="page-top__columns" aria-label="おすすめと最新情報">
-      <TopSubscriptionCard @open-detail="emit('open-modal', 'fanclub')" />
-      <TopNewsPanel @open-all="emit('open-auth', 'news')" />
-      <TopEventsPanel @open-all="emit('open-auth', 'events')" />
-    </section>
+    <div class="page-top__body">
+      <section class="page-top__columns" aria-label="おすすめと最新情報">
+        <TopSubscriptionCard @open-detail="emit('open-modal', 'fanclub')" />
+        <TopNewsPanel @open-all="emit('open-auth', 'news')" />
+        <TopEventsPanel @open-all="emit('open-auth', 'events')" />
+      </section>
 
-    <TopCategoryCards @navigate="(id) => emit('navigate', id)" @coming-soon="onComingSoon" />
+      <TopCategoryCards @navigate="(id) => emit('navigate', id)" @coming-soon="onComingSoon" />
 
-    <TopEnjoyGuide @navigate="onGuideNavigate" />
+      <TopEnjoyGuide @navigate="onGuideNavigate" />
+    </div>
   </div>
 </template>
 
 <style scoped>
+.page-top__body {
+  overflow-x: clip;
+}
 .page-top__columns {
   display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: 1.15fr 1fr 1fr;
+  gap: 22px;
   margin-bottom: var(--sp-8);
   align-items: stretch;
 }

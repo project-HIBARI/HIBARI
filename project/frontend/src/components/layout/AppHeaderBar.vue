@@ -1,7 +1,7 @@
 <script setup>
 /**
  * 部品名: サイトヘッダー（ロゴ行）
- * 役割: ロゴ・検索・ログイン/新規登録・SP はハンバーガー
+ * 用途: ホーム含む全ページ共通のロゴ・検索・ログイン/新規登録・SPハンバーガー
  */
 import Hanko from '../ui/Hanko.vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
@@ -23,7 +23,7 @@ const emit = defineEmits(['logo', 'open-drawer', 'open-auth', 'open-search'])
       aria-label="ホームへ"
       @click="emit('logo')"
     >
-      <Hanko text="雲雀" :size="40" />
+      <span class="header-bar__mark" aria-hidden="true">♪</span>
       <div class="header-bar__brand">
         <div class="header-bar__title">美空ひばり</div>
         <div class="header-bar__subtitle">公式ファンサイト</div>
@@ -61,7 +61,7 @@ const emit = defineEmits(['logo', 'open-drawer', 'open-auth', 'open-search'])
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 32px;
+  padding: 0 0 14px;
   gap: 16px;
 }
 .header-bar__logo {
@@ -70,9 +70,22 @@ const emit = defineEmits(['logo', 'open-drawer', 'open-auth', 'open-search'])
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   padding: 0;
   text-align: left;
+}
+.header-bar__mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--kin-500);
+  background: linear-gradient(135deg, var(--site-bg-pink), var(--site-surface-muted));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--kin-600);
+  flex-shrink: 0;
 }
 .header-bar__brand {
   display: flex;
@@ -82,35 +95,36 @@ const emit = defineEmits(['logo', 'open-drawer', 'open-auth', 'open-search'])
 .header-bar__title {
   font-family: var(--ff-mincho);
   font-weight: 800;
-  font-size: 18px;
-  letter-spacing: 0.14em;
+  font-size: 19px;
+  letter-spacing: 0.12em;
   color: var(--site-text);
 }
 .header-bar__subtitle {
   font-family: var(--ff-sans-jp);
   font-size: 11px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--site-text-muted);
 }
 .header-bar__actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .header-bar__search {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: var(--site-surface-muted);
+  width: 38px;
+  height: 38px;
+  background: var(--site-surface);
   border: 1px solid var(--site-border);
   border-radius: 50%;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .header-bar__search:hover {
   border-color: var(--murasaki-400);
+  box-shadow: var(--site-shadow);
 }
 .header-bar__menu {
   background: transparent;
@@ -135,9 +149,15 @@ const emit = defineEmits(['logo', 'open-drawer', 'open-auth', 'open-search'])
   letter-spacing: 0.1em;
   margin-top: 2px;
 }
+
+@media (min-width: 1024px) {
+  .header-bar {
+    padding-bottom: 0;
+  }
+}
 @media (max-width: 767px) {
   .header-bar {
-    padding: 12px 16px;
+    padding: 0;
   }
 }
 </style>

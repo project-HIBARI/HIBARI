@@ -21,6 +21,7 @@ const titles = {
   events: '放送・イベント',
   gallery: 'ギャラリー',
   fanclub: 'ファンクラブ',
+  pv: '公式PV',
 }
 
 const messages = {
@@ -31,6 +32,7 @@ const messages = {
   events: '放送・イベント一覧ページは現在準備中です。',
   gallery: 'ギャラリーページは現在準備中です。',
   fanclub: 'ファンクラブ入会ページは現在準備中です。',
+  pv: 'YouTube公式PVの再生機能は現在準備中です。',
 }
 </script>
 
@@ -42,7 +44,7 @@ const messages = {
         {{ messages[mode] || 'この機能は現在準備中です。' }}<br />
         公開まで今しばらくお待ちください。
       </p>
-      <p v-if="!['search', 'news', 'events', 'gallery', 'fanclub'].includes(mode)" class="auth-notice__note">
+      <p v-if="!['search', 'news', 'events', 'gallery', 'fanclub', 'pv'].includes(mode)" class="auth-notice__note">
         ファンクラブ特典や会員限定コンテンツのご案内は、トップページよりご確認いただけます。
       </p>
       <UiButton variant="primary" size="md" @click="emit('close')">閉じる</UiButton>

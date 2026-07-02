@@ -1,12 +1,12 @@
 <script setup>
 /**
  * 部品名: AI 美空ひばりモーダル（デモ応答）
- * 役割: チャット UI。実 API 未接続時は定型文で返す
+ * 用途: チャット UI。実 API 未接続時は定型文で返す（ライトテーマ）
  */
 import { ref } from 'vue'
 import ModalShell from './ModalShell.vue'
 import TabBar from '../ui/TabBar.vue'
-import { btnBeni, inputDark } from '../../utils/hibaru.js'
+import UiButton from '../ui/UiButton.vue'
 
 const emit = defineEmits(['close'])
 
@@ -48,13 +48,13 @@ function generateLyric() {
 
 <template>
   <ModalShell title="✦ AI美空ひばり" @close="emit('close')">
-    <div
-      style="padding: 10px 14px; border: 1px solid rgba(201,169,97,0.4); margin-bottom: 20px; font-size: 11px; color: var(--paper-300); line-height: 1.7; background: rgba(201,169,97,0.04)"
-    >
-      ⚠ このAIは美空ひばりの言葉・歌・生涯をもとに生成された応答です。<strong>実際の美空ひばり本人の発言ではありません。</strong>
+    <div class="ai-modal__notice">
+      ⚠ このAIは美空ひばりの言葉・歌・生涯をもとに生成された応答です。
+      <strong>実際の美空ひばり本人の発言ではありません。</strong>
     </div>
 
     <TabBar
+      :dark="false"
       :tabs="[
         { id: 'chat', label: '対話モード' },
         { id: 'lyric', label: '新曲制作支援', icon: 'disc' },
@@ -63,67 +63,191 @@ function generateLyric() {
       @update:active="(v) => (aiTab = v)"
     />
 
-    <div v-if="aiTab === 'chat'" style="margin-top: 16px">
-      <div style="max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; padding: 4px 0">
+    <div v-if="aiTab === 'chat'" class="ai-modal__chat">
+      <div class="ai-modal__messages">
         <div
           v-for="(m, i) in messages"
           :key="i"
-          :style="{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }"
+          class="ai-modal__row"
+          :class="m.role === 'user' ? 'ai-modal__row--user' : 'ai-modal__row--ai'"
         >
-          <div
-            :style="{
-              background: m.role === 'user' ? 'var(--beni-800)' : 'rgba(201,169,97,0.08)',
-              border: `1px solid ${m.role === 'user' ? 'var(--beni-700)' : 'rgba(201,169,97,0.25)'}`,
-              padding: '10px 14px',
-              maxWidth: '80%',
-              fontSize: '13px',
-              lineHeight: 1.8,
-              color: 'var(--paper-100)',
-              fontFamily: 'var(--ff-serif)',
-            }"
-          >
-            <div v-if="m.role === 'ai'" style="font-size: 10px; color: var(--kin-500); letter-spacing: 0.15em; margin-bottom: 4px">AI美空ひばり</div>
+          <div class="ai-modal__bubble" :class="m.role === 'user' ? 'ai-modal__bubble--user' : 'ai-modal__bubble--ai'">
+            <div v-if="m.role === 'ai'" class="ai-modal__bubble-label">AI美空ひばり</div>
             {{ m.text }}
           </div>
         </div>
-        <div v-if="loading" style="text-align: center; color: var(--kin-500); font-family: var(--ff-mincho); font-size: 13px">……</div>
+        <div v-if="loading" class="ai-modal__loading">……</div>
       </div>
-      <div style="display: flex; gap: 10px">
+      <div class="ai-modal__input-row">
         <input
           v-model="input"
+          class="ai-modal__input"
           placeholder="ひばりさんに話しかける…"
-          :style="inputDark"
           aria-label="メッセージを入力"
           @keydown.enter.prevent="send"
         />
-        <button type="button" :disabled="loading" :style="{ ...btnBeni, padding: '10px 20px', flexShrink: 0, fontSize: '12px' }" @click="send">
-          送信
-        </button>
+        <UiButton variant="primary" size="md" :disabled="loading" @click="send">送信</UiButton>
       </div>
-      <div style="margin-top: 10px; font-size: 11px; color: var(--paper-400)">一般会員: 月10回まで · プレミアム: 無制限</div>
+      <p class="ai-modal__hint">一般会員: 月10回まで · プレミアム: 無制限</p>
     </div>
 
-    <div v-if="aiTab === 'lyric'" style="margin-top: 16px">
-      <div
-        style="padding: 10px 14px; background: rgba(139,26,26,0.2); border: 1px solid var(--beni-700); margin-bottom: 20px; font-size: 12px; color: var(--paper-200); line-height: 1.7"
-      >
+    <div v-if="aiTab === 'lyric'" class="ai-modal__lyric">
+      <div class="ai-modal__premium">
         🔒 このモードはプレミアム会員限定です。
-        <button type="button" style="background: transparent; border: 0; color: var(--kin-500); cursor: pointer; font-family: var(--ff-mincho); font-size: 12px">
-          アップグレードする ›
-        </button>
+        <button type="button" class="ai-modal__premium-link">アップグレードする ›</button>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px">
-        <input v-model="lyricForm.theme" placeholder="テーマ（例: 別れ・故郷・再会）" :style="inputDark" aria-label="テーマ" />
-        <input v-model="lyricForm.mood" placeholder="ムード（例: 切ない・温かい・力強い）" :style="inputDark" aria-label="ムード" />
-        <input v-model="lyricForm.scene" placeholder="情景（例: 港・夕暮れ・雪の夜）" :style="inputDark" aria-label="情景" />
+      <div class="ai-modal__lyric-fields">
+        <input v-model="lyricForm.theme" class="ai-modal__input" placeholder="テーマ（例: 別れ・故郷・再会）" aria-label="テーマ" />
+        <input v-model="lyricForm.mood" class="ai-modal__input" placeholder="ムード（例: 切ない・温かい・力強い）" aria-label="ムード" />
+        <input v-model="lyricForm.scene" class="ai-modal__input" placeholder="情景（例: 港・夕暮れ・雪の夜）" aria-label="情景" />
       </div>
-      <button type="button" :disabled="lyricLoading" :style="{ ...btnBeni, fontSize: '12px' }" @click="generateLyric">歌詞案を生成</button>
-      <div
-        v-if="lyricResult"
-        style="margin-top: 20px; padding: 20px; background: rgba(201,169,97,0.05); border: 1px solid rgba(201,169,97,0.3); font-size: 14px; color: var(--paper-100); line-height: 2; font-family: var(--ff-mincho); white-space: pre-wrap"
-      >
-        {{ lyricResult }}
-      </div>
+      <UiButton variant="primary" size="md" :disabled="lyricLoading" @click="generateLyric">歌詞案を生成</UiButton>
+      <div v-if="lyricResult" class="ai-modal__lyric-result">{{ lyricResult }}</div>
     </div>
   </ModalShell>
 </template>
+
+<style scoped>
+.ai-modal__notice {
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--site-text-muted);
+  background: var(--site-surface-muted);
+  border: 1px solid var(--site-border);
+  border-left: 3px solid var(--kin-500);
+  border-radius: var(--site-radius-sm);
+}
+.ai-modal__chat {
+  margin-top: 16px;
+}
+.ai-modal__messages {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 4px 0;
+}
+.ai-modal__row {
+  display: flex;
+}
+.ai-modal__row--user {
+  justify-content: flex-end;
+}
+.ai-modal__row--ai {
+  justify-content: flex-start;
+}
+.ai-modal__bubble {
+  padding: 10px 14px;
+  max-width: 85%;
+  font-size: 13px;
+  line-height: 1.8;
+  font-family: var(--ff-serif);
+  border-radius: var(--site-radius-md);
+}
+.ai-modal__bubble--user {
+  background: var(--murasaki-700);
+  color: #fff;
+  border: 1px solid var(--murasaki-800);
+  border-radius: 12px 12px 4px 12px;
+}
+.ai-modal__bubble--ai {
+  background: var(--site-surface-muted);
+  color: var(--site-text);
+  border: 1px solid var(--site-border);
+  border-radius: 12px 12px 12px 4px;
+}
+.ai-modal__bubble-label {
+  font-size: 10px;
+  color: var(--kin-600);
+  letter-spacing: 0.15em;
+  margin-bottom: 4px;
+  font-family: var(--ff-mincho);
+}
+.ai-modal__loading {
+  text-align: center;
+  color: var(--murasaki-600);
+  font-family: var(--ff-mincho);
+  font-size: 13px;
+}
+.ai-modal__input-row {
+  display: flex;
+  gap: 10px;
+}
+.ai-modal__input {
+  flex: 1;
+  min-width: 0;
+  background: var(--site-surface);
+  border: 1px solid var(--site-border-strong);
+  color: var(--site-text);
+  padding: 10px 12px;
+  font-family: var(--ff-serif);
+  font-size: 13px;
+  border-radius: var(--site-radius-sm);
+  outline: none;
+}
+.ai-modal__input:focus {
+  border-color: var(--murasaki-400);
+}
+.ai-modal__hint {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--site-text-light);
+}
+.ai-modal__lyric {
+  margin-top: 16px;
+}
+.ai-modal__premium {
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--site-text);
+  background: var(--site-bg-pink);
+  border: 1px solid var(--site-border);
+  border-radius: var(--site-radius-sm);
+}
+.ai-modal__premium-link {
+  background: transparent;
+  border: 0;
+  color: var(--murasaki-700);
+  cursor: pointer;
+  font-family: var(--ff-mincho);
+  font-size: 12px;
+  padding: 0;
+  margin-left: 4px;
+}
+.ai-modal__premium-link:hover {
+  text-decoration: underline;
+}
+.ai-modal__lyric-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ai-modal__lyric-result {
+  margin-top: 20px;
+  padding: 20px;
+  background: var(--site-surface-muted);
+  border: 1px solid var(--site-border);
+  border-radius: var(--site-radius-md);
+  font-size: 14px;
+  color: var(--site-text);
+  line-height: 2;
+  font-family: var(--ff-mincho);
+  white-space: pre-wrap;
+}
+
+@media (max-width: 480px) {
+  .ai-modal__input-row {
+    flex-direction: column;
+  }
+  .ai-modal__bubble {
+    max-width: 92%;
+  }
+}
+</style>

@@ -1,10 +1,10 @@
 <script setup>
 /**
  * 部品名: ゆかりの地 — ヒーローエリア
- * 用途: ページ冒頭のコピー・地図装飾・AI導線リンクを表示
+ * 用途: ページ冒頭のタイトル・肖像・地図装飾・AI導線を表示する
  */
-import UiCard from '../../ui/UiCard.vue'
-import UiIco from '../../ui/UiIco.vue'
+import heroImg from '../../../assets/hero.png'
+import TopAiCard from '../top/TopAiCard.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 
 const emit = defineEmits(['open-ai'])
@@ -14,7 +14,7 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
 </script>
 
 <template>
-  <!-- ゆかりの地ページのファーストビュー -->
+  <!-- ゆかりの地ページのファーストビュー（デザイン準拠） -->
   <section class="places-hero" aria-label="ゆかりの地紹介">
     <div class="places-hero__bg" aria-hidden="true">
       <span class="places-hero__pin places-hero__pin--1" />
@@ -26,7 +26,7 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
     <div class="places-hero__inner">
       <div class="places-hero__copy">
         <p class="places-hero__eyebrow">PLACES · PILGRIMAGE · MISORA HIBARI</p>
-        <h2 class="places-hero__title">ゆかりの地</h2>
+        <h1 class="places-hero__title">ゆかりの地</h1>
         <p class="places-hero__desc">
           美空ひばりが歩んだ軌跡を訪ねる旅<br />
           歌声が生まれ、思い出が残る場所をめぐります。
@@ -46,21 +46,18 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
             <span class="places-hero__stat-label">巡礼マップ</span>
           </li>
         </ul>
+
+        <p class="places-hero__scroll" aria-hidden="true">
+          <span class="places-hero__scroll-line" />
+          SCROLL
+        </p>
       </div>
 
-      <UiCard tone="pink" padding="md" class="places-hero__ai">
-        <p class="places-hero__ai-label">AI GUIDE · 新機能</p>
-        <p class="places-hero__ai-title">ゆかりの地について<br />AI美空ひばりに聞く</p>
-        <p class="places-hero__ai-desc">
-          「野毛の銅像はいつ建てられた？」「記念館の見学方法は？」など、
-          スポットについて AI と会話できます。
-        </p>
-        <button type="button" class="places-hero__ai-link" @click="emit('open-ai')">
-          <UiIco name="chat" :size="15" color="var(--murasaki-700)" />
-          AIと話す
-          <span aria-hidden="true">›</span>
-        </button>
-      </UiCard>
+      <div class="places-hero__visual">
+        <img :src="heroImg" alt="美空ひばり" class="places-hero__photo" />
+      </div>
+
+      <TopAiCard @open-ai="emit('open-ai')" />
     </div>
   </section>
 </template>
@@ -69,7 +66,7 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
 .places-hero {
   position: relative;
   margin-bottom: var(--sp-7);
-  padding: var(--sp-6) var(--sp-5);
+  padding: var(--sp-7) var(--sp-5);
   border-radius: var(--site-radius-lg);
   overflow: hidden;
 }
@@ -109,9 +106,10 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
 .places-hero__inner {
   position: relative;
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 1fr minmax(200px, 260px) auto;
   gap: var(--sp-6);
   align-items: center;
+  z-index: 1;
 }
 .places-hero__eyebrow {
   margin: 0 0 10px;
@@ -123,8 +121,8 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
 .places-hero__title {
   margin: 0 0 14px;
   font-family: var(--ff-mincho);
-  font-size: clamp(26px, 3.5vw, 34px);
-  font-weight: 700;
+  font-size: clamp(32px, 4vw, 42px);
+  font-weight: 800;
   letter-spacing: 0.1em;
   color: var(--site-text);
 }
@@ -136,7 +134,7 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
 }
 .places-hero__stats {
   list-style: none;
-  margin: 0;
+  margin: 0 0 var(--sp-5);
   padding: 0;
   display: flex;
   gap: var(--sp-4);
@@ -166,54 +164,47 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
   letter-spacing: 0.1em;
   color: var(--site-text-muted);
 }
-.places-hero__ai {
-  background:
-    radial-gradient(ellipse at 100% 0%, rgba(243, 235, 246, 0.85) 0%, transparent 55%),
-    var(--site-surface);
-}
-.places-hero__ai-label {
-  margin: 0 0 var(--sp-3);
+.places-hero__scroll {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--ff-latin);
   font-size: 10px;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.3em;
   color: var(--kin-600);
 }
-.places-hero__ai-title {
-  margin: 0 0 10px;
-  font-family: var(--ff-mincho);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.5;
-  letter-spacing: 0.06em;
-  color: var(--site-text);
+.places-hero__scroll-line {
+  display: block;
+  width: 1px;
+  height: 32px;
+  background: linear-gradient(180deg, var(--kin-500), transparent);
 }
-.places-hero__ai-desc {
-  margin: 0 0 var(--sp-4);
-  font-size: 12px;
-  line-height: 1.75;
-  color: var(--site-text-muted);
+.places-hero__visual {
+  display: flex;
+  justify-content: center;
 }
-.places-hero__ai-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font-family: var(--ff-sans-jp);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--murasaki-700);
-  cursor: pointer;
-  letter-spacing: 0.06em;
-}
-.places-hero__ai-link:hover {
-  text-decoration: underline;
+.places-hero__photo {
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--site-radius-lg);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--site-shadow-md);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .places-hero__inner {
     grid-template-columns: 1fr;
+    gap: var(--sp-7);
+  }
+  .places-hero__visual {
+    order: -1;
+  }
+  .places-hero__scroll {
+    display: none;
   }
 }
 </style>

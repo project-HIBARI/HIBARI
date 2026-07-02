@@ -25,12 +25,28 @@ export const HIBARU_DATA = {
   },
 
   news: [
-    { date: '2026.05.29', title: '【お知らせ】美空ひばり公式ファンサイト リニューアルオープン', type: 'info', label: 'お知らせ' },
+    { date: '2026.05.29', title: '【お知らせ】美空ひばり公式ファンサイト リニューアルオープン', type: 'info', label: 'お知らせ', isNew: true },
     { date: '2026.04.20', title: '【テレビ放映情報】4月29日（祝）NHK BSプレミアム「美空ひばり不死鳥コンサート」放映', type: 'tv', label: 'テレビ' },
     { date: '2026.04.15', title: '【イベント】5月29日（誕生日）記念館フィルムコンサート開催決定', type: 'event', label: 'イベント' },
     { date: '2026.04.10', title: '【テレビ放映情報】4月17日（金）テレビ朝日系「ザ・ベストテン名場面集」に美空ひばり出演映像', type: 'tv', label: 'テレビ' },
     { date: '2026.03.28', title: '【グッズ】「川の流れのように」発売37周年記念 特別限定盤CD発売', type: 'goods', label: 'グッズ' },
   ],
+
+  /** ホーム — ヒーロー背景動画 */
+  homeHeroVideo: {
+    src: '/videos/hibari-hero.mp4',
+    poster: '',
+  },
+
+  /** ホーム — ビデオプロモーション */
+  homePromoVideo: {
+    src: '/videos/hibari-promo.mp4',
+    label: '特別映像',
+    title: '美空ひばりの世界を映像でたどる',
+    description:
+      '名曲、舞台、思い出の瞬間を、公式ファンサイトならではの映像体験でお楽しみください。',
+    cta: 'プロモーションを見る',
+  },
 
   /** ディスコグラフィページ用サマリー（featured 一覧から算出可だが表示用に明示） */
   discographyStats: {

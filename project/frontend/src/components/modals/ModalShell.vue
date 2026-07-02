@@ -98,4 +98,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 .modal-shell__rule {
   margin-bottom: 24px;
 }
+
+@media (max-width: 480px) {
+  .modal-shell {
+    padding: 12px;
+    align-items: flex-end;
+  }
+  .modal-shell__panel {
+    padding: 24px 20px;
+    max-height: 90vh;
+    border-radius: var(--site-radius-lg) var(--site-radius-lg) 0 0;
+  }
+  .modal-shell__title {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+}
 </style>

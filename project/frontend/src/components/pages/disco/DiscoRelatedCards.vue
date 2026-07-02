@@ -40,6 +40,14 @@ const cards = [
     action: 'coming-soon',
     target: 'events',
   },
+  {
+    id: 'fanclub',
+    title: 'ファンクラブ',
+    desc: '入会・会員特典',
+    deco: 'fanclub',
+    action: 'coming-soon',
+    target: 'fanclub',
+  },
 ]
 
 function onClick(card) {
@@ -83,7 +91,7 @@ function onClick(card) {
 }
 .disco-related__grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--sp-4);
 }
 .disco-related__card {
@@ -124,6 +132,23 @@ function onClick(card) {
   background:
     radial-gradient(ellipse at 50% 0%, rgba(255, 220, 100, 0.45) 0%, transparent 60%),
     linear-gradient(180deg, #4a1520 0%, #2a0810 100%);
+}
+.disco-related__card--fanclub .disco-related__visual {
+  background: linear-gradient(135deg, var(--murasaki-700), var(--murasaki-900));
+  position: relative;
+}
+.disco-related__card--fanclub .disco-related__visual::after {
+  content: 'FC';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ff-latin);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--kin-400);
+  letter-spacing: 0.1em;
 }
 .disco-related__body {
   padding: var(--sp-4);

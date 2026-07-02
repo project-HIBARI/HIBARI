@@ -1,6 +1,7 @@
 <script setup>
 /**
  * ページ: 思い出（掲示板＋イベント）
+ * 用途: ファンの思い出投稿と交流イベントを表示する（ライトテーマ）
  */
 import { ref, computed } from 'vue'
 import PageHead from '../ui/PageHead.vue'
@@ -58,9 +59,11 @@ function like(id) {
 </script>
 
 <template>
-  <div>
-    <PageHead kanji="憶" title="思い出" sub="Memories · 証言と愛唱 · ファンの集い" tone="legacy" />
+  <div class="page-memories">
+    <PageHead kanji="憶" title="思い出" sub="Memories · 証言と愛唱 · ファンの集い" />
+
     <TabBar
+      :dark="false"
       :tabs="[
         { id: 'memories', label: '思い出投稿', icon: 'chat' },
         { id: 'events', label: '交流イベント', icon: 'calendar' },
@@ -69,20 +72,13 @@ function like(id) {
       @update:active="(v) => (memTab = v)"
     />
 
-    <div v-if="memTab === 'memories'" style="display: grid; grid-template-columns: 1fr 300px; gap: 48px; margin-top: 24px" class="mem-grid">
+    <div v-if="memTab === 'memories'" class="page-memories__layout mem-grid">
       <div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px">
+        <div class="page-memories__tags">
           <button
             type="button"
-            :style="{
-              background: tagFilter === 'all' ? 'var(--beni-700)' : 'transparent',
-              color: tagFilter === 'all' ? 'var(--paper-50)' : 'var(--paper-200)',
-              border: '1px solid rgba(201,169,97,0.4)',
-              padding: '5px 14px',
-              cursor: 'pointer',
-              fontFamily: 'var(--ff-mincho)',
-              fontSize: '11px',
-            }"
+            class="page-memories__tag"
+            :class="{ 'page-memories__tag--active': tagFilter === 'all' }"
             @click="tagFilter = 'all'"
           >
             全て
@@ -91,15 +87,8 @@ function like(id) {
             v-for="s in songs.slice(0, 6)"
             :key="s"
             type="button"
-            :style="{
-              background: tagFilter === s ? 'var(--beni-700)' : 'transparent',
-              color: tagFilter === s ? 'var(--paper-50)' : 'var(--paper-200)',
-              border: '1px solid rgba(201,169,97,0.4)',
-              padding: '5px 12px',
-              cursor: 'pointer',
-              fontFamily: 'var(--ff-mincho)',
-              fontSize: '11px',
-            }"
+            class="page-memories__tag"
+            :class="{ 'page-memories__tag--active': tagFilter === s }"
             @click="tagFilter = s"
           >
             {{ s }}
@@ -120,3 +109,48 @@ function like(id) {
     <MemoriesEventsGrid v-else />
   </div>
 </template>
+
+<style scoped>
+.page-memories {
+  color: var(--site-text);
+}
+.page-memories__layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: var(--sp-7);
+  margin-top: var(--sp-5);
+}
+.page-memories__tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-5);
+}
+.page-memories__tag {
+  background: var(--site-surface);
+  color: var(--site-text-muted);
+  border: 1px solid var(--site-border);
+  padding: 6px 14px;
+  cursor: pointer;
+  font-family: var(--ff-mincho);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  border-radius: var(--site-radius-sm);
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.page-memories__tag:hover {
+  border-color: var(--murasaki-400);
+  color: var(--murasaki-700);
+}
+.page-memories__tag--active {
+  background: var(--murasaki-700);
+  color: #fff;
+  border-color: var(--murasaki-800);
+}
+
+@media (max-width: 767px) {
+  .page-memories__layout {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

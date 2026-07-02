@@ -13,7 +13,7 @@ const items = HIBARU_DATA.homeSchedule.slice(0, 4)
 </script>
 
 <template>
-  <UiCard tone="warm" padding="md" class="top-events">
+  <UiCard tone="white" padding="md" class="top-events">
     <SectionTitle
       title="今後の放送・イベント"
       size="md"
@@ -23,12 +23,14 @@ const items = HIBARU_DATA.homeSchedule.slice(0, 4)
 
     <ul class="top-events__list">
       <li v-for="ev in items" :key="ev.id" class="top-events__item">
-        <div class="top-events__meta">
+        <div class="top-events__date-col">
           <span class="top-events__date">{{ ev.date }}</span>
           <span v-if="ev.time" class="top-events__time">{{ ev.time }}</span>
         </div>
-        <p class="top-events__title">{{ ev.title }}</p>
-        <p v-if="ev.note" class="top-events__note">{{ ev.note }}</p>
+        <div class="top-events__body">
+          <p class="top-events__title">{{ ev.title }}</p>
+          <p v-if="ev.note" class="top-events__note">{{ ev.note }}</p>
+        </div>
       </li>
     </ul>
   </UiCard>
@@ -37,6 +39,7 @@ const items = HIBARU_DATA.homeSchedule.slice(0, 4)
 <style scoped>
 .top-events {
   height: 100%;
+  min-height: 380px;
 }
 .top-events__list {
   list-style: none;
@@ -44,28 +47,39 @@ const items = HIBARU_DATA.homeSchedule.slice(0, 4)
   padding: 0;
 }
 .top-events__item {
+  display: flex;
+  gap: 16px;
   padding: 14px 0;
   border-bottom: 1px solid var(--site-border);
+  align-items: flex-start;
 }
 .top-events__item:last-child {
   border-bottom: 0;
 }
-.top-events__meta {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 6px;
+.top-events__date-col {
+  flex-shrink: 0;
+  width: 72px;
+  text-align: center;
 }
 .top-events__date {
+  display: block;
   font-family: var(--ff-mincho);
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.25;
   color: var(--murasaki-700);
+  letter-spacing: 0.02em;
 }
 .top-events__time {
+  display: block;
+  margin-top: 4px;
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--site-text-muted);
+}
+.top-events__body {
+  flex: 1;
+  min-width: 0;
 }
 .top-events__title {
   margin: 0 0 4px;
@@ -79,5 +93,14 @@ const items = HIBARU_DATA.homeSchedule.slice(0, 4)
   font-size: 11px;
   line-height: 1.5;
   color: var(--site-text-light);
+}
+
+@media (max-width: 767px) {
+  .top-events {
+    min-height: auto;
+  }
+  .top-events__date {
+    font-size: 16px;
+  }
 }
 </style>

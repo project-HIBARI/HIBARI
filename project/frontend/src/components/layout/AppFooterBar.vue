@@ -21,10 +21,7 @@ const snsItems = [
 
 <template>
   <footer role="contentinfo" class="app-footer">
-    <div
-      style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center"
-      class="footer-grid"
-    >
+    <div class="footer-grid">
       <div class="app-footer__sns">
         <span class="app-footer__sns-label">公式SNS</span>
         <a
@@ -38,7 +35,10 @@ const snsItems = [
       </div>
 
       <nav class="app-footer__links" aria-label="フッターリンク">
-        <a v-for="l in footerLinks" :key="l.label" :href="l.href" @click.prevent>{{ l.label }}</a>
+        <template v-for="(l, i) in footerLinks" :key="l.label">
+          <span v-if="i > 0" class="app-footer__sep" aria-hidden="true">|</span>
+          <a :href="l.href" @click.prevent>{{ l.label }}</a>
+        </template>
       </nav>
 
       <div class="app-footer__copy">© Misora Hibari Official Fan Site</div>
@@ -47,12 +47,34 @@ const snsItems = [
 </template>
 
 <style scoped>
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 24px;
+  align-items: center;
+}
+.app-footer__sep {
+  color: var(--site-border);
+  margin: 0 4px;
+  user-select: none;
+}
+.app-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
 @media (max-width: 767px) {
   .footer-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr;
     text-align: center;
   }
   .app-footer__sns {
+    justify-content: center;
+  }
+  .app-footer__links {
     justify-content: center;
   }
 }

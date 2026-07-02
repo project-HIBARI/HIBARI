@@ -31,13 +31,13 @@ body {
 
 /* —— 共通ヘッダー —— */
 .app-header {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
+  background: linear-gradient(180deg, #fffefb 0%, var(--site-surface) 100%);
   border-bottom: 1px solid var(--site-border);
   position: sticky;
   top: 0;
   z-index: 50;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 16px rgba(60, 40, 30, 0.04);
+  padding: 16px 48px 0;
 }
 
 .app-main-nav {
@@ -45,6 +45,32 @@ body {
   border-top: 1px solid var(--site-border);
   background: rgba(255, 255, 255, 0.85);
   overflow-x: auto;
+  justify-content: center;
+  gap: 4px;
+}
+
+@media (min-width: 1024px) {
+  .app-header {
+    position: relative;
+    min-height: 88px;
+    padding: 20px 56px 16px;
+  }
+  .app-main-nav {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-top: 0;
+    background: transparent;
+    padding: 0;
+    width: max-content;
+    max-width: min(720px, 52vw);
+  }
+  .app-main-nav__link {
+    flex: 0 0 auto;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
 }
 
 .app-main-nav__link {
@@ -81,9 +107,9 @@ body {
 
 /* —— フッター —— */
 .app-footer {
-  padding: 32px 64px 28px;
+  padding: 36px 56px 32px;
   border-top: 1px solid var(--site-border);
-  background: var(--site-surface);
+  background: linear-gradient(180deg, var(--site-surface-muted) 0%, var(--site-bg) 100%);
   color: var(--site-text-muted);
   font-family: var(--ff-sans-jp);
   font-size: 12px;
@@ -123,8 +149,9 @@ body {
 .app-footer__links {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 20px;
+  gap: 0;
   justify-content: center;
+  align-items: center;
 }
 .app-footer__links a {
   color: var(--site-text-muted);
@@ -147,6 +174,9 @@ body {
   }
   .sp-only {
     display: flex !important;
+  }
+  .app-header {
+    padding: 14px 16px 0;
   }
   .main-pad {
     padding: 24px 16px !important;
@@ -231,21 +261,8 @@ select {
   }
 }
 
-.opening-film-root {
-  width: 100vw !important;
-  height: 100dvh !important;
-  overflow: hidden !important;
-}
-
-@media (max-width: 767px) {
-  .of-title-main {
-    font-size: clamp(36px, 11vw, 72px) !important;
-  }
-  .of-title-sub {
-    font-size: clamp(14px, 4vw, 20px) !important;
-  }
-  .of-ctrl-btn {
-    min-height: 44px !important;
-    min-width: 88px !important;
+@media (max-width: 480px) {
+  .main-pad {
+    padding: 20px 12px !important;
   }
 }

@@ -1,6 +1,7 @@
 <script setup>
 /**
  * 部品名: 献花ページ — 誕生日／不死鳥忌カード
+ * 用途: 献花ページ上部で記念日カード2枚を表示する
  */
 import { daysUntil } from '../../../utils/hibaru.js'
 
@@ -30,39 +31,94 @@ const cards = [
 </script>
 
 <template>
-  <section style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 56px">
-    <div
+  <section class="msg-anniv">
+    <article
       v-for="(s, i) in cards"
       :key="i"
-      :style="{
-        background: s.active ? 'linear-gradient(180deg,rgba(139,26,26,0.35),rgba(139,26,26,0.1))' : 'rgba(201,169,97,0.03)',
-        border: `1px solid ${s.active ? 'var(--kin-500)' : 'var(--beni-700)'}`,
-        padding: '40px 36px',
-        textAlign: 'center',
-      }"
+      class="msg-anniv__card"
+      :class="{ 'msg-anniv__card--active': s.active }"
     >
-      <div
-        :style="{
-          fontFamily: 'var(--ff-latin)',
-          fontSize: '11px',
-          letterSpacing: '0.4em',
-          color: s.active ? 'var(--kin-500)' : 'var(--beni-500)',
-        }"
-      >
-        {{ s.en }}
+      <div class="msg-anniv__en">{{ s.en }}</div>
+      <div class="msg-anniv__date">{{ s.date }}</div>
+      <div class="msg-anniv__jp">{{ s.jp }}</div>
+      <hr class="hr-gold msg-anniv__rule" />
+      <div class="msg-anniv__count">
+        献花 <span class="msg-anniv__count-num">{{ s.count }}</span> 件 · {{ s.status }}
       </div>
-      <div style="font-family: var(--ff-mincho); font-size: 48px; font-weight: 800; margin: 12px 0 6px; letter-spacing: 0.04em">{{ s.date }}</div>
-      <div style="font-size: 13px; color: var(--paper-200)">{{ s.jp }}</div>
-      <hr class="hr-gold" style="margin: 20px auto; width: 60px" />
-      <div style="font-family: var(--ff-mono); font-size: 11px; color: var(--paper-300); letter-spacing: 0.2em">
-        献花 <span style="color: var(--kin-500); font-size: 14px">{{ s.count }}</span> 件 · {{ s.status }}
+      <div v-if="!s.active" class="msg-anniv__days">
+        {{ s.days }}<span class="msg-anniv__days-unit"> 日後</span>
       </div>
-      <div
-        v-if="!s.active"
-        style="margin-top: 12px; font-family: var(--ff-latin); font-size: 48px; font-weight: 700; color: var(--beni-500); line-height: 1"
-      >
-        {{ s.days }}<span style="font-size: 14px; font-family: var(--ff-mincho)"> 日後</span>
-      </div>
-    </div>
+    </article>
   </section>
 </template>
+
+<style scoped>
+.msg-anniv {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-7);
+}
+.msg-anniv__card {
+  text-align: center;
+  padding: var(--sp-7) var(--sp-6);
+  border-radius: var(--site-radius-lg);
+  border: 1px solid var(--site-border);
+  background: var(--site-surface);
+  box-shadow: var(--site-shadow);
+}
+.msg-anniv__card--active {
+  background: linear-gradient(135deg, var(--site-bg-pink) 0%, var(--site-surface) 100%);
+  border-color: var(--kin-500);
+}
+.msg-anniv__en {
+  font-family: var(--ff-latin);
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: var(--kin-600);
+}
+.msg-anniv__date {
+  font-family: var(--ff-mincho);
+  font-size: clamp(32px, 6vw, 48px);
+  font-weight: 800;
+  margin: 12px 0 6px;
+  letter-spacing: 0.04em;
+  color: var(--site-text);
+}
+.msg-anniv__jp {
+  font-size: 13px;
+  color: var(--site-text-muted);
+}
+.msg-anniv__rule {
+  margin: 20px auto;
+  width: 60px;
+}
+.msg-anniv__count {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  color: var(--site-text-light);
+  letter-spacing: 0.2em;
+}
+.msg-anniv__count-num {
+  color: var(--kin-600);
+  font-size: 14px;
+}
+.msg-anniv__days {
+  margin-top: 12px;
+  font-family: var(--ff-latin);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--murasaki-600);
+  line-height: 1;
+}
+.msg-anniv__days-unit {
+  font-size: 14px;
+  font-family: var(--ff-mincho);
+}
+
+@media (max-width: 480px) {
+  .msg-anniv {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

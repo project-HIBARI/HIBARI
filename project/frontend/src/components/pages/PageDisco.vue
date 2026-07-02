@@ -4,7 +4,6 @@
  * 構成: ヒーロー / PV / フィルタ / 楽曲グリッド / ページネーション / AI / 関連導線
  */
 import { ref, computed, watch, onMounted } from 'vue'
-import PageHead from '../ui/PageHead.vue'
 import DiscoHeroSection from './disco/DiscoHeroSection.vue'
 import DiscoPvSection from './disco/DiscoPvSection.vue'
 import DiscoFilterPanel from './disco/DiscoFilterPanel.vue'
@@ -112,9 +111,10 @@ function openDetail(song) {
 
 <template>
   <div class="page-disco">
-    <PageHead kanji="曲" title="ディスコグラフィ" sub="Discography · MISORA HIBARI · 1949—1989" />
-
-    <DiscoHeroSection @open-detail="openDetail" />
+    <DiscoHeroSection
+      @open-detail="openDetail"
+      @open-ai="emit('open-modal', 'ai')"
+    />
 
     <DiscoPvSection @coming-soon="emit('open-auth', 'pv')" />
 
