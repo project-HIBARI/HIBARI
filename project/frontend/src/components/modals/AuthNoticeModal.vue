@@ -16,6 +16,9 @@ const emit = defineEmits(['close'])
 const titles = {
   login: 'ログイン',
   register: '新規登録',
+  'forgot-password': 'パスワード再設定',
+  terms: '利用規約',
+  privacy: 'プライバシーポリシー',
   search: 'サイト内検索',
   news: '最新ニュース',
   events: '放送・イベント',
@@ -27,6 +30,9 @@ const titles = {
 const messages = {
   login: 'ログイン機能は現在準備中です。',
   register: '新規会員登録機能は現在準備中です。',
+  'forgot-password': 'パスワード再設定機能は現在準備中です。',
+  terms: '利用規約ページは現在準備中です。',
+  privacy: 'プライバシーポリシーページは現在準備中です。',
   search: 'サイト内検索機能は現在準備中です。',
   news: 'ニュース一覧ページは現在準備中です。',
   events: '放送・イベント一覧ページは現在準備中です。',

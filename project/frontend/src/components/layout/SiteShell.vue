@@ -10,9 +10,7 @@
 
 import { ref } from 'vue'
 
-import AppHeaderBar from './AppHeaderBar.vue'
-
-import AppMainNav from './AppMainNav.vue'
+import AppHeader from './AppHeader.vue'
 
 import AppDrawerNav from './AppDrawerNav.vue'
 
@@ -40,6 +38,10 @@ import PageMemories from '../pages/PageMemories.vue'
 
 import PageMessage from '../pages/PageMessage.vue'
 
+import PageLogin from '../pages/PageLogin.vue'
+
+import PageRegister from '../pages/PageRegister.vue'
+
 import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
 
 
@@ -48,15 +50,19 @@ const navItems = [
 
   { id: 'top', label: 'ホーム' },
 
-  { id: 'disco', label: 'ディスコグラフィー' },
+  { id: 'news', label: 'ニュース' },
 
-  { id: 'profile', label: '歩み' },
+  { id: 'profile', label: '美空ひばりについて' },
+
+  { id: 'disco', label: 'ディスコグラフィー' },
 
   { id: 'map', label: 'ゆかりの地' },
 
   { id: 'memories', label: '思い出' },
 
   { id: 'message', label: '献花' },
+
+  { id: 'fanclub', label: 'ファンクラブ' },
 
 ]
 
@@ -90,7 +96,49 @@ function goTo(id) {
 
 
 
+function handleNav(id) {
+
+  if (id === 'news') {
+
+    openAuth('news')
+
+    return
+
+  }
+
+  if (id === 'fanclub') {
+
+    modal.value = 'fanclub'
+
+    drawerOpen.value = false
+
+    return
+
+  }
+
+  goTo(id)
+
+}
+
+
+
 function openAuth(mode) {
+
+  if (mode === 'login') {
+
+    goTo('login')
+
+    return
+
+  }
+
+  if (mode === 'register') {
+
+    goTo('register')
+
+    return
+
+  }
 
   authMode.value = mode
 
@@ -114,27 +162,27 @@ function closeAuth() {
 
   <div class="site-shell site-bg">
 
-    <header role="banner" class="app-header">
+    <AppHeader
 
-      <AppHeaderBar
+      :items="navItems"
 
-        @logo="goTo('top')"
+      :page="page"
 
-        @open-drawer="drawerOpen = true"
+      @logo="goTo('top')"
 
-        @open-auth="openAuth"
+      @navigate="handleNav"
 
-        @open-search="openAuth('search')"
+      @open-drawer="drawerOpen = true"
 
-      />
+      @open-auth="openAuth"
 
-      <AppMainNav :items="navItems" :page="page" @navigate="goTo" />
+      @open-search="openAuth('search')"
 
-    </header>
+    />
 
 
 
-    <PremiumMemberBar @open-fanclub="modal = 'fanclub'" />
+    <PremiumMemberBar v-if="page !== 'login' && page !== 'register'" @open-fanclub="modal = 'fanclub'" />
 
 
 
@@ -148,7 +196,7 @@ function closeAuth() {
 
       @close="drawerOpen = false"
 
-      @navigate="goTo"
+      @navigate="handleNav"
 
       @open-modal="(k) => { modal = k; drawerOpen = false }"
 
@@ -162,9 +210,13 @@ function closeAuth() {
 
       id="main-content"
 
-      class="main-pad"
+      :class="['main-pad', { 'main-pad--flush': page === 'login' || page === 'register' }]"
 
-      style="min-height: 800px; max-width: 1400px; margin: 0 auto; color: var(--site-text)"
+      :style="page === 'login' || page === 'register'
+
+        ? { minHeight: 'auto', color: 'var(--site-text)' }
+
+        : { minHeight: '800px', maxWidth: '1400px', margin: '0 auto', color: 'var(--site-text)' }"
 
     >
 
@@ -220,6 +272,24 @@ function closeAuth() {
 
       <PageMessage v-else-if="page === 'message'" />
 
+      <PageLogin
+
+        v-else-if="page === 'login'"
+
+        @open-auth="openAuth"
+
+      />
+
+      <PageRegister
+
+        v-else-if="page === 'register'"
+
+        @navigate="goTo"
+
+        @open-auth="openAuth"
+
+      />
+
     </main>
 
 
@@ -257,4 +327,3 @@ function closeAuth() {
 }
 
 </style>
-

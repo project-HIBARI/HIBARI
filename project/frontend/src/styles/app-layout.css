@@ -28,9 +28,16 @@ body {
 .main-pad {
   padding: 48px 64px !important;
 }
+.main-pad--flush {
+  padding: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
 
 /* —— 共通ヘッダー —— */
 .app-header {
+  width: 100%;
+  max-width: 100%;
   background: linear-gradient(180deg, #fffefb 0%, var(--site-surface) 100%);
   border-bottom: 1px solid var(--site-border);
   position: sticky;
@@ -44,32 +51,15 @@ body {
   display: flex;
   border-top: 1px solid var(--site-border);
   background: rgba(255, 255, 255, 0.85);
-  overflow-x: auto;
   justify-content: center;
   gap: 4px;
 }
 
 @media (min-width: 1024px) {
   .app-header {
-    position: relative;
+    position: sticky;
     min-height: 88px;
     padding: 20px 56px 16px;
-  }
-  .app-main-nav {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border-top: 0;
-    background: transparent;
-    padding: 0;
-    width: max-content;
-    max-width: min(720px, 52vw);
-  }
-  .app-main-nav__link {
-    flex: 0 0 auto;
-    padding: 8px 14px;
-    font-size: 13px;
   }
 }
 
