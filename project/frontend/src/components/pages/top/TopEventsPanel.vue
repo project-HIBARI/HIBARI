@@ -39,7 +39,12 @@ const items = HIBARU_DATA.homeSchedule.slice(0, 4)
 <style scoped>
 .top-events {
   height: 100%;
+  display: flex;
+  flex-direction: column;
   min-height: 380px;
+}
+.top-events__list {
+  flex: 1;
 }
 .top-events__list {
   list-style: none;

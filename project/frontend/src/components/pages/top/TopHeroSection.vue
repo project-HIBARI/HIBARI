@@ -13,9 +13,9 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
 </script>
 
 <template>
-  <section class="home-hero" aria-label="メインビジュアル">
+  <section class="top-hero" aria-label="メインビジュアル">
     <video
-      class="home-hero__video"
+      class="top-hero__video"
       autoplay
       muted
       loop
@@ -26,19 +26,19 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
       <source :src="heroVideoSrc" type="video/mp4" />
     </video>
 
-    <div class="home-hero__overlay" aria-hidden="true" />
+    <div class="top-hero__overlay" aria-hidden="true" />
 
-    <div class="home-hero__inner">
-      <div class="home-hero__copy">
-        <h1 class="home-hero__title">
+    <div class="top-hero__inner">
+      <div class="top-hero__copy">
+        <h1 class="top-hero__title">
           永遠の歌声、<br />
           美空ひばりとともに。
         </h1>
-        <p class="home-hero__sub">
+        <p class="top-hero__sub">
           美空ひばりの魅力を、もっと深く、もっと身近に。<br />
           ここだけの体験を、あなたに。
         </p>
-        <div class="home-hero__cta">
+        <div class="top-hero__cta">
           <UiButton variant="primary" size="lg" @click="emit('open-auth', 'register')">
             新規登録（無料）
           </UiButton>
@@ -48,14 +48,14 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
         </div>
       </div>
 
-      <div class="home-hero__side">
+      <div class="top-hero__side">
         <TopAiCard @open-ai="emit('open-ai')" />
-        <div class="home-hero__anniversary" aria-label="芸能生活80周年記念">
-          <div class="home-hero__anniversary-ring">
-            <span class="home-hero__anniversary-num">80</span>
-            <span class="home-hero__anniversary-unit">周年</span>
+        <div class="top-hero__anniversary" aria-label="芸能生活80周年記念">
+          <div class="top-hero__anniversary-ring">
+            <span class="top-hero__anniversary-num">80</span>
+            <span class="top-hero__anniversary-unit">周年</span>
           </div>
-          <p class="home-hero__anniversary-text">芸能生活<br />80周年<br />記念サイト</p>
+          <p class="top-hero__anniversary-text">芸能生活<br />80周年<br />記念サイト</p>
         </div>
       </div>
     </div>
@@ -63,111 +63,105 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
 </template>
 
 <style scoped>
-.home-hero {
+.top-hero {
   position: relative;
-  width: 100vw;
-  max-width: none;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-  margin-bottom: var(--sp-8);
-  min-height: calc(100vh - 148px);
-  max-height: 820px;
-  border-radius: 0;
+  width: 100%;
   overflow: hidden;
+  min-height: clamp(520px, calc(100vh - 168px), 780px);
 }
 
-.home-hero__video {
+.top-hero__video {
   position: absolute;
   inset: 0;
+  z-index: 0;
   width: 100%;
   height: 100%;
-  max-width: none;
+  min-width: 100%;
+  min-height: 100%;
   object-fit: cover;
-  object-position: 58% 22%;
-  z-index: 0;
+  object-position: center 32%;
   pointer-events: none;
   opacity: 1;
   filter: contrast(1.05);
+  transform: scale(1.08);
+  transform-origin: center center;
 }
 
-.home-hero__overlay {
+.top-hero__overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.02) 22%,
-    transparent 38%
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.02) 20%,
+    transparent 36%
   );
 }
 
-.home-hero__inner {
+.top-hero__inner {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(280px, 360px);
-  gap: var(--sp-7);
+  grid-template-columns: minmax(280px, 1fr) minmax(260px, 360px);
+  gap: clamp(24px, 4vw, 48px);
   align-items: center;
   max-width: 1400px;
   margin: 0 auto;
-  padding: var(--sp-8) var(--sp-6);
+  padding: clamp(48px, 6vw, 72px) clamp(24px, 4vw, 56px);
   min-height: inherit;
 }
 
-.home-hero__copy {
+.top-hero__copy {
   position: relative;
-  padding: 28px 24px 28px 0;
+  padding: 8px 0;
 }
 
-.home-hero__copy::before {
+.top-hero__copy::before {
   content: '';
   position: absolute;
   z-index: -1;
-  inset: -24px 8px -24px -32px;
+  inset: -20px 24px -20px -28px;
   background: linear-gradient(
-    105deg,
-    rgba(255, 251, 247, 0.78) 0%,
-    rgba(255, 249, 246, 0.42) 58%,
-    rgba(255, 255, 255, 0) 100%
+    102deg,
+    rgba(255, 251, 247, 0.42) 0%,
+    rgba(255, 249, 246, 0.16) 52%,
+    transparent 100%
   );
-  border-radius: var(--site-radius-md);
   pointer-events: none;
 }
 
-.home-hero__title {
+.top-hero__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: clamp(34px, 4.2vw, 48px);
+  font-size: clamp(32px, 4vw, 46px);
   font-weight: 800;
-  line-height: 1.5;
+  line-height: 1.52;
   letter-spacing: 0.08em;
   color: var(--site-text);
   text-shadow:
-    0 1px 2px rgba(255, 255, 255, 0.95),
-    0 0 20px rgba(255, 251, 247, 0.65);
+    0 1px 2px rgba(255, 255, 255, 0.9),
+    0 0 16px rgba(255, 251, 247, 0.5);
 }
 
-.home-hero__sub {
+.top-hero__sub {
   margin: var(--sp-6) 0 0;
   font-size: 14px;
-  line-height: 2.1;
+  line-height: 2;
   color: var(--site-text-muted);
   letter-spacing: 0.05em;
-  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.75);
 }
 
-.home-hero__cta {
+.top-hero__cta {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
   margin-top: var(--sp-7);
 }
 
-.home-hero__side {
+.top-hero__side {
   display: flex;
   flex-direction: column;
   gap: var(--sp-5);
@@ -177,19 +171,19 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
   max-width: 360px;
 }
 
-.home-hero__anniversary {
+.top-hero__anniversary {
   display: flex;
   align-items: center;
   gap: 14px;
   padding: 14px 18px;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.9);
   border: 1px solid var(--kin-500);
   border-radius: var(--site-radius-md);
   box-shadow: var(--site-shadow);
   align-self: flex-end;
 }
 
-.home-hero__anniversary-ring {
+.top-hero__anniversary-ring {
   width: 68px;
   height: 68px;
   border-radius: 50%;
@@ -202,7 +196,7 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
   flex-shrink: 0;
 }
 
-.home-hero__anniversary-num {
+.top-hero__anniversary-num {
   font-family: var(--ff-latin);
   font-size: 24px;
   font-weight: 700;
@@ -210,13 +204,13 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
   line-height: 1;
 }
 
-.home-hero__anniversary-unit {
+.top-hero__anniversary-unit {
   font-family: var(--ff-mincho);
   font-size: 10px;
   color: var(--kin-600);
 }
 
-.home-hero__anniversary-text {
+.top-hero__anniversary-text {
   margin: 0;
   font-family: var(--ff-mincho);
   font-size: 11px;
@@ -226,60 +220,53 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
 }
 
 @media (max-width: 1100px) {
-  .home-hero__inner {
+  .top-hero__inner {
     grid-template-columns: 1fr;
     gap: var(--sp-7);
     padding-top: var(--sp-7);
     padding-bottom: var(--sp-7);
   }
-  .home-hero__side {
+  .top-hero__side {
     justify-self: center;
     max-width: 420px;
-  }
-  .home-hero__copy::before {
-    inset: -20px -16px -20px -20px;
   }
 }
 
 @media (max-width: 767px) {
-  .home-hero {
-    min-height: min(72vh, 640px);
-    max-height: none;
-    margin-bottom: var(--sp-6);
+  .top-hero {
+    min-height: min(68vh, 620px);
   }
-  .home-hero__inner {
+  .top-hero__inner {
     padding: var(--sp-6) var(--sp-4);
   }
-  .home-hero__copy {
-    padding: 20px 0;
-  }
-  .home-hero__copy::before {
+  .top-hero__copy::before {
     inset: -12px -8px -12px -12px;
     background: linear-gradient(
       180deg,
-      rgba(255, 251, 247, 0.82) 0%,
-      rgba(255, 249, 246, 0.5) 70%,
-      rgba(255, 255, 255, 0) 100%
+      rgba(255, 251, 247, 0.5) 0%,
+      rgba(255, 249, 246, 0.22) 65%,
+      transparent 100%
     );
   }
-  .home-hero__title {
-    font-size: clamp(28px, 8vw, 36px);
+  .top-hero__title {
+    font-size: clamp(26px, 7.5vw, 34px);
   }
-  .home-hero__cta {
+  .top-hero__cta {
     flex-direction: column;
     align-items: stretch;
   }
-  .home-hero__side {
-    flex-direction: column;
-    align-items: stretch;
+  .top-hero__video {
+    object-position: center 28%;
+    transform: scale(1.12);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-hero__video {
+  .top-hero__video {
     display: none;
+    transform: none;
   }
-  .home-hero__overlay {
+  .top-hero__overlay {
     background: linear-gradient(118deg, #fff9f6 0%, var(--site-bg-pink) 38%, #f8f0ea 100%);
   }
 }

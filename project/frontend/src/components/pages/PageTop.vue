@@ -1,12 +1,10 @@
 <script setup>
 /**
  * ページ: ホーム（top）
- * 構成: ヒーロー / サブスク・ニュース・イベント / カテゴリ導線 / 楽しみ方
+ * 構成: ヒーロー / 3カラム / カテゴリ導線 / 楽しみ方
  */
 import TopHeroSection from './top/TopHeroSection.vue'
-import TopSubscriptionCard from './top/TopSubscriptionCard.vue'
-import TopNewsPanel from './top/TopNewsPanel.vue'
-import TopEventsPanel from './top/TopEventsPanel.vue'
+import TopMainPanels from './top/TopMainPanels.vue'
 import TopCategoryCards from './top/TopCategoryCards.vue'
 import TopEnjoyGuide from './top/TopEnjoyGuide.vue'
 
@@ -38,18 +36,20 @@ function onComingSoon(target) {
 
 <template>
   <div class="page-top">
-    <TopHeroSection
-      @open-auth="(m) => emit('open-auth', m)"
-      @scroll-enjoy="scrollToEnjoy"
-      @open-ai="emit('open-modal', 'ai')"
-    />
+    <div class="page-top__hero-wrap">
+      <TopHeroSection
+        @open-auth="(m) => emit('open-auth', m)"
+        @scroll-enjoy="scrollToEnjoy"
+        @open-ai="emit('open-modal', 'ai')"
+      />
+    </div>
 
     <div class="page-top__body">
-      <section class="page-top__columns" aria-label="おすすめと最新情報">
-        <TopSubscriptionCard @open-detail="emit('open-modal', 'fanclub')" />
-        <TopNewsPanel @open-all="emit('open-auth', 'news')" />
-        <TopEventsPanel @open-all="emit('open-auth', 'events')" />
-      </section>
+      <TopMainPanels
+        @open-fanclub="emit('open-modal', 'fanclub')"
+        @open-news="emit('open-auth', 'news')"
+        @open-events="emit('open-auth', 'events')"
+      />
 
       <TopCategoryCards @navigate="(id) => emit('navigate', id)" @coming-soon="onComingSoon" />
 
@@ -59,20 +59,42 @@ function onComingSoon(target) {
 </template>
 
 <style scoped>
-.page-top__body {
-  overflow-x: clip;
-}
-.page-top__columns {
-  display: grid;
-  grid-template-columns: 1.15fr 1fr 1fr;
-  gap: 22px;
-  margin-bottom: var(--sp-8);
-  align-items: stretch;
+.page-top {
+  --site-max: 1400px;
+  --main-pad-x: 64px;
 }
 
-@media (max-width: 1024px) {
-  .page-top__columns {
-    grid-template-columns: 1fr;
+.page-top__hero-wrap {
+  --bleed: max(
+    var(--main-pad-x),
+    calc((100vw - min(100vw, var(--site-max))) / 2 + var(--main-pad-x))
+  );
+  width: calc(100% + 2 * var(--bleed));
+  margin-inline: calc(-1 * var(--bleed));
+  margin-bottom: var(--sp-8);
+}
+
+.page-top__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+}
+
+@media (max-width: 767px) {
+  .page-top {
+    --main-pad-x: 16px;
+  }
+  .page-top__hero-wrap {
+    margin-bottom: var(--sp-6);
+  }
+  .page-top__body {
+    gap: var(--sp-6);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-top {
+    --main-pad-x: 12px;
   }
 }
 </style>

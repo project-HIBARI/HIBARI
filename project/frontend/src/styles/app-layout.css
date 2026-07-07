@@ -19,6 +19,10 @@ body {
   min-height: 100vh;
 }
 
+.site-shell {
+  overflow-x: clip;
+}
+
 .pc-only {
   display: flex !important;
 }

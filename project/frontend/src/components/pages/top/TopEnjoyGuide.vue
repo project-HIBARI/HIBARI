@@ -17,7 +17,6 @@ const guides = [
 </script>
 
 <template>
-  <!-- 「サイトの楽しみ方」ボタンのスクロール先セクション -->
   <section id="home-enjoy-guide" class="top-enjoy" aria-label="サイトの楽しみ方">
     <SectionTitle title="サイトの楽しみ方" sub="How to enjoy" size="lg" />
 
@@ -41,31 +40,36 @@ const guides = [
 
 <style scoped>
 .top-enjoy {
-  margin-bottom: var(--sp-7);
   scroll-margin-top: 120px;
 }
 .top-enjoy__grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
 }
 .top-enjoy__card {
   height: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.top-enjoy__card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--site-shadow-md);
 }
 .top-enjoy__btn {
   width: 100%;
+  min-height: 140px;
   background: transparent;
   border: 0;
-  padding: 0;
+  padding: 4px 0 0;
   cursor: pointer;
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .top-enjoy__icon {
   font-family: var(--ff-mincho);
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
   color: var(--murasaki-600);
   line-height: 1;
@@ -75,12 +79,18 @@ const guides = [
   font-size: 16px;
   font-weight: 700;
   color: var(--site-text);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 .top-enjoy__card-desc {
   font-size: 12px;
-  line-height: 1.7;
+  line-height: 1.75;
   color: var(--site-text-muted);
+}
+
+@media (max-width: 1024px) {
+  .top-enjoy__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 767px) {

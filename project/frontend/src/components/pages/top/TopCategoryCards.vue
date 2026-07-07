@@ -3,46 +3,50 @@
  * 部品名: ホーム — 下部カテゴリ導線カード
  * 用途: 各ページや準備中機能への誘導カード5枚を横並びで表示する
  */
+import SectionTitle from '../../ui/SectionTitle.vue'
+import RelatedPageCard from '../../ui/RelatedPageCard.vue'
+import RelatedPageCardGrid from '../../ui/RelatedPageCardGrid.vue'
+
 const emit = defineEmits(['navigate', 'coming-soon'])
 
 const cards = [
   {
     id: 'profile',
     title: '美空ひばりについて',
-    desc: '彼女の人生と軌跡',
-    deco: 'rose',
+    subtitle: '彼女の人生と軌跡',
+    variant: 'rose',
     action: 'navigate',
     target: 'profile',
   },
   {
     id: 'disco',
     title: 'ディスコグラフィー',
-    desc: '楽曲・アルバム一覧',
-    deco: 'record',
+    subtitle: '楽曲・アルバム一覧',
+    variant: 'record',
     action: 'navigate',
     target: 'disco',
   },
   {
     id: 'gallery',
     title: 'ギャラリー',
-    desc: '写真でたどる軌跡',
-    deco: 'gallery',
+    subtitle: '写真でたどる軌跡',
+    variant: 'gallery',
     action: 'coming-soon',
     target: 'gallery',
   },
   {
     id: 'events',
     title: 'イベント情報',
-    desc: 'コンサート・企画展など',
-    deco: 'stage',
+    subtitle: 'コンサート・企画展など',
+    variant: 'stage',
     action: 'coming-soon',
     target: 'events',
   },
   {
     id: 'fanclub',
     title: 'ファンクラブ',
-    desc: '入会・会員特典',
-    deco: 'fanclub',
+    subtitle: '入会・会員特典',
+    variant: 'fanclub',
     action: 'modal',
     target: 'fanclub',
   },
@@ -59,146 +63,23 @@ function onClick(card) {
 
 <template>
   <section class="top-categories" aria-label="コンテンツ一覧">
-    <button
-      v-for="c in cards"
-      :key="c.id"
-      type="button"
-      class="top-categories__card"
-      :class="`top-categories__card--${c.deco}`"
-      :aria-label="c.title"
-      @click="onClick(c)"
-    >
-      <div class="top-categories__body">
-        <h3 class="top-categories__title">{{ c.title }}</h3>
-        <p class="top-categories__desc">{{ c.desc }}</p>
-        <span class="top-categories__arrow">›</span>
-      </div>
-      <div class="top-categories__visual" aria-hidden="true" />
-    </button>
+    <SectionTitle title="コンテンツを探す" sub="Explore" size="md" />
+
+    <RelatedPageCardGrid :columns="5">
+      <RelatedPageCard
+        v-for="c in cards"
+        :key="c.id"
+        :title="c.title"
+        :subtitle="c.subtitle"
+        :variant="c.variant"
+        @click="onClick(c)"
+      />
+    </RelatedPageCardGrid>
   </section>
 </template>
 
 <style scoped>
 .top-categories {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
-  margin-bottom: var(--sp-8);
-}
-.top-categories__card {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  border: 1px solid var(--site-border);
-  border-radius: var(--site-radius-lg);
-  background: linear-gradient(135deg, #fff 0%, #fff9f7 100%);
-  box-shadow: var(--site-shadow);
-  overflow: hidden;
-  cursor: pointer;
-  text-align: left;
-  padding: 0;
-  min-height: 118px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.top-categories__card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--site-shadow-md);
-}
-.top-categories__body {
-  flex: 1;
-  padding: 18px 14px 18px 18px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.top-categories__visual {
-  width: 42%;
-  min-width: 88px;
-  flex-shrink: 0;
-  background: var(--site-surface-muted);
-  position: relative;
-}
-.top-categories__card--rose .top-categories__visual {
-  background:
-    radial-gradient(circle at 30% 60%, rgba(220, 120, 140, 0.35) 0%, transparent 50%),
-    radial-gradient(circle at 70% 40%, rgba(240, 160, 180, 0.3) 0%, transparent 45%),
-    linear-gradient(160deg, #fce8ec, #f5ebe0);
-}
-.top-categories__card--record .top-categories__visual {
-  background:
-    radial-gradient(circle at center, #2a201a 28%, transparent 29%),
-    repeating-radial-gradient(circle at center, #333 0 1px, #222 1px 3px),
-    linear-gradient(160deg, #3a2a1a, #1a1410);
-}
-.top-categories__card--record .top-categories__visual::after {
-  content: '';
-  position: absolute;
-  inset: 50% auto auto 50%;
-  transform: translate(-50%, -50%);
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px solid rgba(201, 169, 97, 0.4);
-  background: radial-gradient(circle, var(--beni-700) 0%, #5e1111 100%);
-}
-.top-categories__card--gallery .top-categories__visual {
-  background: linear-gradient(135deg, #d9c7a6 0%, #c4a882 100%);
-  box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.3);
-}
-.top-categories__card--stage .top-categories__visual {
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 220, 100, 0.5) 0%, transparent 60%),
-    linear-gradient(180deg, #4a1520 0%, #2a0810 100%);
-}
-.top-categories__card--fanclub .top-categories__visual {
-  background: linear-gradient(135deg, var(--murasaki-700), var(--murasaki-900));
-}
-.top-categories__card--fanclub .top-categories__visual::after {
-  content: 'FC';
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--ff-latin);
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--kin-400);
-  letter-spacing: 0.1em;
-}
-.top-categories__title {
-  margin: 0 0 6px;
-  font-family: var(--ff-mincho);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--site-text);
-  line-height: 1.45;
-}
-.top-categories__desc {
   margin: 0;
-  font-size: 11px;
-  line-height: 1.55;
-  color: var(--site-text-muted);
-}
-.top-categories__arrow {
-  position: absolute;
-  right: 12px;
-  bottom: 16px;
-  font-size: 18px;
-  color: var(--murasaki-500);
-  line-height: 1;
-}
-
-@media (max-width: 1200px) {
-  .top-categories {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-@media (max-width: 767px) {
-  .top-categories {
-    grid-template-columns: 1fr;
-  }
 }
 </style>
