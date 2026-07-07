@@ -1,11 +1,10 @@
 <script setup>
 /**
  * ページ: ログイン
- * 構成: 背景装飾 / 見出し / フォームカード / CTA バナー
+ * 構成: 背景装飾 / 見出し / フォームカード
  */
 import LoginHeroBackground from './login/LoginHeroBackground.vue'
 import LoginFormCard from './login/LoginFormCard.vue'
-import LoginCtaBanner from './login/LoginCtaBanner.vue'
 
 const emit = defineEmits(['open-auth'])
 </script>
@@ -27,8 +26,6 @@ const emit = defineEmits(['open-auth'])
         <LoginFormCard @open-auth="(m) => emit('open-auth', m)" />
       </div>
     </section>
-
-    <LoginCtaBanner />
   </div>
 </template>
 

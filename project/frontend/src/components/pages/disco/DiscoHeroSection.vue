@@ -3,7 +3,7 @@
  * 部品名: ディスコグラフィ — ヒーローエリア
  * 用途: ページ冒頭のコピー・肖像・AIカード・80周年バッジ・今日の一曲を表示する
  */
-import heroImg from '../../../assets/hero.png'
+import { pageImageUrl, PAGE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import UiCard from '../../ui/UiCard.vue'
 import RecordChip from '../../ui/RecordChip.vue'
 import TopAiCard from '../top/TopAiCard.vue'
@@ -12,6 +12,7 @@ import { todaysSong } from '../../../utils/hibaru.js'
 
 const stats = HIBARU_DATA.discographyStats
 const today = todaysSong()
+const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
 
 const emit = defineEmits(['open-detail', 'open-ai'])
 </script>

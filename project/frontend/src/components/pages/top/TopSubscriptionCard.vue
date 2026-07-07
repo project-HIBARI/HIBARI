@@ -3,8 +3,10 @@
  * 部品名: ホーム — サブスクリプションサービス紹介カード
  * 用途: ヒーロー下の会員向け特典・サブスク案内を表示する
  */
+import PageImageCard from '../../common/PageImageCard.vue'
 import UiCard from '../../ui/UiCard.vue'
 import UiButton from '../../ui/UiButton.vue'
+import { PAGE_IMAGES } from '../../../lib/pageImages.js'
 
 const emit = defineEmits(['open-detail'])
 
@@ -18,6 +20,17 @@ const perks = [
 
 <template>
   <UiCard tone="purple" padding="lg" class="top-subscription">
+    <div class="top-subscription__image">
+      <PageImageCard
+        :image="PAGE_IMAGES.benefits"
+        title="会員特典"
+        description="限定コンテンツや先行予約など、会員だけの特典をご用意しています。"
+        alt="会員特典"
+        image-only
+        compact
+        fit="contain"
+      />
+    </div>
     <span class="top-subscription__ribbon">おすすめ</span>
     <p class="top-subscription__lead">特別な体験を、あなたに。</p>
     <h2 class="top-subscription__title">サブスクリプションサービス</h2>
@@ -45,6 +58,20 @@ const perks = [
   display: flex;
   flex-direction: column;
   min-height: 380px;
+  overflow: hidden;
+}
+.top-subscription__image {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 42%;
+  height: 140px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.top-subscription__image :deep(.page-image-card__media) {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
 }
 .top-subscription__ribbon {
   position: absolute;

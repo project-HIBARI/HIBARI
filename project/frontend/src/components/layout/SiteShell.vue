@@ -16,6 +16,8 @@ import AppDrawerNav from './AppDrawerNav.vue'
 
 import PremiumMemberBar from './PremiumMemberBar.vue'
 
+import LoginCtaBanner from '../pages/login/LoginCtaBanner.vue'
+
 import AppFooterBar from './AppFooterBar.vue'
 
 import FanclubModal from '../modals/FanclubModal.vue'
@@ -182,10 +184,6 @@ function closeAuth() {
 
 
 
-    <PremiumMemberBar v-if="page !== 'login' && page !== 'register'" @open-fanclub="modal = 'fanclub'" />
-
-
-
     <AppDrawerNav
 
       :open="drawerOpen"
@@ -293,6 +291,10 @@ function closeAuth() {
     </main>
 
 
+
+    <LoginCtaBanner />
+
+    <PremiumMemberBar v-if="page !== 'login' && page !== 'register'" @open-fanclub="modal = 'fanclub'" />
 
     <AppFooterBar />
 

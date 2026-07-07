@@ -3,11 +3,13 @@
  * 部品名: ゆかりの地 — ヒーローエリア
  * 用途: ページ冒頭のタイトル・肖像・地図装飾・AI導線を表示する
  */
-import heroImg from '../../../assets/hero.png'
+import { pageImageUrl, PAGE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import TopAiCard from '../top/TopAiCard.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 
 const emit = defineEmits(['open-ai'])
+
+const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
 
 const spotCount = HIBARU_DATA.places.length
 const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').length

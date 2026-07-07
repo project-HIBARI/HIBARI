@@ -3,6 +3,9 @@
  * 部品名: ホーム — 下部カテゴリ導線カード
  * 用途: 各ページや準備中機能への誘導カード5枚を横並びで表示する
  */
+import PageImageCard from '../../common/PageImageCard.vue'
+import { PAGE_IMAGES } from '../../../lib/pageImages.js'
+
 const emit = defineEmits(['navigate', 'coming-soon'])
 
 const cards = [
@@ -10,7 +13,8 @@ const cards = [
     id: 'profile',
     title: '美空ひばりについて',
     desc: '彼女の人生と軌跡',
-    deco: 'rose',
+    image: PAGE_IMAGES.about,
+    alt: '美空ひばりについて',
     action: 'navigate',
     target: 'profile',
   },
@@ -18,7 +22,8 @@ const cards = [
     id: 'disco',
     title: 'ディスコグラフィー',
     desc: '楽曲・アルバム一覧',
-    deco: 'record',
+    image: PAGE_IMAGES.disco,
+    alt: 'ディスコグラフィー',
     action: 'navigate',
     target: 'disco',
   },
@@ -26,7 +31,8 @@ const cards = [
     id: 'gallery',
     title: 'ギャラリー',
     desc: '写真でたどる軌跡',
-    deco: 'gallery',
+    image: PAGE_IMAGES.gallery,
+    alt: 'ギャラリー',
     action: 'coming-soon',
     target: 'gallery',
   },
@@ -34,7 +40,8 @@ const cards = [
     id: 'events',
     title: 'イベント情報',
     desc: 'コンサート・企画展など',
-    deco: 'stage',
+    image: PAGE_IMAGES.events,
+    alt: 'イベント情報',
     action: 'coming-soon',
     target: 'events',
   },
@@ -42,7 +49,8 @@ const cards = [
     id: 'fanclub',
     title: 'ファンクラブ',
     desc: '入会・会員特典',
-    deco: 'fanclub',
+    image: PAGE_IMAGES.fanclub,
+    alt: 'ファンクラブ',
     action: 'modal',
     target: 'fanclub',
   },
@@ -64,7 +72,6 @@ function onClick(card) {
       :key="c.id"
       type="button"
       class="top-categories__card"
-      :class="`top-categories__card--${c.deco}`"
       :aria-label="c.title"
       @click="onClick(c)"
     >
@@ -73,7 +80,15 @@ function onClick(card) {
         <p class="top-categories__desc">{{ c.desc }}</p>
         <span class="top-categories__arrow">›</span>
       </div>
-      <div class="top-categories__visual" aria-hidden="true" />
+      <div class="top-categories__visual">
+        <PageImageCard
+          :image="c.image"
+          :alt="c.alt"
+          image-only
+          compact
+          fit="contain"
+        />
+      </div>
     </button>
   </section>
 </template>
@@ -111,61 +126,16 @@ function onClick(card) {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  min-width: 0;
 }
 .top-categories__visual {
   width: 42%;
   min-width: 88px;
   flex-shrink: 0;
-  background: var(--site-surface-muted);
-  position: relative;
-}
-.top-categories__card--rose .top-categories__visual {
-  background:
-    radial-gradient(circle at 30% 60%, rgba(220, 120, 140, 0.35) 0%, transparent 50%),
-    radial-gradient(circle at 70% 40%, rgba(240, 160, 180, 0.3) 0%, transparent 45%),
-    linear-gradient(160deg, #fce8ec, #f5ebe0);
-}
-.top-categories__card--record .top-categories__visual {
-  background:
-    radial-gradient(circle at center, #2a201a 28%, transparent 29%),
-    repeating-radial-gradient(circle at center, #333 0 1px, #222 1px 3px),
-    linear-gradient(160deg, #3a2a1a, #1a1410);
-}
-.top-categories__card--record .top-categories__visual::after {
-  content: '';
-  position: absolute;
-  inset: 50% auto auto 50%;
-  transform: translate(-50%, -50%);
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px solid rgba(201, 169, 97, 0.4);
-  background: radial-gradient(circle, var(--beni-700) 0%, #5e1111 100%);
-}
-.top-categories__card--gallery .top-categories__visual {
-  background: linear-gradient(135deg, #d9c7a6 0%, #c4a882 100%);
-  box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.3);
-}
-.top-categories__card--stage .top-categories__visual {
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 220, 100, 0.5) 0%, transparent 60%),
-    linear-gradient(180deg, #4a1520 0%, #2a0810 100%);
-}
-.top-categories__card--fanclub .top-categories__visual {
-  background: linear-gradient(135deg, var(--murasaki-700), var(--murasaki-900));
-}
-.top-categories__card--fanclub .top-categories__visual::after {
-  content: 'FC';
-  position: absolute;
-  inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--ff-latin);
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--kin-400);
-  letter-spacing: 0.1em;
+  align-items: stretch;
+  background: var(--site-surface-muted);
+  overflow: hidden;
 }
 .top-categories__title {
   margin: 0 0 6px;

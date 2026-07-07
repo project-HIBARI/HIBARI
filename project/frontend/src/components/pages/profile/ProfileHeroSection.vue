@@ -3,10 +3,12 @@
  * 部品名: 歩み — ヒーローエリア
  * 用途: ページ冒頭のタイトル・紹介文・肖像・桜装飾・AI導線を表示する
  */
-import heroImg from '../../../assets/hero.png'
+import { pageImageUrl, PAGE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import TopAiCard from '../top/TopAiCard.vue'
 
 const emit = defineEmits(['open-ai'])
+
+const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
 </script>
 
 <template>

@@ -212,6 +212,14 @@ html[data-text-size='xl'] {
   box-shadow: inset 0 0 0 2px var(--beni-700), inset 0 0 8px rgba(0, 0, 0, 0.2);
 }
 
+/* —— ページ画像（透過PNG） —— */
+:root {
+  --page-image-display-h: 280px;
+  --page-image-compact-h: 108px;
+  --page-image-hero-h: 300px;
+  --page-image-ratio: 1 / 1;
+}
+
 /* Reset */
 *,
 *::before,

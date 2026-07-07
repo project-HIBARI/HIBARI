@@ -3,6 +3,9 @@
  * 部品名: 歩み — 下部関連ページ導線カード
  * 用途: ディスコグラフィー・ギャラリー等への誘導カード5枚を表示する
  */
+import PageImageCard from '../../common/PageImageCard.vue'
+import { PAGE_IMAGES } from '../../../lib/pageImages.js'
+
 const emit = defineEmits(['navigate', 'coming-soon'])
 
 const cards = [
@@ -10,7 +13,9 @@ const cards = [
     id: 'profile',
     title: '美空ひばりについて',
     desc: '彼女の人生と軌跡',
-    deco: 'rose',
+    image: PAGE_IMAGES.about,
+    alt: '美空ひばりについて',
+    useImage: true,
     action: 'navigate',
     target: 'profile',
   },
@@ -18,7 +23,9 @@ const cards = [
     id: 'disco',
     title: 'ディスコグラフィー',
     desc: '楽曲・アルバム一覧',
-    deco: 'record',
+    image: PAGE_IMAGES.disco,
+    alt: 'ディスコグラフィー',
+    useImage: true,
     action: 'navigate',
     target: 'disco',
   },
@@ -26,7 +33,9 @@ const cards = [
     id: 'gallery',
     title: 'ギャラリー',
     desc: '写真でたどる軌跡',
-    deco: 'gallery',
+    image: PAGE_IMAGES.gallery,
+    alt: 'ギャラリー',
+    useImage: true,
     action: 'coming-soon',
     target: 'gallery',
   },
@@ -34,7 +43,9 @@ const cards = [
     id: 'events',
     title: 'イベント情報',
     desc: 'コンサート・企画展など',
-    deco: 'stage',
+    image: PAGE_IMAGES.events,
+    alt: 'イベント情報',
+    useImage: true,
     action: 'coming-soon',
     target: 'events',
   },
@@ -42,7 +53,9 @@ const cards = [
     id: 'fanclub',
     title: 'ファンクラブ',
     desc: '入会・会員特典',
-    deco: 'fanclub',
+    image: PAGE_IMAGES.fanclub,
+    alt: 'ファンクラブ',
+    useImage: true,
     action: 'coming-soon',
     target: 'fanclub',
   },
@@ -58,7 +71,6 @@ function onClick(card) {
 </script>
 
 <template>
-  <!-- 歩みページ下部の各セクションへの導線カード -->
   <section class="profile-related" aria-label="関連コンテンツ">
     <div class="profile-related__grid">
       <button
@@ -66,11 +78,19 @@ function onClick(card) {
         :key="c.id"
         type="button"
         class="profile-related__card"
-        :class="`profile-related__card--${c.deco}`"
         :aria-label="c.title"
         @click="onClick(c)"
       >
-        <div class="profile-related__visual" aria-hidden="true" />
+        <div class="profile-related__visual">
+          <PageImageCard
+            v-if="c.useImage"
+            :image="c.image"
+            :alt="c.alt"
+            image-only
+            compact
+            fit="contain"
+          />
+        </div>
         <div class="profile-related__body">
           <h3 class="profile-related__title">{{ c.title }}</h3>
           <p class="profile-related__desc">{{ c.desc }}</p>
@@ -109,55 +129,10 @@ function onClick(card) {
 .profile-related__visual {
   height: 100px;
   background: var(--site-surface-muted);
-}
-.profile-related__card--rose .profile-related__visual {
-  background:
-    radial-gradient(circle at 30% 60%, rgba(220, 120, 140, 0.35) 0%, transparent 50%),
-    radial-gradient(circle at 70% 40%, rgba(240, 160, 180, 0.3) 0%, transparent 45%),
-    linear-gradient(160deg, #fce8ec, #f5ebe0);
-}
-.profile-related__card--record .profile-related__visual {
-  background:
-    radial-gradient(circle at center, #2a201a 28%, transparent 29%),
-    repeating-radial-gradient(circle at center, #333 0 1px, #222 1px 3px),
-    linear-gradient(160deg, #3a2a1a, #1a1410);
-  position: relative;
-}
-.profile-related__card--record .profile-related__visual::after {
-  content: '';
-  position: absolute;
-  inset: 50% auto auto 50%;
-  transform: translate(-50%, -50%);
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 2px solid rgba(201, 169, 97, 0.4);
-  background: radial-gradient(circle, var(--beni-700) 0%, #5e1111 100%);
-}
-.profile-related__card--gallery .profile-related__visual {
-  background: linear-gradient(135deg, #d9c7a6 0%, #c4a882 100%);
-}
-.profile-related__card--stage .profile-related__visual {
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 220, 100, 0.5) 0%, transparent 60%),
-    linear-gradient(180deg, #4a1520 0%, #2a0810 100%);
-}
-.profile-related__card--fanclub .profile-related__visual {
-  background: linear-gradient(135deg, var(--murasaki-700), var(--murasaki-900));
-  position: relative;
-}
-.profile-related__card--fanclub .profile-related__visual::after {
-  content: 'FC';
-  position: absolute;
-  inset: 0;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--ff-latin);
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--kin-400);
-  letter-spacing: 0.1em;
 }
 .profile-related__body {
   padding: 16px 18px 18px;

@@ -3,7 +3,9 @@
  * 部品名: ディスコグラフィ — 関連ページ導線カード
  * 用途: 歩み・ゆかりの地・ギャラリー等へのナビゲーション
  */
+import PageImageCard from '../../common/PageImageCard.vue'
 import SectionTitle from '../../ui/SectionTitle.vue'
+import { PAGE_IMAGES } from '../../../lib/pageImages.js'
 
 const emit = defineEmits(['navigate', 'coming-soon'])
 
@@ -13,6 +15,7 @@ const cards = [
     title: '歩み',
     desc: '五十二年の生涯と年表',
     deco: 'timeline',
+    useImage: false,
     action: 'navigate',
     target: 'profile',
   },
@@ -21,6 +24,7 @@ const cards = [
     title: 'ゆかりの地',
     desc: '歌碑・記念館・舞台を地図で',
     deco: 'map',
+    useImage: false,
     action: 'navigate',
     target: 'map',
   },
@@ -28,7 +32,9 @@ const cards = [
     id: 'gallery',
     title: 'ギャラリー',
     desc: '写真でたどる軌跡',
-    deco: 'gallery',
+    image: PAGE_IMAGES.gallery,
+    alt: 'ギャラリー',
+    useImage: true,
     action: 'coming-soon',
     target: 'gallery',
   },
@@ -36,7 +42,9 @@ const cards = [
     id: 'events',
     title: 'イベント情報',
     desc: 'コンサート・企画展など',
-    deco: 'stage',
+    image: PAGE_IMAGES.events,
+    alt: 'イベント情報',
+    useImage: true,
     action: 'coming-soon',
     target: 'events',
   },
@@ -44,7 +52,9 @@ const cards = [
     id: 'fanclub',
     title: 'ファンクラブ',
     desc: '入会・会員特典',
-    deco: 'fanclub',
+    image: PAGE_IMAGES.fanclub,
+    alt: 'ファンクラブ',
+    useImage: true,
     action: 'coming-soon',
     target: 'fanclub',
   },
@@ -60,7 +70,6 @@ function onClick(card) {
 </script>
 
 <template>
-  <!-- 関連コンテンツへの導線カード -->
   <section class="disco-related" aria-label="関連コンテンツ">
     <SectionTitle title="あわせて読む" sub="Explore More" size="md" />
 
@@ -70,11 +79,20 @@ function onClick(card) {
         :key="c.id"
         type="button"
         class="disco-related__card"
-        :class="`disco-related__card--${c.deco}`"
+        :class="c.deco ? `disco-related__card--${c.deco}` : undefined"
         :aria-label="c.title"
         @click="onClick(c)"
       >
-        <div class="disco-related__visual" aria-hidden="true" />
+        <div class="disco-related__visual">
+          <PageImageCard
+            v-if="c.useImage"
+            :image="c.image"
+            :alt="c.alt"
+            image-only
+            compact
+            fit="contain"
+          />
+        </div>
         <div class="disco-related__body">
           <h3 class="disco-related__title">{{ c.title }}</h3>
           <p class="disco-related__desc">{{ c.desc }}</p>
@@ -112,6 +130,10 @@ function onClick(card) {
 .disco-related__visual {
   height: 80px;
   background: var(--site-surface-muted);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .disco-related__card--timeline .disco-related__visual {
   background:
@@ -124,31 +146,6 @@ function onClick(card) {
     radial-gradient(circle at 30% 50%, rgba(93, 58, 107, 0.2) 0%, transparent 40%),
     radial-gradient(circle at 70% 40%, rgba(201, 169, 97, 0.25) 0%, transparent 35%),
     linear-gradient(160deg, #e8f0e8, #f5ebe0);
-}
-.disco-related__card--gallery .disco-related__visual {
-  background: linear-gradient(135deg, #d9c7a6 0%, #c4a882 100%);
-}
-.disco-related__card--stage .disco-related__visual {
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 220, 100, 0.45) 0%, transparent 60%),
-    linear-gradient(180deg, #4a1520 0%, #2a0810 100%);
-}
-.disco-related__card--fanclub .disco-related__visual {
-  background: linear-gradient(135deg, var(--murasaki-700), var(--murasaki-900));
-  position: relative;
-}
-.disco-related__card--fanclub .disco-related__visual::after {
-  content: 'FC';
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--ff-latin);
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--kin-400);
-  letter-spacing: 0.1em;
 }
 .disco-related__body {
   padding: var(--sp-4);

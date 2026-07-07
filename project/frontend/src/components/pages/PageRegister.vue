@@ -1,11 +1,10 @@
 <script setup>
 /**
  * ページ: 新規会員登録
- * 構成: 背景装飾 / 見出し / フォームカード / CTA バナー
+ * 構成: 背景装飾 / 見出し / フォームカード
  */
 import LoginHeroBackground from './login/LoginHeroBackground.vue'
 import RegisterFormCard from './register/RegisterFormCard.vue'
-import LoginCtaBanner from './login/LoginCtaBanner.vue'
 
 const emit = defineEmits(['navigate', 'open-auth'])
 </script>
@@ -30,8 +29,6 @@ const emit = defineEmits(['navigate', 'open-auth'])
         />
       </div>
     </section>
-
-    <LoginCtaBanner />
   </div>
 </template>
 
