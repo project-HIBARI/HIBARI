@@ -13,7 +13,12 @@ from google import genai
 
 from zoneinfo import ZoneInfo
 
-from werkzeug.security import generate_password_hash, check_password_hash
+from password_utils import (
+    hash_password,
+    normalize_email,
+    needs_password_upgrade,
+    verify_password,
+)
 
 
 # 初期設定
@@ -226,14 +231,15 @@ def to_jst_str(dt):
 # ユーザーキャッシュ管理
 #   キャッシュからユーザーを取得
 def get_cached_user(email):
-    if email not in user_cache:
+    key = normalize_email(email)
+    if key not in user_cache:
         return None
     
-    cached_data = user_cache[email]
+    cached_data = user_cache[key]
     
     # 有効期限チェック
     if datetime.now() > cached_data['expire_at']:
-        del user_cache[email]
+        del user_cache[key]
         return None
     
     return cached_data['user']
@@ -241,7 +247,8 @@ def get_cached_user(email):
 
 #   ユーザーをキャッシュに保存
 def cache_user(email, user):
-    user_cache[email] = {
+    key = normalize_email(email)
+    user_cache[key] = {
         'user': user,
         'expire_at': datetime.now() + timedelta(minutes=30) # 有効期限: 30分
     }
@@ -420,8 +427,8 @@ def create_account():
             return jsonify({"error": "名前、メールアドレス、パスワードは必須項目です"}), 400
 
         name_val = name.strip()
-        email_val = email.strip()
-        password_val = generate_password_hash(password, method="pbkdf2:sha256")
+        email_val = normalize_email(email)
+        password_val = hash_password(password)
         address_val = address.strip() if isinstance(address, str) and address.strip() else None
         is_premium_val = bool(is_premium)
 
@@ -496,6 +503,41 @@ def create_account():
         }), 500
         
         
+def complete_login(user, password, stored_hash, cached=False):
+    if needs_password_upgrade(stored_hash):
+        try:
+            execute(
+                """
+                UPDATE accounts
+                SET password = :password
+                WHERE account_id = :account_id
+                """,
+                {
+                    "password": hash_password(password),
+                    "account_id": user["account_id"],
+                },
+            )
+            user["password"] = hash_password(password)
+            cache_user(user["email"], user)
+        except Exception as e:
+            print("password upgrade:", e)
+
+    membership = get_membership_for_account(user["account_id"])
+    session["account_id"] = user["account_id"]
+    session["name"] = user["name"]
+    session["email"] = user["email"]
+    session["membership"] = membership
+    return jsonify({
+        "success": True,
+        "user": build_user_response(
+            user["account_id"],
+            user["name"],
+            user["email"],
+        ),
+        "cached": cached,
+    })
+
+
 # ログイン
 @app.route("/api/login", methods=["POST"])
 def login():
@@ -510,61 +552,43 @@ def login():
         if not email or not password:
             return jsonify({"error": "メールアドレスとパスワードは必須項目です"}), 400
         
-        email = email.strip()
+        email_key = normalize_email(email)
         
         # キャッシュからユーザーをチェック
-        cached_user = get_cached_user(email)
-        if cached_user and check_password_hash(cached_user['password'], password):
-            membership = get_membership_for_account(cached_user["account_id"])
-            session["account_id"] = cached_user["account_id"]
-            session["name"] = cached_user["name"]
-            session["email"] = cached_user["email"]
-            session["membership"] = membership
-            
-            return jsonify({
-                "success": True,
-                "user": build_user_response(
-                    cached_user['account_id'],
-                    cached_user['name'],
-                    cached_user['email']
-                ),
-                "cached": True
-            })
+        cached_user = get_cached_user(email_key)
+        if cached_user and verify_password(cached_user['password'], password):
+            return complete_login(cached_user, password, cached_user['password'], cached=True)
         
-        # DB から検索
+        # DB から検索（メールは大文字小文字を区別しない）
         result = fetch_all(
-            "SELECT account_id, name, email, password FROM accounts WHERE email = :email",
-            {"email": email}
+            """
+            SELECT account_id, name, email, password
+            FROM accounts
+            WHERE lower(email) = :email
+            """,
+            {"email": email_key}
         )
         
         if not result:
             return jsonify({"error": "認証に失敗しました"}), 401
         
-        user = dict(result[0])
+        row = result[0]._mapping
+        user = {
+            "account_id": row["account_id"],
+            "name": row["name"],
+            "email": row["email"],
+            "password": row["password"],
+        }
+        stored_hash = user["password"] or ""
         
-        # パスワード確認
-        if not check_password_hash(user['password'], password):
+        # パスワード確認（pbkdf2 / 旧 scrypt 両対応）
+        if not verify_password(stored_hash, password):
             return jsonify({"error": "認証に失敗しました"}), 401
         
         # キャッシュに保存
-        cache_user(email, user)
+        cache_user(email_key, user)
         
-        # Sessionへ保存
-        membership = get_membership_for_account(user["account_id"])
-        session["account_id"] = user["account_id"]
-        session["name"] = user["name"]
-        session["email"] = user["email"]
-        session["membership"] = membership
-        
-        return jsonify({
-            "success": True,
-            "user": build_user_response(
-                user['account_id'],
-                user['name'],
-                user['email']
-            ),
-            "cached": False
-        })
+        return complete_login(user, password, stored_hash, cached=False)
     
     except Exception as e:
         print(e)
