@@ -22,31 +22,55 @@ function onFavoriteClick(e) {
   e.stopPropagation()
   emit('toggle-favorite', props.song.id)
 }
+
+function onOpenDetail(e) {
+  e.stopPropagation()
+  emit('open', props.song)
+}
+
+function onPlayClick(e) {
+  e.stopPropagation()
+  if (!props.song.audioUrl) return
+  window.open(props.song.audioUrl, '_blank', 'noopener,noreferrer')
+}
 </script>
 
 <template>
   <article class="disco-song-card">
-    <button
-      type="button"
-      class="disco-song-card__main"
-      :aria-label="song.title + 'の詳細を見る'"
-      @click="emit('open', song)"
-    >
-      <RecordChip :no="song.no" :color="chipColor" />
-      <div class="disco-song-card__body">
+    <div class="disco-song-card__main">
+      <button
+        type="button"
+        class="disco-song-card__chip"
+        :aria-label="song.title + 'の詳細を見る'"
+        @click="onOpenDetail"
+      >
+        <RecordChip :no="song.no" :color="chipColor" />
+      </button>
+      <button
+        type="button"
+        class="disco-song-card__body"
+        :aria-label="song.title + 'の詳細を見る'"
+        @click="onOpenDetail"
+      >
         <span class="disco-song-card__meta">{{ song.year }} · {{ song.no }} · {{ song.genre }}</span>
         <h3 class="disco-song-card__title">{{ song.title }}</h3>
         <p class="disco-song-card__romaji">{{ song.romaji }}</p>
         <p class="disco-song-card__credits">作詞：{{ song.lyric }} / 作曲：{{ song.music }}</p>
         <p v-if="song.note" class="disco-song-card__note">{{ song.note }}</p>
-      </div>
-      <div class="disco-song-card__actions" aria-hidden="true">
-        <span class="disco-song-card__play">
+      </button>
+      <div class="disco-song-card__actions">
+        <button
+          type="button"
+          class="disco-song-card__play"
+          :aria-label="song.title + 'を再生'"
+          :disabled="!song.audioUrl"
+          @click="onPlayClick"
+        >
           <UiIco name="play" :size="13" color="var(--murasaki-700)" />
-        </span>
+        </button>
         <span v-if="hasAward" class="disco-song-card__award">受賞</span>
       </div>
-    </button>
+    </div>
     <button
       type="button"
       class="disco-song-card__fav"
@@ -80,12 +104,28 @@ function onFavoriteClick(e) {
   width: 100%;
   padding: var(--sp-4);
   padding-right: 44px;
+  align-items: center;
+}
+.disco-song-card__chip,
+.disco-song-card__body {
   border: 0;
   background: transparent;
   cursor: pointer;
   text-align: left;
   color: inherit;
-  align-items: center;
+  padding: 0;
+}
+.disco-song-card__chip {
+  display: block;
+  flex-shrink: 0;
+  border-radius: 50%;
+  transition: opacity 0.2s;
+}
+.disco-song-card__chip:hover {
+  opacity: 0.85;
+}
+.disco-song-card__body {
+  min-width: 0;
 }
 .disco-song-card__meta {
   display: block;
@@ -137,6 +177,17 @@ function onFavoriteClick(e) {
   align-items: center;
   justify-content: center;
   background: var(--murasaki-100);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+.disco-song-card__play:hover:not(:disabled) {
+  background: var(--murasaki-200, #e8dff0);
+  border-color: var(--murasaki-500);
+}
+.disco-song-card__play:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 .disco-song-card__award {
   font-size: 9px;

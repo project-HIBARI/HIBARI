@@ -1,7 +1,7 @@
 <script setup>
 /**
  * 部品名: ゆかりの地 — CTA セクション
- * 用途: ファンクラブ・会員コンテンツ・イベントへの導線（準備中 UI）
+ * 用途: ファンクラブ・会員コンテンツ・イベントへの導線
  */
 import SectionTitle from '../../ui/SectionTitle.vue'
 import UiCard from '../../ui/UiCard.vue'
@@ -14,28 +14,27 @@ const cards = [
     id: 'fanclub',
     title: 'ファンクラブ',
     desc: '会員限定のゆかりの地ツアー情報や特典をお届けします。',
-    badge: 'Coming Soon',
+    badge: '会員向け',
     mode: 'fanclub',
   },
   {
     id: 'member',
     title: '会員コンテンツ',
     desc: '写真ギャラリー・音声ガイドなど、会員向けの巡礼コンテンツ。',
-    badge: '会員限定',
+    badge: 'プレミアム限定',
     mode: 'gallery',
   },
   {
     id: 'events',
     title: 'イベント情報',
     desc: 'ゆかりの地ツアー・ファン交流会などの最新イベント。',
-    badge: '準備中',
+    badge: '先行予約',
     mode: 'events',
   },
 ]
 </script>
 
 <template>
-  <!-- ファンクラブ・会員向け導線 -->
   <section class="places-cta" aria-label="会員向けコンテンツ">
     <SectionTitle title="もっと楽しむ" sub="Member & Events" size="md" />
 
@@ -49,10 +48,6 @@ const cards = [
         </UiButton>
       </UiCard>
     </div>
-
-    <p class="places-cta__note">
-      ※ 会員機能は準備中です。SiteShell との連携は統合タスクで対応予定です。
-    </p>
   </section>
 </template>
 
@@ -96,13 +91,6 @@ const cards = [
   font-size: 12px;
   line-height: 1.75;
   color: var(--site-text-muted);
-}
-.places-cta__note {
-  margin: 0;
-  font-size: 11px;
-  color: var(--site-text-light);
-  text-align: center;
-  letter-spacing: 0.04em;
 }
 
 @media (max-width: 1024px) {

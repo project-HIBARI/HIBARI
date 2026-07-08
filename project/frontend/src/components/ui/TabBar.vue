@@ -16,32 +16,15 @@ const emit = defineEmits(['update:active'])
 </script>
 
 <template>
-  <nav
-    :style="{
-      display: 'flex',
-      gap: '2px',
-      borderBottom: dark ? '1px solid rgba(201,169,97,0.2)' : '1px solid rgba(26,20,16,0.12)',
-      fontFamily: 'var(--ff-mincho)',
-      fontSize: '14px',
-    }"
-  >
+  <nav class="tab-bar" :class="{ 'tab-bar--light': !dark }" role="tablist">
     <button
       v-for="t in tabs"
       :key="t.id"
       type="button"
-      :style="{
-        background: 'transparent',
-        border: 0,
-        padding: '10px 14px',
-        color: t.id === active ? (dark ? 'var(--beni-500)' : 'var(--murasaki-700)') : dark ? 'var(--paper-300)' : 'var(--ink-500)',
-        borderBottom: t.id === active ? `2px solid ${dark ? 'var(--beni-500)' : 'var(--murasaki-600)'}` : '2px solid transparent',
-        cursor: 'pointer',
-        marginBottom: '-1px',
-        fontWeight: t.id === active ? 700 : 400,
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '6px',
-      }"
+      role="tab"
+      class="tab-bar__btn"
+      :class="{ 'tab-bar__btn--active': t.id === active }"
+      :aria-selected="t.id === active"
       @click="emit('update:active', t.id)"
     >
       <UiIco v-if="t.icon" :name="t.icon" :size="14" />
@@ -49,3 +32,60 @@ const emit = defineEmits(['update:active'])
     </button>
   </nav>
 </template>
+
+<style scoped>
+.tab-bar {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid rgba(201, 169, 97, 0.2);
+  font-family: var(--ff-mincho);
+  font-size: 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tab-bar::-webkit-scrollbar {
+  display: none;
+}
+.tab-bar--light {
+  border-bottom-color: rgba(26, 20, 16, 0.12);
+}
+.tab-bar__btn {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 0;
+  padding: 10px 14px;
+  color: var(--paper-300);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  margin-bottom: -1px;
+  font-weight: 400;
+  font-family: inherit;
+  font-size: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.tab-bar--light .tab-bar__btn {
+  color: var(--ink-500);
+}
+.tab-bar__btn--active {
+  color: var(--beni-500);
+  border-bottom-color: var(--beni-500);
+  font-weight: 700;
+}
+.tab-bar--light .tab-bar__btn--active {
+  color: var(--murasaki-700);
+  border-bottom-color: var(--murasaki-600);
+}
+
+@media (max-width: 767px) {
+  .tab-bar {
+    font-size: 13px;
+  }
+  .tab-bar__btn {
+    padding: 10px 12px;
+  }
+}
+</style>

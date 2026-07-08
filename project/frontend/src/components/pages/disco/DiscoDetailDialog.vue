@@ -100,4 +100,23 @@ const emit = defineEmits(['close'])
   line-height: 1.8;
   color: var(--site-text);
 }
+
+@media (max-width: 480px) {
+  .disco-detail__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-3);
+  }
+  .disco-detail__dl {
+    grid-template-columns: 1fr;
+    gap: 4px 0;
+  }
+  .disco-detail__dl dt {
+    margin-top: 8px;
+    font-size: 11px;
+  }
+  .disco-detail__dl dd {
+    font-size: 13px;
+  }
+}
 </style>

@@ -20,11 +20,6 @@ const titles = {
   terms: '利用規約',
   privacy: 'プライバシーポリシー',
   search: 'サイト内検索',
-  news: '最新ニュース',
-  events: '放送・イベント',
-  gallery: 'ギャラリー',
-  fanclub: 'ファンクラブ',
-  pv: '公式PV',
 }
 
 const messages = {
@@ -34,11 +29,6 @@ const messages = {
   terms: '利用規約ページは現在準備中です。',
   privacy: 'プライバシーポリシーページは現在準備中です。',
   search: 'サイト内検索機能は現在準備中です。',
-  news: 'ニュース一覧ページは現在準備中です。',
-  events: '放送・イベント一覧ページは現在準備中です。',
-  gallery: 'ギャラリーページは現在準備中です。',
-  fanclub: 'ファンクラブ入会ページは現在準備中です。',
-  pv: 'YouTube公式PVの再生機能は現在準備中です。',
 }
 </script>
 
@@ -50,7 +40,7 @@ const messages = {
         {{ messages[mode] || 'この機能は現在準備中です。' }}<br />
         公開まで今しばらくお待ちください。
       </p>
-      <p v-if="!['search', 'news', 'events', 'gallery', 'fanclub', 'pv'].includes(mode)" class="auth-notice__note">
+      <p v-if="!['search'].includes(mode)" class="auth-notice__note">
         ファンクラブ特典や会員限定コンテンツのご案内は、トップページよりご確認いただけます。
       </p>
       <UiButton variant="primary" size="md" @click="emit('close')">閉じる</UiButton>

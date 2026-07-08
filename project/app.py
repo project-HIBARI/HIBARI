@@ -1,35 +1,69 @@
 import os
+import sys
+import uuid
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
-from flask import Flask, render_template, jsonify, request, session, redirect
+# Flask のリローダー子プロセスでも同ディレクトリのモジュールを import できるようにする
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from flask import Flask, render_template, jsonify, request, session, redirect, send_from_directory
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
 
 from sqlalchemy import create_engine
 from sqlalchemy import text
 
-from google import genai
+from password_utils import (
+    hash_password,
+    normalize_email,
+    needs_password_upgrade,
+    verify_password,
+)
 
-from zoneinfo import ZoneInfo
 
-from werkzeug.security import generate_password_hash, check_password_hash
+def get_genai_client():
+    """AIチャット利用時のみ google-genai を読み込む（認証APIは未インストールでも起動可能）"""
+    try:
+        from google import genai
+    except ModuleNotFoundError as exc:
+        raise RuntimeError(
+            "AIチャットには google-genai パッケージが必要です。"
+            " pip install google-genai を実行してください。"
+        ) from exc
+    return genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 # 初期設定
 load_dotenv()
+load_dotenv("env")  # .env が無い環境向け（project/env）
 app = Flask(__name__)
 app.secret_key = "qawsedrftgyhujikolp"
 
 # DB接続設定
 DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    raise SystemExit(
+        "DATABASE_URL が未設定です。"
+        " project/.env または project/env に DATABASE_URL を設定してください。"
+    )
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True
 )
 
-# Gemini API設定
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+# Gemini API（遅延初期化・ログイン等は未インストールでも動作）
+from zoneinfo import ZoneInfo
+
+# 掲示板メディアアップロード
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+POST_UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads", "posts")
+ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp"}
+ALLOWED_VIDEO_EXTENSIONS = {"mp4", "webm", "mov"}
+MAX_POST_IMAGE_BYTES = 10 * 1024 * 1024
+MAX_POST_VIDEO_BYTES = 50 * 1024 * 1024
+
+os.makedirs(POST_UPLOAD_FOLDER, exist_ok=True)
 
 # ユーザーキャッシュ（email -> {user_data, expire_at}）
 user_cache = {}
@@ -41,6 +75,17 @@ user_cache = {}
 
 # SQL実行関数
 #   SELECT
+def row_to_dict(row):
+    """SQLAlchemy Row を辞書に変換"""
+    if row is None:
+        return None
+    if hasattr(row, "_mapping"):
+        return dict(row._mapping)
+    if hasattr(row, "_asdict"):
+        return row._asdict()
+    return dict(row)
+
+
 def fetch_all(sql, params=None):
     with engine.connect() as conn:
 
@@ -80,6 +125,58 @@ def execute_insert(sql, params=None):
             return result.lastrowid
 
         return None
+    
+    
+def ensure_post_media_schema():
+    """掲示板投稿用の video_path カラムを追加（未作成時のみ）"""
+    try:
+        execute(
+            """
+            ALTER TABLE posts
+            ADD COLUMN IF NOT EXISTS video_path VARCHAR(500)
+            """
+        )
+    except Exception as e:
+        print("post media schema:", e)
+
+
+def get_post_media_type(filename):
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    if ext in ALLOWED_IMAGE_EXTENSIONS:
+        return "image"
+    if ext in ALLOWED_VIDEO_EXTENSIONS:
+        return "video"
+    return None
+
+
+def save_post_media_file(file_storage):
+    if not file_storage or not file_storage.filename:
+        return None, None
+
+    original_name = secure_filename(file_storage.filename)
+    media_type = get_post_media_type(original_name)
+    if not media_type:
+        raise ValueError("対応していないファイル形式です")
+
+    file_storage.seek(0, os.SEEK_END)
+    size = file_storage.tell()
+    file_storage.seek(0)
+
+    max_size = MAX_POST_IMAGE_BYTES if media_type == "image" else MAX_POST_VIDEO_BYTES
+    if size > max_size:
+        limit_mb = max_size // (1024 * 1024)
+        raise ValueError(f"ファイルサイズは{limit_mb}MB以下にしてください")
+
+    ext = original_name.rsplit(".", 1)[-1].lower()
+    stored_name = f"{uuid.uuid4().hex}.{ext}"
+    save_path = os.path.join(POST_UPLOAD_FOLDER, stored_name)
+    file_storage.save(save_path)
+
+    public_path = f"/uploads/posts/{stored_name}"
+    return public_path, media_type
+
+
+ensure_post_media_schema()
     
     
 # HIBARI用プロンプト生成関数
@@ -162,14 +259,15 @@ def to_jst_str(dt):
 # ユーザーキャッシュ管理
 #   キャッシュからユーザーを取得
 def get_cached_user(email):
-    if email not in user_cache:
+    key = normalize_email(email)
+    if key not in user_cache:
         return None
     
-    cached_data = user_cache[email]
+    cached_data = user_cache[key]
     
     # 有効期限チェック
     if datetime.now() > cached_data['expire_at']:
-        del user_cache[email]
+        del user_cache[key]
         return None
     
     return cached_data['user']
@@ -177,7 +275,8 @@ def get_cached_user(email):
 
 #   ユーザーをキャッシュに保存
 def cache_user(email, user):
-    user_cache[email] = {
+    key = normalize_email(email)
+    user_cache[key] = {
         'user': user,
         'expire_at': datetime.now() + timedelta(minutes=30) # 有効期限: 30分
     }
@@ -228,6 +327,20 @@ def build_user_response(account_id, name, email):
         "membership": membership,
         "is_premium": membership == "premium",
     }
+
+
+def fetch_account_row(account_id):
+    rows = fetch_all(
+        """
+        SELECT account_id, name, email, password, address
+        FROM accounts
+        WHERE account_id = :account_id
+        """,
+        {"account_id": account_id},
+    )
+    if not rows:
+        return None
+    return row_to_dict(rows[0])
 
 
 ############################################################################
@@ -356,8 +469,8 @@ def create_account():
             return jsonify({"error": "名前、メールアドレス、パスワードは必須項目です"}), 400
 
         name_val = name.strip()
-        email_val = email.strip()
-        password_val = generate_password_hash(password, method="pbkdf2:sha256")
+        email_val = normalize_email(email)
+        password_val = hash_password(password)
         address_val = address.strip() if isinstance(address, str) and address.strip() else None
         is_premium_val = bool(is_premium)
 
@@ -432,6 +545,41 @@ def create_account():
         }), 500
         
         
+def complete_login(user, password, stored_hash, cached=False):
+    if needs_password_upgrade(stored_hash):
+        try:
+            execute(
+                """
+                UPDATE accounts
+                SET password = :password
+                WHERE account_id = :account_id
+                """,
+                {
+                    "password": hash_password(password),
+                    "account_id": user["account_id"],
+                },
+            )
+            user["password"] = hash_password(password)
+            cache_user(user["email"], user)
+        except Exception as e:
+            print("password upgrade:", e)
+
+    membership = get_membership_for_account(user["account_id"])
+    session["account_id"] = user["account_id"]
+    session["name"] = user["name"]
+    session["email"] = user["email"]
+    session["membership"] = membership
+    return jsonify({
+        "success": True,
+        "user": build_user_response(
+            user["account_id"],
+            user["name"],
+            user["email"],
+        ),
+        "cached": cached,
+    })
+
+
 # ログイン
 @app.route("/api/login", methods=["POST"])
 def login():
@@ -446,61 +594,43 @@ def login():
         if not email or not password:
             return jsonify({"error": "メールアドレスとパスワードは必須項目です"}), 400
         
-        email = email.strip()
+        email_key = normalize_email(email)
         
         # キャッシュからユーザーをチェック
-        cached_user = get_cached_user(email)
-        if cached_user and check_password_hash(cached_user['password'], password):
-            membership = get_membership_for_account(cached_user["account_id"])
-            session["account_id"] = cached_user["account_id"]
-            session["name"] = cached_user["name"]
-            session["email"] = cached_user["email"]
-            session["membership"] = membership
-            
-            return jsonify({
-                "success": True,
-                "user": build_user_response(
-                    cached_user['account_id'],
-                    cached_user['name'],
-                    cached_user['email']
-                ),
-                "cached": True
-            })
+        cached_user = get_cached_user(email_key)
+        if cached_user and verify_password(cached_user['password'], password):
+            return complete_login(cached_user, password, cached_user['password'], cached=True)
         
-        # DB から検索
+        # DB から検索（メールは大文字小文字を区別しない）
         result = fetch_all(
-            "SELECT account_id, name, email, password FROM accounts WHERE email = :email",
-            {"email": email}
+            """
+            SELECT account_id, name, email, password
+            FROM accounts
+            WHERE lower(email) = :email
+            """,
+            {"email": email_key}
         )
         
         if not result:
             return jsonify({"error": "認証に失敗しました"}), 401
         
-        user = dict(result[0])
+        row = row_to_dict(result[0])
+        user = {
+            "account_id": row["account_id"],
+            "name": row["name"],
+            "email": row["email"],
+            "password": row["password"],
+        }
+        stored_hash = user["password"] or ""
         
-        # パスワード確認
-        if not check_password_hash(user['password'], password):
+        # パスワード確認（pbkdf2 / 旧 scrypt 両対応）
+        if not verify_password(stored_hash, password):
             return jsonify({"error": "認証に失敗しました"}), 401
         
         # キャッシュに保存
-        cache_user(email, user)
+        cache_user(email_key, user)
         
-        # Sessionへ保存
-        membership = get_membership_for_account(user["account_id"])
-        session["account_id"] = user["account_id"]
-        session["name"] = user["name"]
-        session["email"] = user["email"]
-        session["membership"] = membership
-        
-        return jsonify({
-            "success": True,
-            "user": build_user_response(
-                user['account_id'],
-                user['name'],
-                user['email']
-            ),
-            "cached": False
-        })
+        return complete_login(user, password, stored_hash, cached=False)
     
     except Exception as e:
         print(e)
@@ -534,8 +664,131 @@ def me():
             session["email"]
         )
     })
-    
 
+
+# アカウント情報取得（会員ページ用）
+@app.route("/api/account", methods=["GET"])
+def get_account():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    row = fetch_account_row(account_id)
+    if not row:
+        return jsonify({"error": "アカウントが見つかりません"}), 404
+
+    user = build_user_response(row["account_id"], row["name"], row["email"])
+    user["address"] = row.get("address") or ""
+
+    return jsonify({"account": user})
+
+
+# アカウント情報更新（氏名・メール・住所）
+@app.route("/api/account", methods=["PATCH"])
+def update_account():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    data = request.get_json() or {}
+    row = fetch_account_row(account_id)
+    if not row:
+        return jsonify({"error": "アカウントが見つかりません"}), 404
+
+    name = data.get("name", row["name"])
+    email = data.get("email", row["email"])
+    address = data.get("address", row.get("address"))
+
+    if not isinstance(name, str) or not name.strip():
+        return jsonify({"error": "氏名を入力してください"}), 400
+    if not isinstance(email, str) or not email.strip():
+        return jsonify({"error": "メールアドレスを入力してください"}), 400
+
+    name_val = name.strip()
+    email_val = normalize_email(email)
+    address_val = address.strip() if isinstance(address, str) and address.strip() else None
+
+    if email_val != normalize_email(row["email"]):
+        existing = fetch_all(
+            "SELECT account_id FROM accounts WHERE email = :email AND account_id != :account_id",
+            {"email": email_val, "account_id": account_id},
+        )
+        if existing:
+            return jsonify({"error": "このメールアドレスは既に登録されています"}), 409
+
+    execute(
+        """
+        UPDATE accounts
+        SET name = :name, email = :email, address = :address
+        WHERE account_id = :account_id
+        """,
+        {
+            "name": name_val,
+            "email": email_val,
+            "address": address_val,
+            "account_id": account_id,
+        },
+    )
+
+    session["name"] = name_val
+    session["email"] = email_val
+
+    user = build_user_response(account_id, name_val, email_val)
+    user["address"] = address_val or ""
+
+    return jsonify({
+        "success": True,
+        "message": "アカウント情報を更新しました",
+        "account": user,
+        "user": user,
+    })
+
+
+# パスワード変更
+@app.route("/api/account/password", methods=["PATCH"])
+def update_account_password():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    data = request.get_json() or {}
+    current_password = data.get("current_password", "")
+    new_password = data.get("new_password", "")
+
+    if not current_password or not new_password:
+        return jsonify({"error": "現在のパスワードと新しいパスワードを入力してください"}), 400
+    if len(new_password) < 8:
+        return jsonify({"error": "新しいパスワードは8文字以上で設定してください"}), 400
+
+    row = fetch_account_row(account_id)
+    if not row:
+        return jsonify({"error": "アカウントが見つかりません"}), 404
+
+    if not verify_password(row["password"], current_password):
+        return jsonify({"error": "現在のパスワードが正しくありません"}), 401
+
+    new_hash = hash_password(new_password)
+    execute(
+        """
+        UPDATE accounts
+        SET password = :password
+        WHERE account_id = :account_id
+        """,
+        {"password": new_hash, "account_id": account_id},
+    )
+
+    row["password"] = new_hash
+    cache_user(row["email"], row)
+
+    return jsonify({
+        "success": True,
+        "message": "パスワードを変更しました",
+    })
+
+    
 # ルーム一覧取得
 @app.route("/api/rooms")
 def rooms():
@@ -680,7 +933,7 @@ def chat():
                 {user_input}
             """
 
-            title_response = client.models.generate_content(
+            title_response = get_genai_client().models.generate_content(
                 model="gemini-3.1-flash-lite",
                 contents=title_prompt
             )
@@ -782,7 +1035,7 @@ def chat():
         )
 
         # AI応答生成
-        response = client.models.generate_content(
+        response = get_genai_client().models.generate_content(
             model="gemini-3.1-flash-lite",
             contents=prompt
         )
@@ -840,6 +1093,7 @@ def get_posts():
                 p.age,
                 p.location,
                 p.image_path,
+                p.video_path,
                 (
                     SELECT COUNT(*)
                     FROM likes l
@@ -862,6 +1116,7 @@ def get_posts():
                 "age": row.age,
                 "location": row.location,
                 "image_path": row.image_path,
+                "video_path": getattr(row, "video_path", None),
                 "like_count": row.like_count
             })
 
@@ -916,6 +1171,35 @@ def get_songs():
         return jsonify({"error": "曲一覧取得エラー"}), 500
 
 
+# 掲示板メディアアップロード
+@app.route("/api/posts/upload", methods=["POST"])
+def upload_post_media():
+    if "account_id" not in session:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    file = request.files.get("file")
+    if not file:
+        return jsonify({"error": "ファイルがありません"}), 400
+
+    try:
+        public_path, media_type = save_post_media_file(file)
+        return jsonify({
+            "path": public_path,
+            "media_type": media_type,
+        })
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "アップロードに失敗しました"}), 500
+
+
+@app.route("/uploads/posts/<path:filename>")
+def serve_post_upload(filename):
+    safe_name = secure_filename(filename)
+    return send_from_directory(POST_UPLOAD_FOLDER, safe_name)
+
+
 # 投稿作成
 @app.route("/api/posts", methods=["POST"])
 def create_post():
@@ -930,7 +1214,8 @@ def create_post():
                 name,
                 age,
                 location,
-                image_path
+                image_path,
+                video_path
             )
             VALUES (
                 :song_id,
@@ -939,7 +1224,8 @@ def create_post():
                 :name,
                 :age,
                 :location,
-                :image_path
+                :image_path,
+                :video_path
             )
             RETURNING post_id
             """,
@@ -950,13 +1236,16 @@ def create_post():
                 "name": data.get("name"),
                 "age": data.get("age"),
                 "location": data.get("location"),
-                "image_path": data.get("image_path")
+                "image_path": data.get("image_path"),
+                "video_path": data.get("video_path"),
             }
         )
 
         return jsonify({
             "message": "投稿しました",
-            "post_id": post_id
+            "post_id": post_id,
+            "image_path": data.get("image_path"),
+            "video_path": data.get("video_path"),
         })
 
     except Exception as e:

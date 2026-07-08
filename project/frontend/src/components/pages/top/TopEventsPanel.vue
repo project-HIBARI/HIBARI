@@ -20,7 +20,7 @@ function onOpenAll() {
   if (canPreorder.value) {
     emit('open-all')
   } else {
-    emit('need-auth', 'login')
+    emit('need-auth', 'events')
   }
 }
 

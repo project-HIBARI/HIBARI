@@ -44,4 +44,10 @@ const emit = defineEmits(['open-auth', 'open-modal', 'navigate'])
   gap: var(--sp-7);
   align-items: start;
 }
+
+@media (max-width: 900px) {
+  .page-profile__grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

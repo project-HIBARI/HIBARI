@@ -36,7 +36,10 @@ function onComingSoon(target) {
 
     <div class="page-top__body">
       <section class="page-top__columns" aria-label="おすすめと最新情報">
-        <TopSubscriptionCard @open-detail="emit('open-modal', 'fanclub')" />
+        <TopSubscriptionCard
+          @open-detail="emit('open-modal', 'fanclub')"
+          @use-feature="(f) => emit('open-auth', f)"
+        />
         <TopNewsPanel
           @open-all="emit('open-modal', 'news')"
           @need-auth="(m) => emit('open-auth', m)"

@@ -10,14 +10,30 @@ import MemoriesBoard from './memories/MemoriesBoard.vue'
 import MemoriesPostAside from './memories/MemoriesPostAside.vue'
 import MemoriesEventsGrid from './memories/MemoriesEventsGrid.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
+import { createPostWithMedia } from '../../api/posts.js'
+import { useBoardPost } from '../../composables/useBoardPost.js'
+import { revokeMediaPreview } from '../../lib/boardMedia.js'
 
 const emit = defineEmits(['open-auth'])
 
+const { recordPost, canPostNow } = useBoardPost()
+
 const memTab = ref('memories')
 const tagFilter = ref('all')
-const postData = ref({ name: '', pref: '', title: '', body: '', song: '' })
+const postData = ref({
+  name: '',
+  pref: '',
+  title: '',
+  body: '',
+  song: '',
+  mediaFile: null,
+  mediaPreviewUrl: '',
+  mediaKind: null,
+})
 const errors = ref({})
 const submitted = ref(false)
+const submitting = ref(false)
+const submitError = ref('')
 const extraLikes = ref({})
 
 const songs = HIBARU_DATA.discography.map((d) => d.title)
@@ -40,18 +56,58 @@ function validate() {
   return e
 }
 
-function handleSubmit() {
+async function handleSubmit() {
+  if (!canPostNow.value) {
+    emit('open-auth', 'login')
+    return
+  }
+
   const e = validate()
   if (Object.keys(e).length) {
     errors.value = e
     return
   }
-  submitted.value = true
+
+  submitting.value = true
+  submitError.value = ''
+  try {
+    await createPostWithMedia(
+      {
+        title: postData.value.title.trim(),
+        content: postData.value.body.trim(),
+        name: postData.value.name.trim() || null,
+        location: postData.value.pref.trim() || null,
+        song_id: null,
+      },
+      postData.value.mediaFile,
+    )
+    recordPost()
+    submitted.value = true
+  } catch (err) {
+    if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+      submitError.value = 'サーバーに接続できません。バックエンド（Flask）が起動しているか確認してください。'
+    } else {
+      submitError.value = err.message || '投稿に失敗しました。'
+    }
+  } finally {
+    submitting.value = false
+  }
 }
 
 function resetForm() {
   submitted.value = false
-  postData.value = { name: '', pref: '', title: '', body: '', song: '' }
+  submitError.value = ''
+  revokeMediaPreview(postData.value.mediaPreviewUrl)
+  postData.value = {
+    name: '',
+    pref: '',
+    title: '',
+    body: '',
+    song: '',
+    mediaFile: null,
+    mediaPreviewUrl: '',
+    mediaKind: null,
+  }
   errors.value = {}
 }
 
@@ -101,6 +157,8 @@ function like(id) {
       <MemoriesPostAside
         :post-data="postData"
         :submitted="submitted"
+        :submitting="submitting"
+        :submit-error="submitError"
         :errors="errors"
         @update:post-data="postData = $event"
         @submit="handleSubmit"

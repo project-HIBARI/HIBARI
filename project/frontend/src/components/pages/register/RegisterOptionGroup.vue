@@ -157,7 +157,7 @@ const emit = defineEmits(['update:modelValue'])
   color: #c0453b;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .reg-opt__grid {
     grid-template-columns: 1fr !important;
   }

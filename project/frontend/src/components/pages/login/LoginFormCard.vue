@@ -42,8 +42,14 @@ async function onSubmit(e) {
   } catch (err) {
     if (err.status === 401) {
       error.value = 'メールアドレスまたはパスワードが正しくありません。'
-    } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
-      error.value = 'サーバーに接続できません。バックエンド（Flask）が起動しているか確認してください。'
+    } else if (
+      err.status === 0 ||
+      err.message?.includes('サーバーに接続できません') ||
+      err.message?.includes('Failed to fetch') ||
+      err.message?.includes('NetworkError')
+    ) {
+      error.value =
+        'サーバーに接続できません。別のターミナルで `cd project` → `python app.py` を実行してください。'
     } else {
       error.value = err.message || 'ログインに失敗しました。'
     }

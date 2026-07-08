@@ -4,10 +4,10 @@
  * 用途: 美空ひばりAIとの対話（バックエンド /api/chat 連携）
  * 機能: ルーム一覧 / メッセージ履歴 / 新規チャット / 送信
  */
-import { ref, onMounted, nextTick } from 'vue'
-import UiIco from '../../ui/UiIco.vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import UiButton from '../../ui/UiButton.vue'
 import { fetchRooms, fetchMessages, sendChatMessage } from '../../../lib/chatApi.js'
+import { HIBARI_AVATAR_SRC, HIBARI_AVATAR_ALT } from '../../../lib/hibariAvatar.js'
 
 const emit = defineEmits(['need-login'])
 
@@ -20,6 +20,13 @@ const loading = ref(false)
 const roomsLoading = ref(false)
 const error = ref('')
 const messagesRef = ref(null)
+const mobileView = ref('chat')
+const isMobile = ref(false)
+
+function updateMobile() {
+  isMobile.value = window.matchMedia('(max-width: 767px)').matches
+  if (!isMobile.value) mobileView.value = 'chat'
+}
 
 async function loadRooms() {
   roomsLoading.value = true
@@ -49,6 +56,7 @@ async function selectRoom(room) {
       text: m.content,
     }))
     error.value = ''
+    if (isMobile.value) mobileView.value = 'chat'
     await scrollToBottom()
   } catch (e) {
     if (e.status === 401) emit('need-login')
@@ -63,6 +71,7 @@ function startNewChat() {
   currentRoomName.value = '新しいチャット'
   messages.value = []
   error.value = ''
+  if (isMobile.value) mobileView.value = 'chat'
 }
 
 async function send() {
@@ -104,13 +113,22 @@ async function scrollToBottom() {
 }
 
 onMounted(() => {
+  updateMobile()
+  window.addEventListener('resize', updateMobile)
   loadRooms()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateMobile)
 })
 </script>
 
 <template>
-  <div class="fc-chat">
-    <aside class="fc-chat__sidebar">
+  <div class="fc-chat" :class="{ 'fc-chat--mobile': isMobile }">
+    <aside
+      v-show="!isMobile || mobileView === 'rooms'"
+      class="fc-chat__sidebar"
+    >
       <div class="fc-chat__sidebar-head">
         <h3 class="fc-chat__sidebar-title">チャット履歴</h3>
         <button type="button" class="fc-chat__new" @click="startNewChat">＋ 新規</button>
@@ -132,9 +150,27 @@ onMounted(() => {
       </ul>
     </aside>
 
-    <div class="fc-chat__main">
+    <div
+      v-show="!isMobile || mobileView === 'chat'"
+      class="fc-chat__main"
+    >
       <header class="fc-chat__header">
-        <UiIco name="chat" :size="20" color="var(--murasaki-700)" />
+        <button
+          v-if="isMobile"
+          type="button"
+          class="fc-chat__back"
+          @click="mobileView = 'rooms'"
+        >
+          ← 履歴
+        </button>
+        <img
+          :src="HIBARI_AVATAR_SRC"
+          :alt="HIBARI_AVATAR_ALT"
+          class="fc-chat__header-avatar"
+          width="36"
+          height="36"
+          decoding="async"
+        />
         <h3 class="fc-chat__title">{{ currentRoomName }}</h3>
       </header>
 
@@ -149,14 +185,43 @@ onMounted(() => {
           class="fc-chat__row"
           :class="m.role === 'user' ? 'fc-chat__row--user' : 'fc-chat__row--ai'"
         >
+          <img
+            v-if="m.role === 'ai'"
+            :src="HIBARI_AVATAR_SRC"
+            :alt="HIBARI_AVATAR_ALT"
+            class="fc-chat__avatar"
+            width="40"
+            height="40"
+            decoding="async"
+          />
           <div class="fc-chat__bubble" :class="m.role === 'user' ? 'fc-chat__bubble--user' : 'fc-chat__bubble--ai'">
             <div v-if="m.role === 'ai'" class="fc-chat__label">AI美空ひばり</div>
             {{ m.text }}
           </div>
         </div>
-        <div v-if="loading && messages.length" class="fc-chat__typing">……</div>
+        <div v-if="loading && messages.length" class="fc-chat__row fc-chat__row--ai">
+          <img
+            :src="HIBARI_AVATAR_SRC"
+            :alt="HIBARI_AVATAR_ALT"
+            class="fc-chat__avatar"
+            width="40"
+            height="40"
+            decoding="async"
+          />
+          <div class="fc-chat__bubble fc-chat__bubble--ai" aria-live="polite">
+            <div class="fc-chat__label">AI美空ひばり</div>
+            <span class="fc-chat__typing">……</span>
+          </div>
+        </div>
         <div v-if="messages.length === 0 && !loading" class="fc-chat__welcome">
-          <UiIco name="flower" :size="36" color="var(--murasaki-500)" />
+          <img
+            :src="HIBARI_AVATAR_SRC"
+            :alt="HIBARI_AVATAR_ALT"
+            class="fc-chat__welcome-avatar"
+            width="72"
+            height="72"
+            decoding="async"
+          />
           <p>ひばりさんに、お気軽にお話しかけてください。</p>
         </div>
       </div>
@@ -280,6 +345,28 @@ onMounted(() => {
   border-bottom: 1px solid var(--site-border);
   background: linear-gradient(135deg, var(--murasaki-100) 0%, var(--site-surface) 100%);
 }
+.fc-chat__back {
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  padding: 4px 0;
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  color: var(--murasaki-700);
+  cursor: pointer;
+}
+.fc-chat__back:hover {
+  text-decoration: underline;
+}
+.fc-chat__header-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--kin-500);
+  box-shadow: 0 2px 8px rgba(60, 40, 30, 0.12);
+}
 .fc-chat__title {
   margin: 0;
   font-family: var(--ff-mincho);
@@ -307,12 +394,24 @@ onMounted(() => {
 }
 .fc-chat__row {
   display: flex;
+  align-items: flex-end;
+  gap: 10px;
 }
 .fc-chat__row--user {
   justify-content: flex-end;
 }
 .fc-chat__row--ai {
   justify-content: flex-start;
+}
+.fc-chat__avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--kin-500);
+  box-shadow: 0 2px 8px rgba(60, 40, 30, 0.12);
+  background: var(--site-surface-muted);
 }
 .fc-chat__bubble {
   padding: 10px 14px;
@@ -341,9 +440,9 @@ onMounted(() => {
   font-family: var(--ff-mincho);
 }
 .fc-chat__typing {
-  text-align: center;
   color: var(--murasaki-600);
   font-size: 13px;
+  font-family: var(--ff-mincho);
 }
 .fc-chat__welcome {
   flex: 1;
@@ -355,6 +454,14 @@ onMounted(() => {
   text-align: center;
   color: var(--site-text-muted);
   font-size: 13px;
+}
+.fc-chat__welcome-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--kin-500);
+  box-shadow: 0 4px 16px rgba(60, 40, 30, 0.15);
 }
 .fc-chat__error {
   margin: 0;
@@ -390,16 +497,23 @@ onMounted(() => {
     grid-template-columns: 1fr;
     min-height: auto;
   }
-  .fc-chat__sidebar {
+  .fc-chat--mobile .fc-chat__sidebar {
     border-right: 0;
-    border-bottom: 1px solid var(--site-border);
-    max-height: 160px;
+    min-height: 280px;
+  }
+  .fc-chat--mobile .fc-chat__main {
+    min-height: 360px;
   }
   .fc-chat__messages {
-    max-height: 320px;
+    max-height: min(50vh, 360px);
+    min-height: 200px;
   }
   .fc-chat__input-row {
     flex-direction: column;
+  }
+  .fc-chat__input-row :deep(button) {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

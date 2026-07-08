@@ -21,7 +21,7 @@ function onOpenAll() {
   if (canView.value) {
     emit('open-all')
   } else {
-    emit('need-auth', 'login')
+    emit('need-auth', 'news')
   }
 }
 </script>

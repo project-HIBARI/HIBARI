@@ -78,4 +78,28 @@ defineProps({
 .page-head--legacy .page-head__sub {
   color: var(--kin-500);
 }
+
+@media (max-width: 767px) {
+  .page-head {
+    margin-bottom: 28px;
+  }
+  .page-head__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .page-head__kanji {
+    font-size: clamp(40px, 14vw, 72px);
+  }
+  .page-head__title {
+    font-size: clamp(22px, 6vw, 34px);
+  }
+  .page-head__sub {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+  }
+  .page-head__rule {
+    margin-top: 14px;
+  }
+}
 </style>

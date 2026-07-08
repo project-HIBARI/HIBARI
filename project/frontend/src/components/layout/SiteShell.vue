@@ -94,6 +94,12 @@ const authMode = ref(null)
 
 const registerPlan = ref(MEMBERSHIP.GENERAL)
 
+/** ログイン後に戻るページ／開く特典 */
+const postLoginRedirect = ref(null)
+
+/** ファンクラブ会員サイト内の表示セクション */
+const fanclubSection = ref('overview')
+
 const auth = useAuth()
 
 const { membership, isLoggedIn, user, setUser, refreshUser } = auth
@@ -111,6 +117,12 @@ onMounted(() => {
 
 
 function goTo(id) {
+
+  if (id !== 'fanclub-site') {
+
+    fanclubSection.value = 'overview'
+
+  }
 
   page.value = id
 
@@ -142,7 +154,9 @@ function handleNav(id) {
 
   if (id === 'fanclub') {
 
-    goTo('fanclub')
+    fanclubSection.value = 'overview'
+
+    goTo(isLoggedIn.value ? 'fanclub-site' : 'fanclub')
 
     return
 
@@ -174,9 +188,115 @@ function openModal(kind) {
 
 
 
+function openMemberFeature(mode) {
+
+  const features = {
+
+    news: { permission: PERMISSION.NEWSLETTER, modal: 'news' },
+
+    events: { permission: PERMISSION.TICKET_PREORDER, modal: 'events' },
+
+    gallery: { permission: PERMISSION.EXCLUSIVE_CONTENT, modal: 'gallery', premium: true },
+
+    ai: { permission: PERMISSION.AI_CHAT, modal: 'ai' },
+
+    memories: { permission: PERMISSION.BOARD_POST, page: 'memories' },
+
+    board: { permission: PERMISSION.BOARD_POST, memberPage: 'fanclub-site', section: 'board' },
+
+    fanclub: { memberPage: 'fanclub-site', guestPage: 'fanclub' },
+
+    disco: { page: 'disco' },
+
+    pv: { permission: PERMISSION.PREMIUM_VIDEO, page: 'disco', premium: true },
+
+  }
+
+  const feature = features[mode]
+
+  if (!feature) {
+
+    authMode.value = mode
+
+    drawerOpen.value = false
+
+    return
+
+  }
+
+  if (feature.memberPage && !feature.permission) {
+
+    fanclubSection.value = feature.section || 'overview'
+
+    goTo(isLoggedIn.value ? feature.memberPage : feature.guestPage)
+
+    return
+
+  }
+
+  if (feature.page && !feature.permission) {
+
+    goTo(feature.page)
+
+    return
+
+  }
+
+  if (!isLoggedIn.value) {
+
+    postLoginRedirect.value = { feature: mode }
+
+    goTo('login')
+
+    return
+
+  }
+
+  if (feature.permission && !auth.can(feature.permission)) {
+
+    goRegister(feature.premium ? MEMBERSHIP.PREMIUM : MEMBERSHIP.GENERAL)
+
+    return
+
+  }
+
+  if (feature.modal) {
+
+    openModal(feature.modal)
+
+    return
+
+  }
+
+  if (feature.memberPage && feature.section) {
+
+    fanclubSection.value = feature.section
+
+    goTo(feature.memberPage)
+
+    return
+
+  }
+
+  if (feature.page) {
+
+    goTo(feature.page)
+
+  }
+
+}
+
+
+
 function openAuth(mode) {
 
   if (mode === 'login') {
+
+    if (page.value !== 'login' && page.value !== 'register' && !postLoginRedirect.value) {
+
+      postLoginRedirect.value = { page: page.value }
+
+    }
 
     goTo('login')
 
@@ -200,7 +320,7 @@ function openAuth(mode) {
 
   }
 
-  authMode.value = mode
+  openMemberFeature(mode)
 
   drawerOpen.value = false
 
@@ -220,7 +340,31 @@ function handleLoginSuccess(user) {
 
   setUser(user)
 
-  goTo('top')
+  const redirect = postLoginRedirect.value
+
+  postLoginRedirect.value = null
+
+  if (redirect?.feature) {
+
+    openMemberFeature(redirect.feature)
+
+    return
+
+  }
+
+  const returnPage = redirect?.page
+
+  if (returnPage && !['login', 'register', 'top'].includes(returnPage)) {
+
+    goTo(returnPage)
+
+    if (redirect?.modal) openModal(redirect.modal)
+
+    return
+
+  }
+
+  goTo('fanclub-site')
 
 }
 
@@ -243,6 +387,22 @@ function handleRegisterComplete(user) {
   if (user) setUser(user)
 
   goTo('fanclub-site')
+
+}
+
+
+
+function handleAiModalAuth(mode) {
+
+  if (mode === 'login' && modal.value === 'ai') {
+
+    postLoginRedirect.value = { feature: 'ai' }
+
+  }
+
+  modal.value = null
+
+  openAuth(mode)
 
 }
 
@@ -295,20 +455,16 @@ function handleRegisterComplete(user) {
 
 
     <main
-
       id="main-content"
-
-      :class="['main-pad', {
-        'main-pad--flush': page === 'login' || page === 'register',
-        'main-pad--top': page === 'top',
-      }]"
-
-      :style="page === 'login' || page === 'register'
-
-        ? { minHeight: 'auto', color: 'var(--site-text)' }
-
-        : { minHeight: '800px', maxWidth: '1400px', margin: '0 auto', color: 'var(--site-text)' }"
-
+      :class="[
+        'main-pad',
+        'site-main',
+        {
+          'main-pad--flush': page === 'login' || page === 'register',
+          'main-pad--top': page === 'top',
+          'site-main--flush': page === 'login' || page === 'register',
+        },
+      ]"
     >
 
       <PageTop
@@ -404,7 +560,15 @@ function handleRegisterComplete(user) {
 
         v-else-if="page === 'fanclub-site'"
 
+        :active-section="fanclubSection"
+
         @navigate="goTo"
+
+        @open-modal="openModal"
+
+        @open-auth="openAuth"
+
+        @section-change="fanclubSection = $event"
 
       />
 
@@ -416,7 +580,7 @@ function handleRegisterComplete(user) {
 
     <PremiumMemberBar
       v-if="page !== 'top' && page !== 'login' && page !== 'register'"
-      @open-fanclub="goTo('fanclub')"
+      @open-fanclub="openAuth('fanclub')"
     />
 
     <AppFooterBar />
@@ -431,7 +595,7 @@ function handleRegisterComplete(user) {
       :is-logged-in="isLoggedIn"
       :account-id="user?.account_id"
       @close="modal = null"
-      @open-auth="(mode) => { modal = null; openAuth(mode) }"
+      @open-auth="handleAiModalAuth"
     />
 
     <NewsListModal v-if="modal === 'news'" @close="modal = null" />
@@ -451,15 +615,11 @@ function handleRegisterComplete(user) {
 <style scoped>
 
 .site-shell {
-
   min-height: 100vh;
-
   font-family: var(--ff-serif);
-
   font-size: 1rem;
-
   position: relative;
-
+  overflow-x: clip;
 }
 
 </style>

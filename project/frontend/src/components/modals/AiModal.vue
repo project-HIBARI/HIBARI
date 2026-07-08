@@ -14,6 +14,7 @@ import {
   hasPermission,
 } from '../../constants/membership.js'
 import { getAiUsageCount, incrementAiUsage } from '../../lib/aiUsage.js'
+import { HIBARI_AVATAR_SRC, HIBARI_AVATAR_ALT } from '../../lib/hibariAvatar.js'
 
 const props = defineProps({
   membership: { type: String, default: 'general' },
@@ -22,8 +23,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'open-auth'])
-
-const HIBARI_AVATAR_SRC = '/images/ai/hibari-avatar.png'
 
 const aiTab = ref('chat')
 const messages = ref([
@@ -149,7 +148,7 @@ function generateLyric() {
           <img
             v-if="m.role === 'ai'"
             :src="HIBARI_AVATAR_SRC"
-            alt=""
+            :alt="HIBARI_AVATAR_ALT"
             class="ai-modal__avatar"
             width="40"
             height="40"
@@ -163,7 +162,7 @@ function generateLyric() {
         <div v-if="loading" class="ai-modal__row ai-modal__row--ai ai-modal__row--loading">
           <img
             :src="HIBARI_AVATAR_SRC"
-            alt=""
+            :alt="HIBARI_AVATAR_ALT"
             class="ai-modal__avatar"
             width="40"
             height="40"
@@ -391,9 +390,13 @@ function generateLyric() {
   white-space: pre-wrap;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
   .ai-modal__input-row {
     flex-direction: column;
+  }
+  .ai-modal__input-row :deep(button) {
+    width: 100%;
+    justify-content: center;
   }
   .ai-modal__bubble {
     max-width: 92%;
