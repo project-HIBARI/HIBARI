@@ -1,20 +1,42 @@
 <script setup>
 /**
  * 部品名: ログインフォームカード
- * 用途: 金枠・角飾り付きのログインフォーム UI（Phase 1: API 未接続）
+ * 用途: 金枠・角飾り付きのログインフォーム UI
  */
 import { ref } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
+import { useAuth } from '../../../composables/useAuth.js'
 
-const emit = defineEmits(['open-auth'])
+const emit = defineEmits(['open-auth', 'login-success'])
+
+const { login } = useAuth()
 
 const email = ref('')
 const password = ref('')
 const remember = ref(false)
 const showPassword = ref(false)
+const submitting = ref(false)
+const errorMessage = ref('')
 
-function onSubmit(e) {
+async function onSubmit(e) {
   e.preventDefault()
+  errorMessage.value = ''
+
+  const emailVal = email.value.trim()
+  if (!emailVal || !password.value) {
+    errorMessage.value = 'メールアドレスとパスワードは必須項目です'
+    return
+  }
+
+  submitting.value = true
+  try {
+    await login(emailVal, password.value)
+    emit('login-success')
+  } catch (err) {
+    errorMessage.value = err.message || 'ログインに失敗しました'
+  } finally {
+    submitting.value = false
+  }
 }
 
 function onForgotPassword() {
@@ -74,7 +96,11 @@ function onForgotPassword() {
         </button>
       </div>
 
-      <button type="submit" class="login-card__submit">
+      <p v-if="errorMessage" class="login-card__register-desc" role="alert">
+        {{ errorMessage }}
+      </p>
+
+      <button type="submit" class="login-card__submit" :disabled="submitting">
         <UiIco name="flower" :size="16" color="#fff" />
         ログイン
       </button>

@@ -8,7 +8,7 @@
 
  */
 
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 import AppHeader from './AppHeader.vue'
 
@@ -45,6 +45,8 @@ import PageLogin from '../pages/PageLogin.vue'
 import PageRegister from '../pages/PageRegister.vue'
 
 import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
+
+import { useAuth } from '../../composables/useAuth.js'
 
 
 
@@ -83,6 +85,20 @@ const authMode = ref(null)
 
 
 useBodyScrollLock(drawerOpen)
+
+const { refreshUser } = useAuth()
+
+onMounted(() => {
+  refreshUser()
+})
+
+function onLoginSuccess() {
+  goTo('top')
+}
+
+function onRegisterSuccess() {
+  goTo('login')
+}
 
 
 
@@ -276,6 +292,8 @@ function closeAuth() {
 
         @open-auth="openAuth"
 
+        @login-success="onLoginSuccess"
+
       />
 
       <PageRegister
@@ -285,6 +303,8 @@ function closeAuth() {
         @navigate="goTo"
 
         @open-auth="openAuth"
+
+        @register-success="onRegisterSuccess"
 
       />
 

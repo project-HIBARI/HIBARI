@@ -6,7 +6,7 @@
 import LoginHeroBackground from './login/LoginHeroBackground.vue'
 import LoginFormCard from './login/LoginFormCard.vue'
 
-const emit = defineEmits(['open-auth'])
+const emit = defineEmits(['open-auth', 'login-success'])
 </script>
 
 <template>
@@ -23,7 +23,10 @@ const emit = defineEmits(['open-auth'])
           </p>
         </header>
 
-        <LoginFormCard @open-auth="(m) => emit('open-auth', m)" />
+        <LoginFormCard
+          @open-auth="(m) => emit('open-auth', m)"
+          @login-success="emit('login-success')"
+        />
       </div>
     </section>
   </div>

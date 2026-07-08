@@ -1,12 +1,15 @@
 <script setup>
 /**
  * 部品名: 新規登録フォームカード
- * 用途: 金枠・角飾り付きの登録フォーム UI（Phase 1: API 未接続）
+ * 用途: 金枠・角飾り付きの登録フォーム UI
  */
 import { ref } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
+import { useAuth } from '../../../composables/useAuth.js'
 
-const emit = defineEmits(['navigate', 'open-auth'])
+const emit = defineEmits(['navigate', 'open-auth', 'register-success'])
+
+const { register } = useAuth()
 
 const name = ref('')
 const email = ref('')
@@ -15,9 +18,40 @@ const passwordConfirm = ref('')
 const agreeTerms = ref(false)
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
+const submitting = ref(false)
+const errorMessage = ref('')
 
-function onSubmit(e) {
+async function onSubmit(e) {
   e.preventDefault()
+  errorMessage.value = ''
+
+  const nameVal = name.value.trim()
+  const emailVal = email.value.trim()
+
+  if (!nameVal || !emailVal || !password.value) {
+    errorMessage.value = '名前、メールアドレス、パスワードは必須項目です'
+    return
+  }
+
+  if (password.value !== passwordConfirm.value) {
+    errorMessage.value = 'パスワード（確認用）が一致しません'
+    return
+  }
+
+  if (!agreeTerms.value) {
+    errorMessage.value = '利用規約およびプライバシーポリシーへの同意が必要です'
+    return
+  }
+
+  submitting.value = true
+  try {
+    await register(nameVal, emailVal, password.value)
+    emit('register-success')
+  } catch (err) {
+    errorMessage.value = err.message || '登録に失敗しました'
+  } finally {
+    submitting.value = false
+  }
 }
 
 function onTermsLink(type) {
@@ -117,7 +151,11 @@ function onTermsLink(type) {
         </span>
       </label>
 
-      <button type="submit" class="login-card__submit">
+      <p v-if="errorMessage" class="login-card__register-desc" role="alert">
+        {{ errorMessage }}
+      </p>
+
+      <button type="submit" class="login-card__submit" :disabled="submitting">
         <UiIco name="flower" :size="16" color="#fff" />
         新規会員登録
       </button>
