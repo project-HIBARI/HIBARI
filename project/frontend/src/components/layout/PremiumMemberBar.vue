@@ -10,7 +10,8 @@ const emit = defineEmits(['open-fanclub'])
   <div class="premium-bar" role="complementary">
     <button type="button" class="premium-bar__btn" @click="emit('open-fanclub')">
       <span class="premium-bar__icon">✦</span>
-      サブスクリプションサービス · プレミアム会員特典を見る
+      <span class="premium-bar__text premium-bar__text--full">サブスクリプションサービス · プレミアム会員特典を見る</span>
+      <span class="premium-bar__text premium-bar__text--short">プレミアム会員特典を見る</span>
       <span class="premium-bar__arrow">›</span>
     </button>
   </div>
@@ -27,16 +28,40 @@ const emit = defineEmits(['open-fanclub'])
   color: var(--murasaki-700);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 8px;
+  line-height: 1.5;
 }
 .premium-bar__btn:hover {
   color: var(--murasaki-800);
 }
 .premium-bar__icon {
   color: var(--kin-600);
+  flex-shrink: 0;
+}
+.premium-bar__text--short {
+  display: none;
 }
 .premium-bar__arrow {
   font-size: 16px;
   line-height: 1;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .premium-bar__btn {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+  .premium-bar__text--full {
+    display: none;
+  }
+  .premium-bar__text--short {
+    display: inline;
+  }
 }
 </style>

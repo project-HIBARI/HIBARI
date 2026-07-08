@@ -317,4 +317,30 @@ function isDecadeActive(start, end) {
 .disco-filter__range-sep {
   opacity: 0.5;
 }
+
+@media (max-width: 767px) {
+  .disco-filter__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .disco-filter__field {
+    width: 100%;
+  }
+  .disco-filter__select {
+    width: 100%;
+    min-width: 0;
+  }
+  .disco-filter__count {
+    margin-left: 0;
+    text-align: right;
+  }
+  .disco-filter__range {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .disco-filter__slider {
+    max-width: none;
+    width: 100%;
+  }
+}
 </style>

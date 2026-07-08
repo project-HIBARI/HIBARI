@@ -124,4 +124,15 @@ const emit = defineEmits(['join'])
   font-size: 11px;
   color: rgba(255, 255, 255, 0.7);
 }
+
+@media (max-width: 480px) {
+  .fc-cta {
+    padding: 32px 16px;
+  }
+  .fc-cta__btn {
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+}
 </style>

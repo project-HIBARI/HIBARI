@@ -106,4 +106,24 @@ const emit = defineEmits(['like'])
   font-family: var(--ff-mono);
   font-size: 12px;
 }
+
+@media (max-width: 480px) {
+  .mem-board__item {
+    padding: var(--sp-4);
+  }
+  .mem-board__song {
+    position: static;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  .mem-board__foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .mem-board__actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
 </style>

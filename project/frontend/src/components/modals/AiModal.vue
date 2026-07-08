@@ -390,9 +390,13 @@ function generateLyric() {
   white-space: pre-wrap;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
   .ai-modal__input-row {
     flex-direction: column;
+  }
+  .ai-modal__input-row :deep(button) {
+    width: 100%;
+    justify-content: center;
   }
   .ai-modal__bubble {
     max-width: 92%;

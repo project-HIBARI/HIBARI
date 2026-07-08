@@ -4,7 +4,7 @@
  * 用途: 美空ひばりAIとの対話（バックエンド /api/chat 連携）
  * 機能: ルーム一覧 / メッセージ履歴 / 新規チャット / 送信
  */
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import UiButton from '../../ui/UiButton.vue'
 import { fetchRooms, fetchMessages, sendChatMessage } from '../../../lib/chatApi.js'
 import { HIBARI_AVATAR_SRC, HIBARI_AVATAR_ALT } from '../../../lib/hibariAvatar.js'
@@ -20,6 +20,13 @@ const loading = ref(false)
 const roomsLoading = ref(false)
 const error = ref('')
 const messagesRef = ref(null)
+const mobileView = ref('chat')
+const isMobile = ref(false)
+
+function updateMobile() {
+  isMobile.value = window.matchMedia('(max-width: 767px)').matches
+  if (!isMobile.value) mobileView.value = 'chat'
+}
 
 async function loadRooms() {
   roomsLoading.value = true
@@ -49,6 +56,7 @@ async function selectRoom(room) {
       text: m.content,
     }))
     error.value = ''
+    if (isMobile.value) mobileView.value = 'chat'
     await scrollToBottom()
   } catch (e) {
     if (e.status === 401) emit('need-login')
@@ -63,6 +71,7 @@ function startNewChat() {
   currentRoomName.value = '新しいチャット'
   messages.value = []
   error.value = ''
+  if (isMobile.value) mobileView.value = 'chat'
 }
 
 async function send() {
@@ -104,13 +113,22 @@ async function scrollToBottom() {
 }
 
 onMounted(() => {
+  updateMobile()
+  window.addEventListener('resize', updateMobile)
   loadRooms()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateMobile)
 })
 </script>
 
 <template>
-  <div class="fc-chat">
-    <aside class="fc-chat__sidebar">
+  <div class="fc-chat" :class="{ 'fc-chat--mobile': isMobile }">
+    <aside
+      v-show="!isMobile || mobileView === 'rooms'"
+      class="fc-chat__sidebar"
+    >
       <div class="fc-chat__sidebar-head">
         <h3 class="fc-chat__sidebar-title">チャット履歴</h3>
         <button type="button" class="fc-chat__new" @click="startNewChat">＋ 新規</button>
@@ -132,8 +150,19 @@ onMounted(() => {
       </ul>
     </aside>
 
-    <div class="fc-chat__main">
+    <div
+      v-show="!isMobile || mobileView === 'chat'"
+      class="fc-chat__main"
+    >
       <header class="fc-chat__header">
+        <button
+          v-if="isMobile"
+          type="button"
+          class="fc-chat__back"
+          @click="mobileView = 'rooms'"
+        >
+          ← 履歴
+        </button>
         <img
           :src="HIBARI_AVATAR_SRC"
           :alt="HIBARI_AVATAR_ALT"
@@ -316,6 +345,19 @@ onMounted(() => {
   border-bottom: 1px solid var(--site-border);
   background: linear-gradient(135deg, var(--murasaki-100) 0%, var(--site-surface) 100%);
 }
+.fc-chat__back {
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  padding: 4px 0;
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  color: var(--murasaki-700);
+  cursor: pointer;
+}
+.fc-chat__back:hover {
+  text-decoration: underline;
+}
 .fc-chat__header-avatar {
   flex-shrink: 0;
   width: 36px;
@@ -455,16 +497,23 @@ onMounted(() => {
     grid-template-columns: 1fr;
     min-height: auto;
   }
-  .fc-chat__sidebar {
+  .fc-chat--mobile .fc-chat__sidebar {
     border-right: 0;
-    border-bottom: 1px solid var(--site-border);
-    max-height: 160px;
+    min-height: 280px;
+  }
+  .fc-chat--mobile .fc-chat__main {
+    min-height: 360px;
   }
   .fc-chat__messages {
-    max-height: 320px;
+    max-height: min(50vh, 360px);
+    min-height: 200px;
   }
   .fc-chat__input-row {
     flex-direction: column;
+  }
+  .fc-chat__input-row :deep(button) {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

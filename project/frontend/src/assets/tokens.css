@@ -78,6 +78,12 @@
   --hair: 1px solid rgba(26, 20, 16, 0.12);
   --hair-heavy: 1px solid rgba(26, 20, 16, 0.22);
   --hair-gold: 1px solid var(--kin-500);
+
+  /* Breakpoints (reference) */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
 }
 
 html[data-text-size='s'] {

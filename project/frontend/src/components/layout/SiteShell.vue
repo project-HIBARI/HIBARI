@@ -430,20 +430,16 @@ function handleAiModalAuth(mode) {
 
 
     <main
-
       id="main-content"
-
-      :class="['main-pad', {
-        'main-pad--flush': page === 'login' || page === 'register',
-        'main-pad--top': page === 'top',
-      }]"
-
-      :style="page === 'login' || page === 'register'
-
-        ? { minHeight: 'auto', color: 'var(--site-text)' }
-
-        : { minHeight: '800px', maxWidth: '1400px', margin: '0 auto', color: 'var(--site-text)' }"
-
+      :class="[
+        'main-pad',
+        'site-main',
+        {
+          'main-pad--flush': page === 'login' || page === 'register',
+          'main-pad--top': page === 'top',
+          'site-main--flush': page === 'login' || page === 'register',
+        },
+      ]"
     >
 
       <PageTop
@@ -590,15 +586,11 @@ function handleAiModalAuth(mode) {
 <style scoped>
 
 .site-shell {
-
   min-height: 100vh;
-
   font-family: var(--ff-serif);
-
   font-size: 1rem;
-
   position: relative;
-
+  overflow-x: clip;
 }
 
 </style>
