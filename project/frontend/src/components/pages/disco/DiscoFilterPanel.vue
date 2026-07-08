@@ -15,7 +15,6 @@ const props = defineProps({
   yearStart: { type: Number, default: 1949 },
   yearEnd: { type: Number, default: 1989 },
   resultCount: { type: Number, default: 0 },
-  favoriteCount: { type: Number, default: 0 },
 })
 
 const emit = defineEmits([
@@ -34,7 +33,6 @@ const typeTabs = [
   { key: 'all', label: 'すべて' },
   { key: 'シングル', label: 'シングル' },
   { key: 'アルバム', label: 'アルバム' },
-  { key: 'favorites', label: 'お気に入り' },
 ]
 
 const decades = [
@@ -100,9 +98,6 @@ function isDecadeActive(start, end) {
           @click="emit('update:typeFilter', tab.key)"
         >
           {{ tab.label }}
-          <span v-if="tab.key === 'favorites' && favoriteCount > 0" class="disco-filter__badge">
-            {{ favoriteCount }}
-          </span>
         </button>
       </div>
     </div>

@@ -3,7 +3,7 @@
  * ページ: ディスコグラフィ（曲）
  * 構成: ヒーロー / PV / フィルタ / 楽曲グリッド / ページネーション / AI / 関連導線
  */
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import DiscoHeroSection from './disco/DiscoHeroSection.vue'
 import DiscoPvSection from './disco/DiscoPvSection.vue'
 import DiscoFilterPanel from './disco/DiscoFilterPanel.vue'
@@ -14,7 +14,6 @@ import DiscoRelatedCards from './disco/DiscoRelatedCards.vue'
 import DiscoDetailDialog from './disco/DiscoDetailDialog.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
 
-const FAV_KEY = 'hbr-disco-favorites'
 const PAGE_SIZE = 8
 
 const emit = defineEmits(['navigate', 'open-auth', 'open-modal'])
@@ -27,35 +26,6 @@ const yearStart = ref(HIBARU_DATA.discographyStats.yearStart)
 const yearEnd = ref(HIBARU_DATA.discographyStats.yearEnd)
 const currentPage = ref(1)
 const detail = ref(null)
-const favorites = ref(new Set())
-
-onMounted(() => {
-  try {
-    const raw = localStorage.getItem(FAV_KEY)
-    if (raw) {
-      const ids = JSON.parse(raw)
-      if (Array.isArray(ids)) favorites.value = new Set(ids)
-    }
-  } catch {
-    /* ignore */
-  }
-})
-
-function saveFavorites() {
-  try {
-    localStorage.setItem(FAV_KEY, JSON.stringify([...favorites.value]))
-  } catch {
-    /* ignore */
-  }
-}
-
-function toggleFavorite(id) {
-  const next = new Set(favorites.value)
-  if (next.has(id)) next.delete(id)
-  else next.add(id)
-  favorites.value = next
-  saveFavorites()
-}
 
 const filteredItems = computed(() => {
   let list = HIBARU_DATA.discography.filter((d) => {
@@ -69,9 +39,6 @@ const filteredItems = computed(() => {
     const matchG = genre.value === 'all' || d.genre === genre.value
     const matchY = d.year >= yearStart.value && d.year <= yearEnd.value
 
-    if (typeFilter.value === 'favorites') {
-      return matchQ && matchG && matchY && favorites.value.has(d.id)
-    }
     if (typeFilter.value === 'アルバム') {
       return false
     }
@@ -96,7 +63,6 @@ const paginatedItems = computed(() => {
 
 const emptyType = computed(() => {
   if (typeFilter.value === 'アルバム') return 'album'
-  if (typeFilter.value === 'favorites') return 'favorites'
   return 'search'
 })
 
@@ -129,7 +95,6 @@ function openDetail(song) {
       :year-start="yearStart"
       :year-end="yearEnd"
       :result-count="filteredItems.length"
-      :favorite-count="favorites.size"
       @update:query="query = $event"
       @update:type-filter="typeFilter = $event"
       @update:genre="genre = $event"
@@ -140,10 +105,8 @@ function openDetail(song) {
 
     <DiscoSongGrid
       :items="paginatedItems"
-      :favorites="favorites"
       :empty-type="emptyType"
       @open="openDetail"
-      @toggle-favorite="toggleFavorite"
     />
 
     <DiscoPagination

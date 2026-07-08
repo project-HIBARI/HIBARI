@@ -6,6 +6,7 @@
 import { pageImageUrl, PAGE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import UiCard from '../../ui/UiCard.vue'
 import RecordChip from '../../ui/RecordChip.vue'
+import UiIco from '../../ui/UiIco.vue'
 import TopAiCard from '../top/TopAiCard.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 import { todaysSong } from '../../../utils/hibaru.js'
@@ -15,6 +16,11 @@ const today = todaysSong()
 const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
 
 const emit = defineEmits(['open-detail', 'open-ai'])
+
+function onPlayClick() {
+  if (!today.audioUrl) return
+  window.open(today.audioUrl, '_blank', 'noopener,noreferrer')
+}
 </script>
 
 <template>
@@ -66,19 +72,30 @@ const emit = defineEmits(['open-detail', 'open-ai'])
 
     <UiCard tone="pink" padding="md" class="disco-hero__today">
       <p class="disco-hero__today-label">TODAY'S SONG · 今日の一曲</p>
-      <button
-        type="button"
-        class="disco-hero__today-btn"
-        :aria-label="today.title + 'の詳細を見る'"
-        @click="emit('open-detail', today)"
-      >
-        <RecordChip :no="today.no" color="var(--beni-700)" />
-        <div class="disco-hero__today-meta">
-          <span class="disco-hero__today-year">{{ today.year }} · {{ today.genre }}</span>
-          <span class="disco-hero__today-title">{{ today.title }}</span>
-          <span class="disco-hero__today-romaji">{{ today.romaji }}</span>
-        </div>
-      </button>
+      <div class="disco-hero__today-row">
+        <button
+          type="button"
+          class="disco-hero__today-btn"
+          :aria-label="today.title + 'の詳細を見る'"
+          @click="emit('open-detail', today)"
+        >
+          <RecordChip :no="today.no" color="var(--beni-700)" />
+          <div class="disco-hero__today-meta">
+            <span class="disco-hero__today-year">{{ today.year }} · {{ today.genre }}</span>
+            <span class="disco-hero__today-title">{{ today.title }}</span>
+            <span class="disco-hero__today-romaji">{{ today.romaji }}</span>
+          </div>
+        </button>
+        <button
+          type="button"
+          class="disco-hero__today-play"
+          :aria-label="today.title + 'を再生'"
+          :disabled="!today.audioUrl"
+          @click="onPlayClick"
+        >
+          <UiIco name="play" :size="13" color="var(--murasaki-700)" />
+        </button>
+      </div>
     </UiCard>
   </section>
 </template>
@@ -250,11 +267,17 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   letter-spacing: 0.25em;
   color: var(--kin-600);
 }
+.disco-hero__today-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
 .disco-hero__today-btn {
   display: flex;
   align-items: center;
   gap: var(--sp-4);
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -290,6 +313,28 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   font-style: italic;
   font-size: 12px;
   color: var(--site-text-muted);
+}
+.disco-hero__today-play {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--murasaki-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--murasaki-100);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+.disco-hero__today-play:hover:not(:disabled) {
+  background: var(--murasaki-200, #e8dff0);
+  border-color: var(--murasaki-500);
+}
+.disco-hero__today-play:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 @media (max-width: 1024px) {

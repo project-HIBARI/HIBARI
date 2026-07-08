@@ -8,16 +8,14 @@ import DiscoSongCard from './DiscoSongCard.vue'
 
 defineProps({
   items: { type: Array, default: () => [] },
-  favorites: { type: Set, default: () => new Set() },
   emptyType: { type: String, default: 'search' },
 })
 
-const emit = defineEmits(['open', 'toggle-favorite'])
+const emit = defineEmits(['open'])
 
 const emptyMessages = {
   search: '該当する楽曲が見つかりませんでした',
   album: 'アルバムのデータは準備中です。現在はシングルのみ掲載しています。',
-  favorites: 'お気に入りに登録した楽曲がここに表示されます。ハートアイコンをタップして追加してください。',
 }
 </script>
 
@@ -36,9 +34,7 @@ const emptyMessages = {
         :key="song.id"
         :song="song"
         :index="i"
-        :is-favorite="favorites.has(song.id)"
         @open="emit('open', $event)"
-        @toggle-favorite="emit('toggle-favorite', $event)"
       />
     </div>
   </section>
