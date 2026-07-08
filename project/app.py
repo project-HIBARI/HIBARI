@@ -22,18 +22,6 @@ from password_utils import (
 )
 
 
-def get_genai_client():
-    """AIチャット利用時のみ google-genai を読み込む（認証APIは未インストールでも起動可能）"""
-    try:
-        from google import genai
-    except ModuleNotFoundError as exc:
-        raise RuntimeError(
-            "AIチャットには google-genai パッケージが必要です。"
-            " pip install google-genai を実行してください。"
-        ) from exc
-    return genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-
-
 # 初期設定（app.py と同じディレクトリの .env / env を読み込む）
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR / ".env")
@@ -53,7 +41,26 @@ engine = create_engine(
     pool_pre_ping=True
 )
 
-# Gemini API（遅延初期化・ログイン等は未インストールでも動作）
+# Gemini API設定（AIチャット用）
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+
+def get_genai_client():
+    """AIチャット利用時のみ google-genai を読み込む（認証APIは未インストールでも起動可能）"""
+    if not GEMINI_API_KEY:
+        raise RuntimeError(
+            "GEMINI_API_KEY が未設定です。"
+            " project/.env または project/env に GEMINI_API_KEY=... を追加してください。"
+        )
+    try:
+        from google import genai
+    except ModuleNotFoundError as exc:
+        raise RuntimeError(
+            "AIチャットには google-genai パッケージが必要です。"
+            " pip install google-genai を実行してください。"
+        ) from exc
+    return genai.Client(api_key=GEMINI_API_KEY)
+
 from zoneinfo import ZoneInfo
 
 # 掲示板メディアアップロード
