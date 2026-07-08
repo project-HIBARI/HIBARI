@@ -40,5 +40,11 @@ export default defineConfig({
     strictPort: true,
     /** Vite 標準の --open は既定ブラウザになるため明示的に false */
     open: false,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:5000',
+        changeOrigin: true,
+      },
+    },
   },
 })

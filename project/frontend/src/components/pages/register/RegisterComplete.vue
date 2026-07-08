@@ -5,6 +5,7 @@
  */
 import { computed } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
+import { MEMBERSHIP_LABELS } from '../../../constants/membership.js'
 
 const props = defineProps({
   form: { type: Object, required: true },
@@ -67,6 +68,7 @@ const paymentValue = computed(() => {
 })
 
 const summary = computed(() => [
+  { label: '会員プラン', value: MEMBERSHIP_LABELS[props.form.membershipPlan] || '—' },
   { label: '氏名', value: props.form.name },
   { label: '住所', value: props.form.address },
   { label: '性別', value: genderLabels[props.form.gender] || '—' },

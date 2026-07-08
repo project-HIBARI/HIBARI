@@ -4,6 +4,7 @@
  * 役割: モバイル時のページ切替・ログイン/新規登録・AI 等への導線
  */
 import UiButton from '../ui/UiButton.vue'
+import TextSizeControl from '../ui/TextSizeControl.vue'
 
 defineProps({
   open: { type: Boolean, default: false },
@@ -40,6 +41,12 @@ const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth'])
       <div class="drawer__auth">
         <UiButton variant="outline" size="md" @click="emit('open-auth', 'login')">ログイン</UiButton>
         <UiButton variant="primary" size="md" @click="emit('open-auth', 'register')">新規登録</UiButton>
+      </div>
+
+      <div class="drawer__divider" />
+
+      <div class="drawer__text-size">
+        <TextSizeControl tone="ink" variant="default" />
       </div>
 
       <div class="drawer__divider" />
@@ -124,6 +131,9 @@ const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth'])
   flex-direction: column;
   gap: 10px;
   padding: 12px 20px;
+}
+.drawer__text-size {
+  padding: 12px 20px 4px;
 }
 .drawer__sub {
   border: 0;

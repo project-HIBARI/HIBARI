@@ -2,45 +2,20 @@
 /**
  * ページ: ファンクラブ特典紹介
  * 構成: 見出し / 特典ハイライト / プラン・料金 / 加入CTA
- * 導線: 「ファンクラブ加入」→ 新規会員登録（navigate: register）
  */
 import PageHead from '../ui/PageHead.vue'
 import SectionTitle from '../ui/SectionTitle.vue'
 import FanclubBenefits from './fanclub/FanclubBenefits.vue'
 import FanclubPlanCard from './fanclub/FanclubPlanCard.vue'
 import FanclubJoinCta from './fanclub/FanclubJoinCta.vue'
+import { MEMBERSHIP_PLANS } from '../../constants/membership.js'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'register'])
 
-const plans = [
-  {
-    id: 'standard',
-    name: '一般会員',
-    price: '¥500',
-    unit: '/ 月',
-    features: ['月刊ニュースレター', 'チケット先行予約', '掲示板投稿', '月10回 AIひばり対話'],
-    locked: ['限定コンテンツ', 'AI新曲制作支援', '優先申込'],
-  },
-  {
-    id: 'premium',
-    name: 'プレミアム会員',
-    price: '¥1,500',
-    unit: '/ 月',
-    features: [
-      '一般会員特典すべて',
-      'プレミアム限定映像',
-      '限定コンテンツ',
-      'AI新曲制作支援',
-      'AIひばり対話 無制限',
-      '優先申込 + 会員割引',
-    ],
-    locked: [],
-    recommended: true,
-  },
-]
+const plans = MEMBERSHIP_PLANS
 
-function goRegister() {
-  emit('navigate', 'register')
+function goRegister(plan) {
+  emit('register', plan.id)
 }
 </script>
 
@@ -50,7 +25,7 @@ function goRegister() {
 
     <p class="page-fanclub__intro">
       美空ひばりファンクラブは、限定コンテンツやイベント先行予約など、ファンのための特典をご用意しています。
-      あなたにあったプランをお選びいただき、ひばりの世界をより深くお楽しみください。
+      一般会員・プレミアム会員からお選びいただき、ひばりの世界をより深くお楽しみください。
     </p>
 
     <section class="page-fanclub__section">
@@ -70,7 +45,7 @@ function goRegister() {
       </div>
     </section>
 
-    <FanclubJoinCta class="page-fanclub__cta" @join="goRegister" />
+    <FanclubJoinCta class="page-fanclub__cta" @join="() => goRegister(plans[0])" />
   </div>
 </template>
 

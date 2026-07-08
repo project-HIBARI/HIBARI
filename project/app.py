@@ -203,6 +203,33 @@ def get_session_account_id():
     return account_id
 
 
+def get_membership_for_account(account_id):
+    rows = fetch_all(
+        """
+        SELECT is_premium
+        FROM fanclub_join_historys
+        WHERE account_id = :account_id
+        ORDER BY purchased_at DESC
+        LIMIT 1
+        """,
+        {"account_id": account_id}
+    )
+    if not rows:
+        return "general"
+    return "premium" if rows[0].is_premium else "general"
+
+
+def build_user_response(account_id, name, email):
+    membership = get_membership_for_account(account_id)
+    return {
+        "account_id": account_id,
+        "name": name,
+        "email": email,
+        "membership": membership,
+        "is_premium": membership == "premium",
+    }
+
+
 ############################################################################
 ### パス
 ############################################################################
@@ -322,6 +349,8 @@ def create_account():
         name = data.get("name")
         email = data.get("email")
         password = data.get("password")
+        address = data.get("address")
+        is_premium = data.get("is_premium", False)
 
         if not name or not email or not password:
             return jsonify({"error": "名前、メールアドレス、パスワードは必須項目です"}), 400
@@ -329,9 +358,8 @@ def create_account():
         name_val = name.strip()
         email_val = email.strip()
         password_val = generate_password_hash(password, method="scrypt")
-
-        # 住所は一律でNULLに設定
-        address_val = None
+        address_val = address.strip() if isinstance(address, str) and address.strip() else None
+        is_premium_val = bool(is_premium)
 
         account_id = execute_insert(
             """
@@ -357,10 +385,44 @@ def create_account():
             }
         )
 
+        execute_insert(
+            """
+            INSERT INTO fanclub_join_historys (
+                account_id,
+                is_premium,
+                purchased_at
+            )
+            VALUES (
+                :account_id,
+                :is_premium,
+                NOW()
+            )
+            RETURNING fanclub_join_history_id
+            """,
+            {
+                "account_id": account_id,
+                "is_premium": is_premium_val
+            }
+        )
+
+        membership = "premium" if is_premium_val else "general"
+
+        session["account_id"] = account_id
+        session["name"] = name_val
+        session["email"] = email_val
+        session["membership"] = membership
+
         return jsonify({
             "success": True,
             "message": "登録できました",
-            "account_id": account_id
+            "account_id": account_id,
+            "user": {
+                "account_id": account_id,
+                "name": name_val,
+                "email": email_val,
+                "membership": membership,
+                "is_premium": is_premium_val,
+            }
         }), 201
 
     except Exception as e:
@@ -389,18 +451,19 @@ def login():
         # キャッシュからユーザーをチェック
         cached_user = get_cached_user(email)
         if cached_user and check_password_hash(cached_user['password'], password):
-            # Sessionへ保存
+            membership = get_membership_for_account(cached_user["account_id"])
             session["account_id"] = cached_user["account_id"]
             session["name"] = cached_user["name"]
             session["email"] = cached_user["email"]
+            session["membership"] = membership
             
             return jsonify({
                 "success": True,
-                "user": {
-                    "account_id": cached_user['account_id'],
-                    "name": cached_user['name'],
-                    "email": cached_user['email']
-                },
+                "user": build_user_response(
+                    cached_user['account_id'],
+                    cached_user['name'],
+                    cached_user['email']
+                ),
                 "cached": True
             })
         
@@ -423,17 +486,19 @@ def login():
         cache_user(email, user)
         
         # Sessionへ保存
+        membership = get_membership_for_account(user["account_id"])
         session["account_id"] = user["account_id"]
         session["name"] = user["name"]
         session["email"] = user["email"]
+        session["membership"] = membership
         
         return jsonify({
             "success": True,
-            "user": {
-                "account_id": user['account_id'],
-                "name": user['name'],
-                "email": user['email']
-            },
+            "user": build_user_response(
+                user['account_id'],
+                user['name'],
+                user['email']
+            ),
             "cached": False
         })
     
@@ -463,11 +528,11 @@ def me():
 
     return jsonify({
         "login": True,
-        "user": {
-            "account_id": session["account_id"],
-            "name": session["name"],
-            "email": session["email"]
-        }
+        "user": build_user_response(
+            session["account_id"],
+            session["name"],
+            session["email"]
+        )
     })
     
 

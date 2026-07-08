@@ -1,26 +1,38 @@
 <script setup>
 /**
  * 部品名: ゆかりの地 — ギャラリーパネル
- * 用途: 会員向け写真ギャラリーのプレースホルダ（クリックで認証モーダル誘導）
+ * 用途: プレミアム会員向け写真ギャラリー（権限に応じてロック表示）
  */
 import SectionTitle from '../../ui/SectionTitle.vue'
 import Photo from '../../ui/Photo.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
+import { useMemberAccess } from '../../../composables/useMemberAccess.js'
 
-const emit = defineEmits(['open-gallery'])
+const emit = defineEmits(['open-gallery', 'need-auth'])
 
+const { canUse, isLoggedIn, PERMISSION } = useMemberAccess()
 const items = HIBARU_DATA.placeGallery
+const unlocked = () => canUse(PERMISSION.EXCLUSIVE_CONTENT)
+
+function onLinkClick() {
+  if (unlocked()) emit('open-gallery')
+  else if (!isLoggedIn.value) emit('need-auth', 'login')
+  else emit('need-auth', 'register-premium')
+}
+
+function onCardClick() {
+  onLinkClick()
+}
 </script>
 
 <template>
-  <!-- ゆかりの地ギャラリー（会員向けプレースホルダ） -->
   <section class="places-gallery" aria-label="ゆかりの地ギャラリー">
     <SectionTitle
       title="ゆかりの地ギャラリー"
       sub="Photo Gallery"
       size="md"
       link-label="もっと見る"
-      @link-click="emit('open-gallery')"
+      @link-click="onLinkClick"
     />
 
     <div class="places-gallery__grid">
@@ -29,14 +41,15 @@ const items = HIBARU_DATA.placeGallery
         :key="item.id"
         type="button"
         class="places-gallery__card"
-        :aria-label="item.title + 'の写真（会員限定）'"
-        @click="emit('open-gallery')"
+        :class="{ 'places-gallery__card--locked': !unlocked() }"
+        :aria-label="item.title + (unlocked() ? 'の写真' : '（プレミアム限定）')"
+        @click="onCardClick"
       >
         <Photo :w="200" :h="140" :caption="item.title" variant="sepia" class="places-gallery__ph" />
         <div class="places-gallery__body">
           <h3 class="places-gallery__title">{{ item.title }}</h3>
           <p class="places-gallery__caption">{{ item.caption }}</p>
-          <span class="places-gallery__lock">会員限定</span>
+          <span class="places-gallery__lock">{{ unlocked() ? '閲覧可能' : 'プレミアム限定' }}</span>
         </div>
       </button>
     </div>
@@ -66,6 +79,9 @@ const items = HIBARU_DATA.placeGallery
 .places-gallery__card:hover {
   transform: translateY(-2px);
   box-shadow: var(--site-shadow-md);
+}
+.places-gallery__card--locked .places-gallery__ph {
+  filter: grayscale(0.4) brightness(0.92);
 }
 .places-gallery__ph {
   width: 100% !important;
@@ -98,6 +114,9 @@ const items = HIBARU_DATA.placeGallery
   font-size: 9px;
   letter-spacing: 0.1em;
   border-radius: 4px;
+}
+.places-gallery__card--locked .places-gallery__lock {
+  background: var(--kin-600);
 }
 .places-gallery__card:focus-visible {
   outline: 2px solid var(--murasaki-500);
