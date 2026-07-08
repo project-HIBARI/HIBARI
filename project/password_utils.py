@@ -59,7 +59,8 @@ def verify_password(stored_hash: str, password: str) -> bool:
     if stored_hash.startswith("scrypt:"):
         return _verify_werkzeug_scrypt(stored_hash, password)
 
-    return False
+    # 旧データ: 平文パスワードが残っている場合（ログイン成功時に pbkdf2 へ移行）
+    return hmac.compare_digest(stored_hash, password)
 
 
 def needs_password_upgrade(stored_hash: str) -> bool:

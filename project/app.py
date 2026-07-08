@@ -14,10 +14,6 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import create_engine
 from sqlalchemy import text
 
-from google import genai
-
-from zoneinfo import ZoneInfo
-
 from password_utils import (
     hash_password,
     normalize_email,
@@ -26,22 +22,38 @@ from password_utils import (
 )
 
 
+def get_genai_client():
+    """AIチャット利用時のみ google-genai を読み込む（認証APIは未インストールでも起動可能）"""
+    try:
+        from google import genai
+    except ModuleNotFoundError as exc:
+        raise RuntimeError(
+            "AIチャットには google-genai パッケージが必要です。"
+            " pip install google-genai を実行してください。"
+        ) from exc
+    return genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+
 # 初期設定
 load_dotenv()
+load_dotenv("env")  # .env が無い環境向け（project/env）
 app = Flask(__name__)
 app.secret_key = "qawsedrftgyhujikolp"
 
 # DB接続設定
 DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    raise SystemExit(
+        "DATABASE_URL が未設定です。"
+        " project/.env または project/env に DATABASE_URL を設定してください。"
+    )
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True
 )
 
-# Gemini API設定
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+# Gemini API（遅延初期化・ログイン等は未インストールでも動作）
+from zoneinfo import ZoneInfo
 
 # 掲示板メディアアップロード
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -63,6 +75,17 @@ user_cache = {}
 
 # SQL実行関数
 #   SELECT
+def row_to_dict(row):
+    """SQLAlchemy Row を辞書に変換"""
+    if row is None:
+        return None
+    if hasattr(row, "_mapping"):
+        return dict(row._mapping)
+    if hasattr(row, "_asdict"):
+        return row._asdict()
+    return dict(row)
+
+
 def fetch_all(sql, params=None):
     with engine.connect() as conn:
 
@@ -317,7 +340,7 @@ def fetch_account_row(account_id):
     )
     if not rows:
         return None
-    return dict(rows[0])
+    return row_to_dict(rows[0])
 
 
 ############################################################################
@@ -591,7 +614,7 @@ def login():
         if not result:
             return jsonify({"error": "認証に失敗しました"}), 401
         
-        row = result[0]._mapping
+        row = row_to_dict(result[0])
         user = {
             "account_id": row["account_id"],
             "name": row["name"],
@@ -910,7 +933,7 @@ def chat():
                 {user_input}
             """
 
-            title_response = client.models.generate_content(
+            title_response = get_genai_client().models.generate_content(
                 model="gemini-3.1-flash-lite",
                 contents=title_prompt
             )
@@ -1012,7 +1035,7 @@ def chat():
         )
 
         # AI応答生成
-        response = client.models.generate_content(
+        response = get_genai_client().models.generate_content(
             model="gemini-3.1-flash-lite",
             contents=prompt
         )
