@@ -25,8 +25,8 @@ import { socialLinks, socialIconUrl } from '../../lib/socialLinks.js'
             :src="socialIconUrl(item.icon)"
             alt=""
             class="social-links__icon"
-            width="44"
-            height="44"
+            width="38"
+            height="38"
             decoding="async"
             draggable="false"
           />
@@ -95,8 +95,8 @@ import { socialLinks, socialIconUrl } from '../../lib/socialLinks.js'
 }
 .social-links__icon {
   display: block;
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   object-fit: contain;
   aspect-ratio: 1 / 1;
