@@ -228,6 +228,21 @@ def index():
         return f"テンプレート読み込みエラー: {e}", 500
     
 
+# デバッグ用 ログインページ
+@app.route('/debug/login')
+def debug_login():
+    try:
+        current_user = get_current_user_from_session()
+        return render_template(
+            'debug_login.html',
+            current_user=current_user,
+            is_logged_in=current_user is not None
+        )
+    except Exception as e:
+        print(e)
+        return f"テンプレート読み込みエラー: {e}", 500
+
+
 # デバッグ用 掲示板呼び出しページ
 @app.route('/debug/post')
 def debug_post():
@@ -275,15 +290,17 @@ def debug_account():
         return f"テンプレート読み込みエラー: {e}", 500
 
 
-# デバッグ用 ログインページ
-@app.route('/debug/login')
-def debug_login():
+# デバッグ用 ファンクラブ登録ページ
+@app.route('/debug/fanclub')
+def debug_fanclub():
     try:
         current_user = get_current_user_from_session()
+        if not current_user:
+            return redirect('/debug/login')
         return render_template(
-            'debug_login.html',
+            'debug_fanclub.html',
             current_user=current_user,
-            is_logged_in=current_user is not None
+            is_logged_in=True
         )
     except Exception as e:
         print(e)
@@ -1222,6 +1239,54 @@ def create_flower_offering():
             "error": "献花登録エラー"
         }), 500
 
+
+# ファンクラブ登録
+@app.route("/api/fanclub", methods=["POST"])
+def create_fanclub():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "JSONデータが空です"}), 400
+
+        current_user = get_current_user_from_session()
+        if not current_user:
+            return jsonify({"error": "ログインが必要です"}), 401
+
+        account_id = current_user["account_id"]
+        is_premium = data.get("is_premium")
+
+        if is_premium is None:
+            return jsonify({"error": "is_premiumは必須項目です"}), 400
+
+        fanclub_join_history_id = execute_insert(
+            """
+            INSERT INTO fanclub_join_historys (
+                account_id,
+                is_premium,
+                purchased_at
+            )
+            VALUES (
+                :account_id,
+                :is_premium,
+                NOW()
+            )
+            RETURNING fanclub_join_history_id
+            """,
+            {
+                "account_id": account_id,
+                "is_premium": is_premium
+            }
+        )
+
+        return jsonify({
+            "message": "ファンクラブ登録しました",
+            "fanclub_join_history_id": fanclub_join_history_id
+        }), 201
+
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "ファンクラブ登録エラー", "detail": str(e)}), 500
+ 
 
 ############################################################################
 ### 実行制御
