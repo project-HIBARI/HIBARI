@@ -1,10 +1,9 @@
 <script setup>
 /**
  * ページ: 歩み（プロフィール＋年表）
- * 構成: ヒーロー / 数値バー / サイドバー＋年表 / 関連導線
+ * 構成: ヒーロー / サイドバー＋年表 / 関連導線
  */
 import ProfileHeroSection from './profile/ProfileHeroSection.vue'
-import ProfileStatsBar from './profile/ProfileStatsBar.vue'
 import ProfileSidebar from './profile/ProfileSidebar.vue'
 import ProfileTimeline from './profile/ProfileTimeline.vue'
 import ProfileRelatedCards from './profile/ProfileRelatedCards.vue'
@@ -15,8 +14,6 @@ const emit = defineEmits(['open-auth', 'open-modal', 'navigate'])
 <template>
   <div class="page-profile">
     <ProfileHeroSection @open-ai="emit('open-modal', 'ai')" />
-
-    <ProfileStatsBar />
 
     <div class="page-profile__main">
       <div class="page-profile__grid prof-grid">

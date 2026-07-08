@@ -3,11 +3,12 @@
  * 部品名: 歩み — サイドバー（写真・基本情報・受賞歴）
  * 用途: 歩みページ左カラムにプロフィールカード群を sticky 表示する
  */
-import Photo from '../../ui/Photo.vue'
 import UiCard from '../../ui/UiCard.vue'
+import { pageImageUrl, PROFILE_SIDEBAR_IMAGE } from '../../../lib/pageImages.js'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 
 const p = HIBARU_DATA.profile
+const sidebarPhoto = pageImageUrl(PROFILE_SIDEBAR_IMAGE)
 
 const rows = [
   ['芸名', p.stageName],
@@ -26,16 +27,19 @@ const rows = [
 <template>
   <!-- PC では sticky、スマホでは縦積みのプロフィールサイドバー -->
   <aside class="profile-sidebar" aria-label="基本プロフィール">
-    <div class="profile-sidebar__photo-wrap">
-      <Photo
-        :w="360"
-        :h="460"
-        :caption="p.photoCaption"
-        variant="sepia"
+    <figure class="profile-sidebar__photo-wrap">
+      <img
+        :src="sidebarPhoto"
+        alt=""
         class="profile-sidebar__photo"
+        width="360"
+        height="460"
+        decoding="async"
       />
-      <p class="profile-sidebar__bio">{{ p.bio }}</p>
-    </div>
+      <figcaption class="profile-sidebar__caption">{{ p.photoCaption }}</figcaption>
+    </figure>
+
+    <p class="profile-sidebar__bio">{{ p.bio }}</p>
 
     <UiCard tone="white" padding="md" class="profile-sidebar__info">
       <h2 class="profile-sidebar__heading">基本プロフィール</h2>
@@ -68,18 +72,28 @@ const rows = [
   gap: var(--sp-5);
 }
 .profile-sidebar__photo-wrap {
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--sp-2);
 }
 .profile-sidebar__photo {
-  width: 100% !important;
+  display: block;
+  width: 100%;
   max-width: 360px;
-  height: auto !important;
   aspect-ratio: 360 / 460;
+  object-fit: cover;
+  object-position: center top;
   border-radius: var(--site-radius-lg);
   box-shadow: var(--site-shadow-md);
-  border: 3px solid rgba(255, 255, 255, 0.9);
+  border: 3px solid color-mix(in srgb, var(--site-surface) 90%, transparent);
+}
+.profile-sidebar__caption {
+  margin: 0;
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--site-text-light);
 }
 .profile-sidebar__bio {
   margin: 0;

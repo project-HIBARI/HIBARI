@@ -3,19 +3,18 @@
  * 部品名: 歩み — ヒーローエリア
  * 用途: ページ冒頭のタイトル・紹介文・肖像・桜装飾・AI導線を表示する
  */
-import { pageImageUrl, PAGE_HERO_IMAGE } from '../../../lib/pageImages.js'
+import { pageImageUrl, PROFILE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import TopAiCard from '../top/TopAiCard.vue'
 
 const emit = defineEmits(['open-ai'])
 
-const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
+const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
 </script>
 
 <template>
   <!-- 歩みページのファーストビュー（デザイン準拠のヒーロー） -->
   <section class="profile-hero" aria-label="歩み紹介">
     <div class="profile-hero__bg" aria-hidden="true">
-      <img :src="heroImg" alt="" class="profile-hero__photo" />
       <div class="profile-hero__sakura">
         <span v-for="n in 6" :key="n" class="profile-hero__petal" :class="`profile-hero__petal--${n}`" />
       </div>
@@ -24,15 +23,31 @@ const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
     <div class="profile-hero__inner">
       <div class="profile-hero__copy">
         <p class="profile-hero__eyebrow">PROFILE · MISORA HIBARI</p>
-        <h1 class="profile-hero__title">歩み</h1>
-        <p class="profile-hero__sub">美空ひばりプロフィール</p>
+        <div class="profile-hero__title-row">
+          <h1 class="profile-hero__title">歩み</h1>
+          <p class="profile-hero__sub">美空ひばりプロフィール</p>
+        </div>
         <p class="profile-hero__desc">
           1937年横浜生まれ。8歳で初舞台を踏み、昭和歌謡を代表する存在として<br />
           五十二年の生涯を歌とともに歩みました。
         </p>
       </div>
 
-      <TopAiCard @open-ai="emit('open-ai')" />
+      <div class="profile-hero__aside">
+        <div class="profile-hero__visual">
+          <img
+            :src="heroImg"
+            alt=""
+            class="profile-hero__photo"
+            width="360"
+            decoding="async"
+          />
+        </div>
+
+        <div class="profile-hero__ai">
+          <TopAiCard @open-ai="emit('open-ai')" />
+        </div>
+      </div>
     </div>
   </section>
 </template>
@@ -41,10 +56,10 @@ const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
 .profile-hero {
   position: relative;
   margin-bottom: var(--sp-7);
-  padding: var(--sp-7) var(--sp-5);
+  padding: var(--sp-7) var(--sp-6);
   border-radius: var(--site-radius-lg);
   overflow: hidden;
-  min-height: 320px;
+  min-height: 380px;
 }
 .profile-hero__bg {
   position: absolute;
@@ -54,19 +69,41 @@ const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
     linear-gradient(135deg, var(--site-bg-warm) 0%, var(--site-bg-pink) 45%, var(--site-surface-muted) 100%);
   border: 1px solid var(--site-border);
 }
+.profile-hero__visual {
+  flex-shrink: 0;
+  width: 360px;
+  align-self: stretch;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
 .profile-hero__photo {
-  position: absolute;
-  right: 28%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: min(38%, 280px);
-  height: auto;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-  border-radius: var(--site-radius-lg);
-  opacity: 0.22;
-  filter: grayscale(0.85) sepia(0.15);
-  pointer-events: none;
+  display: block;
+  width: 360px;
+  height: 100%;
+  object-fit: contain;
+  object-position: left bottom;
+  transform: scale(1.18);
+  transform-origin: left bottom;
+  filter: drop-shadow(var(--site-shadow-md));
+}
+.profile-hero__aside {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-4);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.profile-hero__ai {
+  display: flex;
+  width: 320px;
+  flex-shrink: 0;
+}
+.profile-hero__ai :deep(.top-ai-card) {
+  width: 100%;
+  max-width: none;
+  height: 100%;
 }
 .profile-hero__sakura {
   position: absolute;
@@ -91,14 +128,22 @@ const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
 .profile-hero__petal--6 { top: 45%; left: 8%; opacity: 0.2; transform: rotate(-30deg) scale(0.6); }
 .profile-hero__inner {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  align-items: center;
   gap: var(--sp-6);
-  align-items: start;
   z-index: 1;
 }
 .profile-hero__copy {
-  max-width: 520px;
+  flex: 1 1 auto;
+  min-width: 240px;
+  max-width: 400px;
+}
+.profile-hero__title-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-4);
 }
 .profile-hero__eyebrow {
   margin: 0 0 var(--sp-3);
@@ -111,18 +156,20 @@ const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
 .profile-hero__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: clamp(36px, 4vw, 48px);
+  font-size: clamp(40px, 4.2vw, 52px);
   font-weight: 800;
   letter-spacing: 0.12em;
   color: var(--site-text);
-  line-height: 1.2;
+  line-height: 1.1;
 }
 .profile-hero__sub {
-  margin: var(--sp-3) 0 var(--sp-4);
+  margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: clamp(15px, 1.6vw, 18px);
+  font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--murasaki-700);
+  white-space: nowrap;
 }
 .profile-hero__desc {
   margin: 0;
@@ -134,12 +181,52 @@ const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
 
 @media (max-width: 900px) {
   .profile-hero__inner {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
   }
+
+  .profile-hero__copy {
+    max-width: none;
+  }
+
+  .profile-hero__title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-2);
+  }
+
+  .profile-hero__sub {
+    white-space: normal;
+  }
+
+  .profile-hero__aside {
+    flex-direction: column;
+    margin-left: 0;
+    order: 2;
+    align-items: stretch;
+  }
+
+  .profile-hero__visual {
+    width: 100%;
+    max-width: 360px;
+    min-height: 280px;
+    margin: 0 auto;
+    align-self: center;
+  }
+
   .profile-hero__photo {
-    right: 10%;
-    width: min(50%, 200px);
-    opacity: 0.15;
+    width: 100%;
+    max-width: 360px;
+    height: 100%;
+    min-height: 280px;
+    object-position: left bottom;
+    transform: scale(1.12);
+    transform-origin: left bottom;
+  }
+
+  .profile-hero__ai {
+    width: 100%;
+    max-width: none;
   }
 }
 </style>

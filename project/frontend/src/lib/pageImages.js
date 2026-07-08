@@ -14,6 +14,12 @@ export const PAGE_IMAGES = {
 /** ページヒーロー共通メインビジュアル */
 export const PAGE_HERO_IMAGE = 'misorahibari-mike-image.png'
 
+/** 歩みページヒーロー肖像 */
+export const PROFILE_HERO_IMAGE = 'misorahibari-profile-hero.png'
+
+/** 歩みページサイドバー肖像 */
+export const PROFILE_SIDEBAR_IMAGE = 'misorahibari-profile-sidebar.png'
+
 /** @param {string} filename */
 export function pageImageUrl(filename) {
   return `/images/page/${filename}`
