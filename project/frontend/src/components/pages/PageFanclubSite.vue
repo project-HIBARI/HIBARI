@@ -6,6 +6,7 @@
 import PageHead from '../ui/PageHead.vue'
 import SectionTitle from '../ui/SectionTitle.vue'
 import FanclubAiChat from './fanclub/FanclubAiChat.vue'
+import FanclubBoard from './fanclub/FanclubBoard.vue'
 import FanclubBenefits from './fanclub/FanclubBenefits.vue'
 import { useMemberAccess } from '../../composables/useMemberAccess.js'
 import { MEMBERSHIP_LABELS } from '../../constants/membership.js'
@@ -14,18 +15,23 @@ const emit = defineEmits(['navigate', 'open-modal', 'open-auth'])
 
 const { isLoggedIn, membership } = useMemberAccess()
 
+function onNeedLogin() {
+  emit('open-auth', 'login')
+}
+
 const perks = [
   { feature: 'disco', icon: '▶', label: '限定動画', desc: '未公開映像をいつでも視聴' },
   { feature: 'gallery', icon: '♪', label: 'ハイレゾ音源', desc: '高音質で楽曲をお楽しみ' },
   { feature: 'events', icon: '★', label: '先行予約', desc: 'イベント・コンサート優先申込' },
   { feature: 'news', icon: '✦', label: '会員誌', desc: 'デジタル版を毎月配信' },
+  { feature: 'board', icon: '💬', label: '会員掲示板', desc: '月10回まで投稿（プレミアム無制限）' },
 ]
 
-function onNeedLogin() {
-  emit('open-auth', 'login')
-}
-
 function useFeature(feature) {
+  if (feature === 'board') {
+    document.getElementById('fc-board')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    return
+  }
   emit('open-auth', feature)
 }
 </script>
@@ -54,6 +60,11 @@ function useFeature(feature) {
           </button>
         </li>
       </ul>
+    </section>
+
+    <section id="fc-board" class="page-fc-site__board-section">
+      <SectionTitle title="会員掲示板" sub="Member Board" size="md" />
+      <FanclubBoard @need-auth="(m) => emit('open-auth', m)" />
     </section>
 
     <section class="page-fc-site__chat-section">
@@ -154,6 +165,9 @@ function useFeature(feature) {
   font-size: 11px;
   line-height: 1.6;
   color: var(--site-text-muted);
+}
+.page-fc-site__board-section {
+  margin-bottom: var(--sp-8);
 }
 .page-fc-site__chat-section {
   margin-bottom: var(--sp-8);

@@ -21,6 +21,7 @@ export const PERMISSION = {
   PREMIUM_VIDEO: 'premium_video',
   EXCLUSIVE_CONTENT: 'exclusive_content',
   AI_CHAT_UNLIMITED: 'ai_chat_unlimited',
+  BOARD_POST_UNLIMITED: 'board_post_unlimited',
   PRIORITY_DISCOUNT: 'priority_discount',
 }
 
@@ -40,6 +41,7 @@ export const MEMBERSHIP_PERMISSIONS = {
     PERMISSION.PREMIUM_VIDEO,
     PERMISSION.EXCLUSIVE_CONTENT,
     PERMISSION.AI_CHAT_UNLIMITED,
+    PERMISSION.BOARD_POST_UNLIMITED,
     PERMISSION.PRIORITY_DISCOUNT,
   ],
 }
@@ -53,7 +55,7 @@ export const MEMBERSHIP_PLANS = [
     features: [
       '月刊ニュースレター',
       'チケット先行予約',
-      '掲示板投稿',
+      '掲示板投稿（月10回）',
       '月10回 AIひばり対話',
     ],
     locked: ['プレミアム限定映像', '限定コンテンツ', '優先申込＋会員割引'],
@@ -68,6 +70,7 @@ export const MEMBERSHIP_PLANS = [
       'プレミアム限定映像',
       '限定コンテンツ',
       'AIひばり対話 無制限',
+      '掲示板投稿 無制限',
       '優先申込＋会員割引',
     ],
     locked: [],
@@ -76,6 +79,7 @@ export const MEMBERSHIP_PLANS = [
 ]
 
 export const GENERAL_AI_CHAT_MONTHLY_LIMIT = 10
+export const GENERAL_BOARD_POST_MONTHLY_LIMIT = 10
 
 export function normalizeMembership(value) {
   return value === MEMBERSHIP.PREMIUM ? MEMBERSHIP.PREMIUM : MEMBERSHIP.GENERAL
@@ -92,4 +96,8 @@ export function isPremiumMember(membership) {
 
 export function getAiChatLimit(membership) {
   return isPremiumMember(membership) ? null : GENERAL_AI_CHAT_MONTHLY_LIMIT
+}
+
+export function getBoardPostLimit(membership) {
+  return isPremiumMember(membership) ? null : GENERAL_BOARD_POST_MONTHLY_LIMIT
 }

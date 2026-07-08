@@ -11,8 +11,11 @@ import MemoriesPostAside from './memories/MemoriesPostAside.vue'
 import MemoriesEventsGrid from './memories/MemoriesEventsGrid.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
 import { createPost } from '../../api/posts.js'
+import { useBoardPost } from '../../composables/useBoardPost.js'
 
 const emit = defineEmits(['open-auth'])
+
+const { recordPost, canPostNow } = useBoardPost()
 
 const memTab = ref('memories')
 const tagFilter = ref('all')
@@ -44,6 +47,11 @@ function validate() {
 }
 
 async function handleSubmit() {
+  if (!canPostNow.value) {
+    emit('open-auth', 'login')
+    return
+  }
+
   const e = validate()
   if (Object.keys(e).length) {
     errors.value = e
@@ -60,6 +68,7 @@ async function handleSubmit() {
       location: postData.value.pref.trim() || null,
       song_id: null,
     })
+    recordPost()
     submitted.value = true
   } catch (err) {
     if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
