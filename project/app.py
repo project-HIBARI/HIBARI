@@ -1,8 +1,10 @@
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, render_template, jsonify, request, session, redirect
+from flask import Flask, render_template, jsonify, request, session, redirect, send_from_directory
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
 
 from sqlalchemy import create_engine
 from sqlalchemy import text
@@ -30,6 +32,16 @@ engine = create_engine(
 client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
 )
+
+# 掲示板メディアアップロード
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+POST_UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads", "posts")
+ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp"}
+ALLOWED_VIDEO_EXTENSIONS = {"mp4", "webm", "mov"}
+MAX_POST_IMAGE_BYTES = 10 * 1024 * 1024
+MAX_POST_VIDEO_BYTES = 50 * 1024 * 1024
+
+os.makedirs(POST_UPLOAD_FOLDER, exist_ok=True)
 
 # ユーザーキャッシュ（email -> {user_data, expire_at}）
 user_cache = {}
@@ -80,6 +92,58 @@ def execute_insert(sql, params=None):
             return result.lastrowid
 
         return None
+    
+    
+def ensure_post_media_schema():
+    """掲示板投稿用の video_path カラムを追加（未作成時のみ）"""
+    try:
+        execute(
+            """
+            ALTER TABLE posts
+            ADD COLUMN IF NOT EXISTS video_path VARCHAR(500)
+            """
+        )
+    except Exception as e:
+        print("post media schema:", e)
+
+
+def get_post_media_type(filename):
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    if ext in ALLOWED_IMAGE_EXTENSIONS:
+        return "image"
+    if ext in ALLOWED_VIDEO_EXTENSIONS:
+        return "video"
+    return None
+
+
+def save_post_media_file(file_storage):
+    if not file_storage or not file_storage.filename:
+        return None, None
+
+    original_name = secure_filename(file_storage.filename)
+    media_type = get_post_media_type(original_name)
+    if not media_type:
+        raise ValueError("対応していないファイル形式です")
+
+    file_storage.seek(0, os.SEEK_END)
+    size = file_storage.tell()
+    file_storage.seek(0)
+
+    max_size = MAX_POST_IMAGE_BYTES if media_type == "image" else MAX_POST_VIDEO_BYTES
+    if size > max_size:
+        limit_mb = max_size // (1024 * 1024)
+        raise ValueError(f"ファイルサイズは{limit_mb}MB以下にしてください")
+
+    ext = original_name.rsplit(".", 1)[-1].lower()
+    stored_name = f"{uuid.uuid4().hex}.{ext}"
+    save_path = os.path.join(POST_UPLOAD_FOLDER, stored_name)
+    file_storage.save(save_path)
+
+    public_path = f"/uploads/posts/{stored_name}"
+    return public_path, media_type
+
+
+ensure_post_media_schema()
     
     
 # HIBARI用プロンプト生成関数
@@ -840,6 +904,7 @@ def get_posts():
                 p.age,
                 p.location,
                 p.image_path,
+                p.video_path,
                 (
                     SELECT COUNT(*)
                     FROM likes l
@@ -862,6 +927,7 @@ def get_posts():
                 "age": row.age,
                 "location": row.location,
                 "image_path": row.image_path,
+                "video_path": getattr(row, "video_path", None),
                 "like_count": row.like_count
             })
 
@@ -916,6 +982,35 @@ def get_songs():
         return jsonify({"error": "曲一覧取得エラー"}), 500
 
 
+# 掲示板メディアアップロード
+@app.route("/api/posts/upload", methods=["POST"])
+def upload_post_media():
+    if "account_id" not in session:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    file = request.files.get("file")
+    if not file:
+        return jsonify({"error": "ファイルがありません"}), 400
+
+    try:
+        public_path, media_type = save_post_media_file(file)
+        return jsonify({
+            "path": public_path,
+            "media_type": media_type,
+        })
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "アップロードに失敗しました"}), 500
+
+
+@app.route("/uploads/posts/<path:filename>")
+def serve_post_upload(filename):
+    safe_name = secure_filename(filename)
+    return send_from_directory(POST_UPLOAD_FOLDER, safe_name)
+
+
 # 投稿作成
 @app.route("/api/posts", methods=["POST"])
 def create_post():
@@ -930,7 +1025,8 @@ def create_post():
                 name,
                 age,
                 location,
-                image_path
+                image_path,
+                video_path
             )
             VALUES (
                 :song_id,
@@ -939,7 +1035,8 @@ def create_post():
                 :name,
                 :age,
                 :location,
-                :image_path
+                :image_path,
+                :video_path
             )
             RETURNING post_id
             """,
@@ -950,13 +1047,16 @@ def create_post():
                 "name": data.get("name"),
                 "age": data.get("age"),
                 "location": data.get("location"),
-                "image_path": data.get("image_path")
+                "image_path": data.get("image_path"),
+                "video_path": data.get("video_path"),
             }
         )
 
         return jsonify({
             "message": "投稿しました",
-            "post_id": post_id
+            "post_id": post_id,
+            "image_path": data.get("image_path"),
+            "video_path": data.get("video_path"),
         })
 
     except Exception as e:

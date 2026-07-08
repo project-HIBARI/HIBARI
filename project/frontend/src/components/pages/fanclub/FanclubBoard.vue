@@ -7,14 +7,24 @@ import { ref, computed, onMounted } from 'vue'
 import MemoriesBoard from '../memories/MemoriesBoard.vue'
 import BoardPostForm from '../../board/BoardPostForm.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
-import { fetchPosts, createPost } from '../../../api/posts.js'
+import { fetchPosts, createPostWithMedia } from '../../../api/posts.js'
 import { useBoardPost } from '../../../composables/useBoardPost.js'
+import { revokeMediaPreview } from '../../../lib/boardMedia.js'
 
 const emit = defineEmits(['need-auth'])
 
 const { recordPost, canPostNow } = useBoardPost()
 
-const postData = ref({ name: '', pref: '', title: '', body: '', song: '' })
+const postData = ref({
+  name: '',
+  pref: '',
+  title: '',
+  body: '',
+  song: '',
+  mediaFile: null,
+  mediaPreviewUrl: '',
+  mediaKind: null,
+})
 const errors = ref({})
 const submitted = ref(false)
 const submitting = ref(false)
@@ -35,6 +45,8 @@ function mapApiPost(row) {
     likes: row.like_count || 0,
     comments: 0,
     date: row.created_at ? String(row.created_at).slice(0, 10) : '',
+    imageUrl: row.image_path || null,
+    videoUrl: row.video_path || null,
     displayLikes: (extraLikes.value[`api-${row.post_id}`] ?? 0) + (row.like_count || 0),
   }
 }
@@ -84,13 +96,16 @@ async function handleSubmit() {
   submitting.value = true
   submitError.value = ''
   try {
-    const result = await createPost({
-      title: postData.value.title.trim(),
-      content: postData.value.body.trim(),
-      name: postData.value.name.trim() || null,
-      location: postData.value.pref.trim() || null,
-      song_id: null,
-    })
+    const result = await createPostWithMedia(
+      {
+        title: postData.value.title.trim(),
+        content: postData.value.body.trim(),
+        name: postData.value.name.trim() || null,
+        location: postData.value.pref.trim() || null,
+        song_id: null,
+      },
+      postData.value.mediaFile,
+    )
     recordPost()
     if (result?.post_id) {
       apiPosts.value = [
@@ -102,6 +117,8 @@ async function handleSubmit() {
           location: postData.value.pref.trim() || '',
           like_count: 0,
           created_at: new Date().toISOString(),
+          image_path: result.image_path || null,
+          video_path: result.video_path || null,
         },
         ...apiPosts.value,
       ]
@@ -121,7 +138,17 @@ async function handleSubmit() {
 function resetForm() {
   submitted.value = false
   submitError.value = ''
-  postData.value = { name: '', pref: '', title: '', body: '', song: '' }
+  revokeMediaPreview(postData.value.mediaPreviewUrl)
+  postData.value = {
+    name: '',
+    pref: '',
+    title: '',
+    body: '',
+    song: '',
+    mediaFile: null,
+    mediaPreviewUrl: '',
+    mediaKind: null,
+  }
   errors.value = {}
 }
 

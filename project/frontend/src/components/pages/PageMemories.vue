@@ -10,8 +10,9 @@ import MemoriesBoard from './memories/MemoriesBoard.vue'
 import MemoriesPostAside from './memories/MemoriesPostAside.vue'
 import MemoriesEventsGrid from './memories/MemoriesEventsGrid.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
-import { createPost } from '../../api/posts.js'
+import { createPostWithMedia } from '../../api/posts.js'
 import { useBoardPost } from '../../composables/useBoardPost.js'
+import { revokeMediaPreview } from '../../lib/boardMedia.js'
 
 const emit = defineEmits(['open-auth'])
 
@@ -19,7 +20,16 @@ const { recordPost, canPostNow } = useBoardPost()
 
 const memTab = ref('memories')
 const tagFilter = ref('all')
-const postData = ref({ name: '', pref: '', title: '', body: '', song: '' })
+const postData = ref({
+  name: '',
+  pref: '',
+  title: '',
+  body: '',
+  song: '',
+  mediaFile: null,
+  mediaPreviewUrl: '',
+  mediaKind: null,
+})
 const errors = ref({})
 const submitted = ref(false)
 const submitting = ref(false)
@@ -61,13 +71,16 @@ async function handleSubmit() {
   submitting.value = true
   submitError.value = ''
   try {
-    await createPost({
-      title: postData.value.title.trim(),
-      content: postData.value.body.trim(),
-      name: postData.value.name.trim() || null,
-      location: postData.value.pref.trim() || null,
-      song_id: null,
-    })
+    await createPostWithMedia(
+      {
+        title: postData.value.title.trim(),
+        content: postData.value.body.trim(),
+        name: postData.value.name.trim() || null,
+        location: postData.value.pref.trim() || null,
+        song_id: null,
+      },
+      postData.value.mediaFile,
+    )
     recordPost()
     submitted.value = true
   } catch (err) {
@@ -84,7 +97,17 @@ async function handleSubmit() {
 function resetForm() {
   submitted.value = false
   submitError.value = ''
-  postData.value = { name: '', pref: '', title: '', body: '', song: '' }
+  revokeMediaPreview(postData.value.mediaPreviewUrl)
+  postData.value = {
+    name: '',
+    pref: '',
+    title: '',
+    body: '',
+    song: '',
+    mediaFile: null,
+    mediaPreviewUrl: '',
+    mediaKind: null,
+  }
   errors.value = {}
 }
 

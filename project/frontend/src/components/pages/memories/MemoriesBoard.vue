@@ -16,6 +16,23 @@ const emit = defineEmits(['like'])
       <div class="mem-board__song">♪ {{ m.song }}</div>
       <h3 class="mem-board__title">{{ m.title }}</h3>
       <p class="mem-board__body">{{ m.body }}</p>
+      <div v-if="m.imageUrl || m.videoUrl" class="mem-board__media">
+        <img
+          v-if="m.imageUrl"
+          :src="m.imageUrl"
+          :alt="`${m.title}の添付画像`"
+          class="mem-board__image"
+          loading="lazy"
+        />
+        <video
+          v-if="m.videoUrl"
+          :src="m.videoUrl"
+          class="mem-board__video"
+          controls
+          playsinline
+          preload="metadata"
+        />
+      </div>
       <footer class="mem-board__foot">
         <span class="mem-board__author">{{ m.author }}（{{ m.age }}歳・{{ m.location }}）</span>
         <div class="mem-board__actions">
@@ -70,6 +87,21 @@ const emit = defineEmits(['like'])
   line-height: 2;
   color: var(--site-text-muted);
   margin: 0;
+}
+.mem-board__media {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mem-board__image,
+.mem-board__video {
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: var(--site-radius-sm);
+  border: 1px solid var(--site-border);
+  background: #111;
 }
 .mem-board__foot {
   margin-top: var(--sp-4);

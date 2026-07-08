@@ -2,10 +2,12 @@
 /**
  * 部品名: 掲示板 — 投稿フォーム（共通）
  */
+import { ref, watch, onBeforeUnmount } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import MemberGate from '../common/MemberGate.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
 import { useBoardPost } from '../../composables/useBoardPost.js'
+import { getMediaKind, validateBoardMediaFile, revokeMediaPreview } from '../../lib/boardMedia.js'
 
 const songs = HIBARU_DATA.discography.map((d) => d.title)
 
@@ -23,8 +25,63 @@ const emit = defineEmits(['update:postData', 'submit', 'reset', 'need-auth'])
 
 const { canPostNow, canUse, isLoggedIn, limitMessage, PERMISSION } = useBoardPost()
 
+const mediaPreviewUrl = ref('')
+const mediaError = ref('')
+
+watch(
+  () => props.postData.mediaFile,
+  (file, prevFile) => {
+    if (props.postData.mediaPreviewUrl) {
+      revokeMediaPreview(props.postData.mediaPreviewUrl)
+    }
+    if (!file) {
+      mediaPreviewUrl.value = ''
+      if (props.postData.mediaPreviewUrl) {
+        patch({ mediaPreviewUrl: '', mediaKind: null })
+      }
+      return
+    }
+    if (file !== prevFile) {
+      const url = URL.createObjectURL(file)
+      mediaPreviewUrl.value = url
+      patch({
+        mediaPreviewUrl: url,
+        mediaKind: getMediaKind(file),
+      })
+    }
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  revokeMediaPreview(mediaPreviewUrl.value)
+  revokeMediaPreview(props.postData.mediaPreviewUrl)
+})
+
 function patch(partial) {
   emit('update:postData', { ...props.postData, ...partial })
+}
+
+function onMediaChange(event) {
+  mediaError.value = ''
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  const validationError = validateBoardMediaFile(file)
+  if (validationError) {
+    mediaError.value = validationError
+    event.target.value = ''
+    return
+  }
+
+  patch({ mediaFile: file })
+}
+
+function clearMedia() {
+  mediaError.value = ''
+  revokeMediaPreview(mediaPreviewUrl.value)
+  mediaPreviewUrl.value = ''
+  patch({ mediaFile: null, mediaPreviewUrl: '', mediaKind: null })
 }
 
 function onSubmit() {
@@ -32,6 +89,7 @@ function onSubmit() {
     emit('need-auth', 'login')
     return
   }
+  if (mediaError.value) return
   emit('submit')
 }
 </script>
@@ -115,6 +173,41 @@ function onSubmit() {
             <option value="">心に残る一曲を選ぶ</option>
             <option v-for="s in songs" :key="s" :value="s">{{ s }}</option>
           </select>
+
+          <div class="board-form__media">
+            <label class="board-form__media-label">
+              <span class="board-form__media-title">画像・動画を添付（任意）</span>
+              <span class="board-form__media-hint">画像 10MB / 動画 50MB まで</span>
+              <input
+                type="file"
+                class="board-form__media-input"
+                accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime"
+                :disabled="submitting"
+                @change="onMediaChange"
+              />
+              <span class="board-form__media-btn">ファイルを選択</span>
+            </label>
+            <p v-if="mediaError" class="board-form__error" role="alert">{{ mediaError }}</p>
+            <div v-if="mediaPreviewUrl" class="board-form__preview">
+              <img
+                v-if="postData.mediaKind === 'image'"
+                :src="mediaPreviewUrl"
+                alt="添付画像のプレビュー"
+                class="board-form__preview-image"
+              />
+              <video
+                v-else-if="postData.mediaKind === 'video'"
+                :src="mediaPreviewUrl"
+                class="board-form__preview-video"
+                controls
+                playsinline
+              />
+              <button type="button" class="board-form__preview-remove" @click="clearMedia">
+                添付を削除
+              </button>
+            </div>
+          </div>
+
           <UiButton
             variant="primary"
             size="md"
@@ -122,7 +215,7 @@ function onSubmit() {
             :disabled="submitting"
             @click="onSubmit"
           >
-            {{ submitting ? '投稿中…' : '投稿する' }}
+            {{ submitting ? '送信中…' : '投稿する' }}
           </UiButton>
           <p v-if="submitError" class="board-form__error" role="alert">{{ submitError }}</p>
         </div>
@@ -181,6 +274,79 @@ function onSubmit() {
 .board-form__full {
   width: 100%;
   justify-content: center;
+}
+.board-form__media {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.board-form__media-label {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+.board-form__media-title {
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--site-text);
+}
+.board-form__media-hint {
+  font-size: 10px;
+  color: var(--site-text-light);
+}
+.board-form__media-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.board-form__media-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px dashed var(--site-border-strong);
+  border-radius: var(--site-radius-sm);
+  background: var(--site-surface-muted);
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  color: var(--murasaki-700);
+  transition: border-color 0.2s, background 0.2s;
+}
+.board-form__media-label:hover .board-form__media-btn {
+  border-color: var(--murasaki-400);
+  background: var(--murasaki-100);
+}
+.board-form__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.board-form__preview-image,
+.board-form__preview-video {
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: var(--site-radius-sm);
+  border: 1px solid var(--site-border);
+  background: #000;
+}
+.board-form__preview-remove {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--ff-sans-jp);
+  font-size: 11px;
+  color: var(--beni-600);
+  cursor: pointer;
+  text-decoration: underline;
 }
 .board-form__done {
   text-align: center;
