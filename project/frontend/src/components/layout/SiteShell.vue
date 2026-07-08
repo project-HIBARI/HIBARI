@@ -97,6 +97,9 @@ const registerPlan = ref(MEMBERSHIP.GENERAL)
 /** ログイン後に戻るページ／開く特典 */
 const postLoginRedirect = ref(null)
 
+/** ファンクラブ会員サイト内の表示セクション */
+const fanclubSection = ref('overview')
+
 const auth = useAuth()
 
 const { membership, isLoggedIn, user, setUser, refreshUser } = auth
@@ -114,6 +117,12 @@ onMounted(() => {
 
 
 function goTo(id) {
+
+  if (id !== 'fanclub-site') {
+
+    fanclubSection.value = 'overview'
+
+  }
 
   page.value = id
 
@@ -144,6 +153,8 @@ function handleNav(id) {
   }
 
   if (id === 'fanclub') {
+
+    fanclubSection.value = 'overview'
 
     goTo(isLoggedIn.value ? 'fanclub-site' : 'fanclub')
 
@@ -191,6 +202,8 @@ function openMemberFeature(mode) {
 
     memories: { permission: PERMISSION.BOARD_POST, page: 'memories' },
 
+    board: { permission: PERMISSION.BOARD_POST, memberPage: 'fanclub-site', section: 'board' },
+
     fanclub: { memberPage: 'fanclub-site', guestPage: 'fanclub' },
 
     disco: { page: 'disco' },
@@ -211,7 +224,9 @@ function openMemberFeature(mode) {
 
   }
 
-  if (feature.memberPage) {
+  if (feature.memberPage && !feature.permission) {
+
+    fanclubSection.value = feature.section || 'overview'
 
     goTo(isLoggedIn.value ? feature.memberPage : feature.guestPage)
 
@@ -248,6 +263,16 @@ function openMemberFeature(mode) {
   if (feature.modal) {
 
     openModal(feature.modal)
+
+    return
+
+  }
+
+  if (feature.memberPage && feature.section) {
+
+    fanclubSection.value = feature.section
+
+    goTo(feature.memberPage)
 
     return
 
@@ -535,11 +560,15 @@ function handleAiModalAuth(mode) {
 
         v-else-if="page === 'fanclub-site'"
 
+        :active-section="fanclubSection"
+
         @navigate="goTo"
 
         @open-modal="openModal"
 
         @open-auth="openAuth"
+
+        @section-change="fanclubSection = $event"
 
       />
 

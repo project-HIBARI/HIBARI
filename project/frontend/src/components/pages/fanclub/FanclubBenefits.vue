@@ -13,7 +13,7 @@ const { canUse, isLoggedIn, membership, PERMISSION } = useMemberAccess()
 const benefits = [
   { feature: 'news', icon: '✦', title: '月刊ニュースレター', desc: '会員向けの最新情報・コラムを毎月お届けします。', permission: PERMISSION.NEWSLETTER },
   { feature: 'events', icon: '★', title: 'チケット先行予約', desc: 'コンサートやイベントの先行予約にご利用いただけます。', permission: PERMISSION.TICKET_PREORDER },
-  { feature: 'memories', icon: '💬', title: '掲示板投稿', desc: '一般会員は月10回、プレミアムは無制限で投稿できます。', permission: PERMISSION.BOARD_POST },
+  { feature: 'board', icon: '💬', title: '掲示板投稿', desc: '一般会員は月10回、プレミアムは無制限で投稿できます。', permission: PERMISSION.BOARD_POST },
   { feature: 'ai', icon: '♪', title: 'AIひばり対話', desc: '一般会員は月10回、プレミアム会員は無制限で対話できます。', permission: PERMISSION.AI_CHAT },
   { feature: 'disco', icon: '▶', title: 'プレミアム限定映像', desc: 'プレミアム会員だけの未公開映像・特別コンテンツ。', permission: PERMISSION.PREMIUM_VIDEO, premium: true },
   { feature: 'gallery', icon: '✧', title: '限定コンテンツ', desc: 'ハイレゾ音源や会員限定の特典コンテンツ。', permission: PERMISSION.EXCLUSIVE_CONTENT, premium: true },
