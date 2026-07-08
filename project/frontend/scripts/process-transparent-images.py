@@ -11,13 +11,14 @@ ROOT = Path(__file__).resolve().parents[1] / "public" / "images"
 ASSETS = Path(r"C:\Users\tomoa\.cursor\projects\c-HIBARI\assets")
 
 SOURCE_MAP = {
-    "page/flower-image.png": "*flower-image-2498827b*",
-    "page/cd-image.png": "*cd-image-2275a2b6*",
-    "page/misorahibari-chair.png": "*misorahibari-chair-07944b95*",
-    "page/fanclub-image.png": "*fanclub-image-b457ab9f*",
+    "misorahibari-logo.png": "*logo-misorahibari-3e9bb5a6*",
+    "page/flower-image.png": "*flower-image-4a2864d9*",
+    "page/cd-image.png": "*cd-image-034f01ea*",
+    "page/misorahibari-chair.png": "*misorahibari-chair-78394acf*",
+    "page/fanclub-image.png": "*fanclub-image-1f5b1bed*",
     "page/misorahibari-image.png": "*misorahibari-image-8eb4a693*",
     "page/misorahibari-mike-image.png": "*misorahibari-mike-image-032f2681*",
-    "page/benefits-image.png": "*flower-image-2498827b*",
+    "page/benefits-image.png": "*flower-image-4a2864d9*",
     "login/yuri-white.png": "*yuri-white-d4b6dacf*",
     "login/misorahibari-mike-image.png": "*misorahibari-mike-image-032f2681*",
 }
@@ -142,20 +143,20 @@ def process_file(rel: str, tolerance: float = 20.0) -> None:
 
 
 def process_logo(tolerance: float = 18.0) -> None:
-    git_logo = ROOT / "misorahibari-logo.png"
-    # logo stays from repo; only remove light connected border
-    original = Image.open(git_logo)
+    logo_path = ROOT / "misorahibari-logo.png"
+    original = Image.open(logo_path)
     size = original.size
     out = remove_connected_background(original, tolerance=tolerance)
     if out.size != size:
         raise ValueError(f"Logo size changed: {size} -> {out.size}")
-    out.save(git_logo, format="PNG")
+    out.save(logo_path, format="PNG")
     print(f"processed -> misorahibari-logo.png {size}")
 
 
 def main() -> None:
     restore_sources()
     tolerances = {
+        "misorahibari-logo.png": 18.0,
         "page/flower-image.png": 22.0,
         "page/cd-image.png": 22.0,
         "page/misorahibari-chair.png": 22.0,
@@ -170,19 +171,10 @@ def main() -> None:
         if rel == skip_login_portrait:
             print(f"skipped -> {rel} (use scripts/process-login-portrait.py)")
             continue
+        if rel == "misorahibari-logo.png":
+            process_logo(tolerance=tolerances.get(rel, 18.0))
+            continue
         process_file(rel, tolerance=tolerances.get(rel, 20.0))
-
-    # restore logo from git before processing
-    import subprocess
-
-    repo_root = ROOT.parents[3]
-    logo_rel = "project/frontend/public/images/misorahibari-logo.png"
-    subprocess.run(
-        ["git", "checkout", "HEAD", "--", logo_rel],
-        cwd=repo_root,
-        check=True,
-    )
-    process_logo()
 
 
 if __name__ == "__main__":

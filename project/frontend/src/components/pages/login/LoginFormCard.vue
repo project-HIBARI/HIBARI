@@ -1,13 +1,15 @@
 <script setup>
 /**
  * 部品名: ログインフォームカード
- * 用途: 金枠・角飾り付きのログインフォーム UI（Phase 1: API 未接続）
+ * 用途: 金枠・角飾り付きのログインフォーム UI
  */
 import { ref } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
-import { login as loginApi } from '../../../api/auth.js'
+import { useAuth } from '../../../composables/useAuth.js'
 
 const emit = defineEmits(['open-auth', 'success'])
+
+const { login } = useAuth()
 
 const email = ref('')
 const password = ref('')
@@ -35,7 +37,7 @@ async function onSubmit(e) {
 
   loading.value = true
   try {
-    const result = await loginApi(emailVal, passwordVal)
+    const result = await login(emailVal, passwordVal)
     emit('success', result.user)
   } catch (err) {
     if (err.status === 401) {
