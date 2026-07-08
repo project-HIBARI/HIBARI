@@ -301,6 +301,20 @@ def build_user_response(account_id, name, email):
     }
 
 
+def fetch_account_row(account_id):
+    rows = fetch_all(
+        """
+        SELECT account_id, name, email, password, address
+        FROM accounts
+        WHERE account_id = :account_id
+        """,
+        {"account_id": account_id},
+    )
+    if not rows:
+        return None
+    return dict(rows[0])
+
+
 ############################################################################
 ### パス
 ############################################################################
@@ -622,8 +636,131 @@ def me():
             session["email"]
         )
     })
-    
 
+
+# アカウント情報取得（会員ページ用）
+@app.route("/api/account", methods=["GET"])
+def get_account():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    row = fetch_account_row(account_id)
+    if not row:
+        return jsonify({"error": "アカウントが見つかりません"}), 404
+
+    user = build_user_response(row["account_id"], row["name"], row["email"])
+    user["address"] = row.get("address") or ""
+
+    return jsonify({"account": user})
+
+
+# アカウント情報更新（氏名・メール・住所）
+@app.route("/api/account", methods=["PATCH"])
+def update_account():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    data = request.get_json() or {}
+    row = fetch_account_row(account_id)
+    if not row:
+        return jsonify({"error": "アカウントが見つかりません"}), 404
+
+    name = data.get("name", row["name"])
+    email = data.get("email", row["email"])
+    address = data.get("address", row.get("address"))
+
+    if not isinstance(name, str) or not name.strip():
+        return jsonify({"error": "氏名を入力してください"}), 400
+    if not isinstance(email, str) or not email.strip():
+        return jsonify({"error": "メールアドレスを入力してください"}), 400
+
+    name_val = name.strip()
+    email_val = normalize_email(email)
+    address_val = address.strip() if isinstance(address, str) and address.strip() else None
+
+    if email_val != normalize_email(row["email"]):
+        existing = fetch_all(
+            "SELECT account_id FROM accounts WHERE email = :email AND account_id != :account_id",
+            {"email": email_val, "account_id": account_id},
+        )
+        if existing:
+            return jsonify({"error": "このメールアドレスは既に登録されています"}), 409
+
+    execute(
+        """
+        UPDATE accounts
+        SET name = :name, email = :email, address = :address
+        WHERE account_id = :account_id
+        """,
+        {
+            "name": name_val,
+            "email": email_val,
+            "address": address_val,
+            "account_id": account_id,
+        },
+    )
+
+    session["name"] = name_val
+    session["email"] = email_val
+
+    user = build_user_response(account_id, name_val, email_val)
+    user["address"] = address_val or ""
+
+    return jsonify({
+        "success": True,
+        "message": "アカウント情報を更新しました",
+        "account": user,
+        "user": user,
+    })
+
+
+# パスワード変更
+@app.route("/api/account/password", methods=["PATCH"])
+def update_account_password():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    data = request.get_json() or {}
+    current_password = data.get("current_password", "")
+    new_password = data.get("new_password", "")
+
+    if not current_password or not new_password:
+        return jsonify({"error": "現在のパスワードと新しいパスワードを入力してください"}), 400
+    if len(new_password) < 8:
+        return jsonify({"error": "新しいパスワードは8文字以上で設定してください"}), 400
+
+    row = fetch_account_row(account_id)
+    if not row:
+        return jsonify({"error": "アカウントが見つかりません"}), 404
+
+    if not verify_password(row["password"], current_password):
+        return jsonify({"error": "現在のパスワードが正しくありません"}), 401
+
+    new_hash = hash_password(new_password)
+    execute(
+        """
+        UPDATE accounts
+        SET password = :password
+        WHERE account_id = :account_id
+        """,
+        {"password": new_hash, "account_id": account_id},
+    )
+
+    row["password"] = new_hash
+    cache_user(row["email"], row)
+
+    return jsonify({
+        "success": True,
+        "message": "パスワードを変更しました",
+    })
+
+    
 # ルーム一覧取得
 @app.route("/api/rooms")
 def rooms():
