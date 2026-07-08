@@ -1,9 +1,13 @@
 <script setup>
 /**
  * 部品名: 登録ステップ2「お支払い方法」
- * 入力: 支払い方法（単一選択）
+ * 入力: 支払い方法（単一選択）＋ 選択方法に応じた詳細入力
  */
 import RegisterOptionGroup from './RegisterOptionGroup.vue'
+import PaymentCreditForm from './payment/PaymentCreditForm.vue'
+import PaymentBankForm from './payment/PaymentBankForm.vue'
+import PaymentConveniForm from './payment/PaymentConveniForm.vue'
+import PaymentCarrierForm from './payment/PaymentCarrierForm.vue'
 
 defineProps({
   form: { type: Object, required: true },
@@ -11,10 +15,10 @@ defineProps({
 })
 
 const paymentOptions = [
-  { value: 'credit', label: 'クレジットカード', desc: 'VISA / Master / JCB / AMEX' },
-  { value: 'bank', label: '銀行振込', desc: '毎月末締め・翌月払い' },
-  { value: 'conveni', label: 'コンビニ払い', desc: '払込票を郵送します' },
-  { value: 'carrier', label: 'キャリア決済', desc: '携帯電話料金と合算' },
+  { value: 'credit', label: 'クレジットカード', desc: 'VISA / Master / JCB / AMEX', icon: 'credit' },
+  { value: 'bank', label: '銀行振込', desc: '毎月末締め・翌月払い', icon: 'bank' },
+  { value: 'conveni', label: 'コンビニ払い', desc: '払込票でお支払い', icon: 'conveni' },
+  { value: 'carrier', label: 'キャリア決済', desc: '携帯電話料金と合算', icon: 'carrier' },
 ]
 </script>
 
@@ -35,9 +39,16 @@ const paymentOptions = [
         :error="errors.payment"
         required
       />
-      <p class="reg-step__note">
-        ※ 実際の決済は行われません（デモ表示）。会費や特典の詳細はファンクラブ案内をご確認ください。
-      </p>
+
+      <!-- 選択した支払い方法に応じた詳細入力 -->
+      <transition name="reg-detail">
+        <div v-if="form.payment" class="reg-step__detail">
+          <PaymentCreditForm v-if="form.payment === 'credit'" :form="form" :errors="errors" />
+          <PaymentBankForm v-else-if="form.payment === 'bank'" :form="form" :errors="errors" />
+          <PaymentConveniForm v-else-if="form.payment === 'conveni'" :form="form" :errors="errors" />
+          <PaymentCarrierForm v-else-if="form.payment === 'carrier'" :form="form" :errors="errors" />
+        </div>
+      </transition>
     </div>
   </div>
 </template>
@@ -71,11 +82,25 @@ const paymentOptions = [
   flex-direction: column;
   gap: 16px;
 }
+.reg-step__detail {
+  padding: 20px 18px;
+  background: var(--murasaki-100);
+  border: 1px solid var(--site-border);
+  border-radius: var(--site-radius-sm);
+}
 .reg-step__note {
   margin: 0;
   font-family: var(--ff-sans-jp);
   font-size: 11px;
   line-height: 1.7;
   color: var(--site-text-light);
+}
+.reg-detail-enter-active,
+.reg-detail-leave-active {
+  transition: opacity 0.2s ease;
+}
+.reg-detail-enter-from,
+.reg-detail-leave-to {
+  opacity: 0;
 }
 </style>

@@ -5,6 +5,7 @@
  */
 import { computed } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
+import { findBank } from './payment/bankData.js'
 
 const props = defineProps({
   form: { type: Object, required: true },
@@ -24,12 +25,56 @@ const paymentLabels = {
   conveni: 'コンビニ払い',
   carrier: 'キャリア決済',
 }
+const bankLabels = {
+  mizuho: 'みずほ銀行',
+  mufg: '三菱UFJ銀行',
+  smbc: '三井住友銀行',
+  yucho: 'ゆうちょ銀行',
+}
+const conveniLabels = {
+  familymart: 'ファミリーマート',
+  seven: 'セブンイレブン',
+  lawson: 'ローソン',
+}
+const carrierLabels = {
+  docomo: 'docomo',
+  au: 'au',
+  softbank: 'Softbank',
+}
+
+const paymentValue = computed(() => {
+  const base = paymentLabels[props.form.payment]
+  if (!base) return '—'
+  if (props.form.payment === 'credit') {
+    const digits = props.form.cardNumber.replace(/\D/g, '')
+    const masked = digits ? `**** **** **** ${digits.slice(-4)}` : ''
+    return masked ? `${base}（${masked}）` : base
+  }
+  if (props.form.payment === 'bank') {
+    const bank = findBank(props.form.bankName)
+    const bankLabel = bank?.label || bankLabels[props.form.bankName] || ''
+    const typeLabel = props.form.bankAccountType === 'current' ? '当座' : '普通'
+    const parts = [bankLabel, props.form.bankBranch, `${typeLabel} ${props.form.bankAccountNumber}`].filter(Boolean)
+    return parts.length ? `${base}（${parts.join(' / ')}）` : base
+  }
+  if (props.form.payment === 'conveni') {
+    return conveniLabels[props.form.conveniStore]
+      ? `${base}（${conveniLabels[props.form.conveniStore]}）`
+      : base
+  }
+  if (props.form.payment === 'carrier') {
+    return carrierLabels[props.form.carrierName]
+      ? `${base}（${carrierLabels[props.form.carrierName]}）`
+      : base
+  }
+  return base
+})
 
 const summary = computed(() => [
   { label: '氏名', value: props.form.name },
   { label: '住所', value: props.form.address },
   { label: '性別', value: genderLabels[props.form.gender] || '—' },
-  { label: '支払い方法', value: paymentLabels[props.form.payment] || '—' },
+  { label: '支払い方法', value: paymentValue.value },
   { label: 'メールアドレス', value: props.form.email },
 ])
 </script>

@@ -65,7 +65,7 @@ const logoSrc = '/images/misorahibari-logo.png'
           <UiIco name="search" :size="18" color="var(--site-text-muted)" />
         </button>
         <UiButton variant="outline" size="sm" @click="emit('open-auth', 'login')">ログイン</UiButton>
-        <UiButton variant="primary" size="sm" @click="emit('open-auth', 'register')">新規登録</UiButton>
+        <UiButton variant="primary" size="sm" @click="emit('open-auth', 'register')">ファンクラブ加入</UiButton>
       </div>
 
       <button

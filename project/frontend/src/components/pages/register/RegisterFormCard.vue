@@ -3,7 +3,7 @@
  * 部品名: 新規登録フォームカード（ステップ形式ウィザード）
  * 流れ: 1.基本情報(氏名/住所/性別) → 2.お支払い → 3.アカウント(メール/パスワード) → 完了
  * 完了後: ファンクラブサイトへ誘導（complete イベント）
- * 備考: Phase 1 は API 未接続（入力検証と画面遷移のみ）
+ * 備考: 登録 API 連携は今後拡張予定（現状は入力検証と画面遷移）
  */
 import { reactive, ref, computed } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
@@ -12,18 +12,33 @@ import RegisterStepProfile from './RegisterStepProfile.vue'
 import RegisterStepPayment from './RegisterStepPayment.vue'
 import RegisterStepAccount from './RegisterStepAccount.vue'
 import RegisterComplete from './RegisterComplete.vue'
+import RegisterTermsModal from './RegisterTermsModal.vue'
 
 const emit = defineEmits(['navigate', 'open-auth', 'complete'])
 
 const stepLabels = ['基本情報', 'お支払い', 'アカウント']
 const step = ref(0)
 const submitted = ref(false)
+const showTerms = ref(false)
 
 const form = reactive({
   name: '',
   address: '',
   gender: '',
+  // 支払い方法と各方式の詳細
   payment: '',
+  cardNumber: '',
+  cardExpiry: '',
+  cardCvc: '',
+  cardName: '',
+  bankName: '',
+  bankBranch: '',
+  bankAccountType: '',
+  bankAccountNumber: '',
+  bankAccountHolder: '',
+  conveniStore: '',
+  carrierName: '',
+  // アカウント
   email: '',
   password: '',
   passwordConfirm: '',
@@ -35,6 +50,17 @@ const errors = reactive({
   address: '',
   gender: '',
   payment: '',
+  cardNumber: '',
+  cardExpiry: '',
+  cardCvc: '',
+  cardName: '',
+  bankName: '',
+  bankBranch: '',
+  bankAccountType: '',
+  bankAccountNumber: '',
+  bankAccountHolder: '',
+  conveniStore: '',
+  carrierName: '',
   email: '',
   password: '',
   passwordConfirm: '',
@@ -66,12 +92,78 @@ function validateProfile() {
 }
 
 function validatePayment() {
-  clearErrors(['payment'])
+  clearErrors([
+    'payment',
+    'cardNumber',
+    'cardExpiry',
+    'cardCvc',
+    'cardName',
+    'bankName',
+    'bankBranch',
+    'bankAccountType',
+    'bankAccountNumber',
+    'bankAccountHolder',
+    'conveniStore',
+    'carrierName',
+  ])
   if (!form.payment) {
     errors.payment = '支払い方法を選択してください。'
     return false
   }
-  return true
+
+  let ok = true
+  if (form.payment === 'credit') {
+    const digits = form.cardNumber.replace(/\D/g, '')
+    if (digits.length < 14) {
+      errors.cardNumber = 'カード番号を正しく入力してください。'
+      ok = false
+    }
+    const m = form.cardExpiry.match(/^(\d{2})\/(\d{2})$/)
+    if (!m || Number(m[1]) < 1 || Number(m[1]) > 12) {
+      errors.cardExpiry = '有効期限を MM/YY 形式で入力してください。'
+      ok = false
+    }
+    if (form.cardCvc.length < 3) {
+      errors.cardCvc = 'セキュリティコードを入力してください。'
+      ok = false
+    }
+    if (!form.cardName.trim()) {
+      errors.cardName = 'カード名義を入力してください。'
+      ok = false
+    }
+  } else if (form.payment === 'bank') {
+    if (!form.bankName) {
+      errors.bankName = '金融機関を選択してください。'
+      ok = false
+    }
+    if (!form.bankBranch.trim()) {
+      errors.bankBranch = '支店名を入力してください。'
+      ok = false
+    }
+    if (!form.bankAccountType) {
+      errors.bankAccountType = '口座種別を選択してください。'
+      ok = false
+    }
+    if (!/^\d{7}$/.test(form.bankAccountNumber)) {
+      errors.bankAccountNumber = '口座番号は7桁の数字で入力してください。'
+      ok = false
+    }
+    if (!form.bankAccountHolder.trim()) {
+      errors.bankAccountHolder = '口座名義を入力してください。'
+      ok = false
+    }
+  } else if (form.payment === 'conveni') {
+    if (!form.conveniStore) {
+      errors.conveniStore = 'コンビニを選択してください。'
+      ok = false
+    }
+  } else if (form.payment === 'carrier') {
+    if (!form.carrierName) {
+      errors.carrierName = 'キャリアを選択してください。'
+      ok = false
+    }
+  }
+  return ok
 }
 
 function validateAccount() {
@@ -139,6 +231,12 @@ function onSubmit(e) {
   e.preventDefault()
   goNext()
 }
+
+function onAgreeTerms() {
+  form.agreeTerms = true
+  errors.agreeTerms = ''
+  showTerms.value = false
+}
 </script>
 
 <template>
@@ -158,7 +256,7 @@ function onSubmit(e) {
           v-else-if="step === 2"
           :form="form"
           :errors="errors"
-          @open-terms="(t) => emit('open-auth', t)"
+          @request-terms="showTerms = true"
         />
 
         <div class="reg-card__actions">
@@ -195,6 +293,8 @@ function onSubmit(e) {
     </template>
 
     <RegisterComplete v-else :form="form" @go-fanclub="emit('complete')" />
+
+    <RegisterTermsModal v-if="showTerms" @agree="onAgreeTerms" @close="showTerms = false" />
   </div>
 </template>
 

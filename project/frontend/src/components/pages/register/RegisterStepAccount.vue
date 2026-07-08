@@ -5,12 +5,21 @@
  */
 import RegisterField from './RegisterField.vue'
 
-defineProps({
+const props = defineProps({
   form: { type: Object, required: true },
   errors: { type: Object, required: true },
 })
 
-const emit = defineEmits(['open-terms'])
+const emit = defineEmits(['request-terms'])
+
+/** チェックボックス操作: 未同意ならモーダルを開く / 同意済みなら解除 */
+function onToggleAgree() {
+  if (props.form.agreeTerms) {
+    props.form.agreeTerms = false
+  } else {
+    emit('request-terms')
+  }
+}
 </script>
 
 <template>
@@ -53,17 +62,26 @@ const emit = defineEmits(['open-terms'])
         required
       />
 
-      <label class="reg-step__terms">
-        <input v-model="form.agreeTerms" type="checkbox" class="reg-step__checkbox" />
+      <div class="reg-step__terms">
+        <input
+          id="reg-agree"
+          type="checkbox"
+          class="reg-step__checkbox"
+          :checked="form.agreeTerms"
+          @click.prevent="onToggleAgree"
+        />
         <span>
-          <button type="button" class="reg-step__link" @click="emit('open-terms', 'terms')">利用規約</button>
+          <button type="button" class="reg-step__link" @click="emit('request-terms')">利用規約</button>
           および
-          <button type="button" class="reg-step__link" @click="emit('open-terms', 'privacy')">
+          <button type="button" class="reg-step__link" @click="emit('request-terms')">
             プライバシーポリシー
           </button>
           に同意します
         </span>
-      </label>
+      </div>
+      <p class="reg-step__terms-note">
+        チェックを入れると規約が表示されます。最後までお読みいただくとご同意いただけます。
+      </p>
       <p v-if="errors.agreeTerms" class="reg-step__error">{{ errors.agreeTerms }}</p>
     </div>
   </div>
@@ -115,6 +133,13 @@ const emit = defineEmits(['open-terms'])
   flex-shrink: 0;
   accent-color: var(--murasaki-600);
   cursor: pointer;
+}
+.reg-step__terms-note {
+  margin: -12px 0 0;
+  font-family: var(--ff-sans-jp);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--site-text-light);
 }
 .reg-step__link {
   background: transparent;
