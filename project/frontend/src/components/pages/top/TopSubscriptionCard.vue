@@ -1,21 +1,33 @@
 <script setup>
 /**
  * 部品名: ホーム — サブスクリプションサービス紹介カード
- * 用途: ヒーロー下の会員向け特典・サブスク案内を表示する
+ * 用途: ヒーロー下の会員向け特典・サブスク案内を表示する（プラン別ロック表示）
  */
+import { computed } from 'vue'
 import PageImageCard from '../../common/PageImageCard.vue'
 import UiCard from '../../ui/UiCard.vue'
 import UiButton from '../../ui/UiButton.vue'
 import { PAGE_IMAGES } from '../../../lib/pageImages.js'
+import { useMemberAccess } from '../../../composables/useMemberAccess.js'
+import { PERMISSION } from '../../../constants/membership.js'
 
 const emit = defineEmits(['open-detail'])
 
+const { canUse, isLoggedIn } = useMemberAccess()
+
 const perks = [
-  { icon: '▶', label: '限定動画' },
-  { icon: '♪', label: 'ハイレゾ音源' },
-  { icon: '✦', label: '会員誌デジタル版' },
-  { icon: '★', label: 'チケット先行予約' },
+  { icon: '▶', label: '限定動画', permission: PERMISSION.PREMIUM_VIDEO },
+  { icon: '♪', label: 'ハイレゾ音源', permission: PERMISSION.EXCLUSIVE_CONTENT },
+  { icon: '✦', label: '会員誌デジタル版', permission: PERMISSION.NEWSLETTER },
+  { icon: '★', label: 'チケット先行予約', permission: PERMISSION.TICKET_PREORDER },
 ]
+
+const perkStates = computed(() =>
+  perks.map((p) => ({
+    ...p,
+    unlocked: canUse(p.permission),
+  })),
+)
 </script>
 
 <template>
@@ -39,9 +51,17 @@ const perks = [
     </p>
 
     <ul class="top-subscription__perks">
-      <li v-for="p in perks" :key="p.label" class="top-subscription__perk">
+      <li
+        v-for="p in perkStates"
+        :key="p.label"
+        class="top-subscription__perk"
+        :class="{ 'top-subscription__perk--locked': !p.unlocked }"
+      >
         <span class="top-subscription__perk-icon">{{ p.icon }}</span>
         <span class="top-subscription__perk-label">{{ p.label }}</span>
+        <span v-if="!p.unlocked" class="top-subscription__perk-lock">
+          {{ isLoggedIn ? 'プレミアム' : '会員限定' }}
+        </span>
       </li>
     </ul>
 
@@ -127,6 +147,10 @@ const perks = [
   font-size: 11px;
   color: rgba(255, 255, 255, 0.92);
   line-height: 1.4;
+  position: relative;
+}
+.top-subscription__perk--locked {
+  opacity: 0.55;
 }
 .top-subscription__perk-icon {
   width: 44px;
@@ -140,6 +164,11 @@ const perks = [
   font-size: 15px;
   color: var(--kin-400);
   flex-shrink: 0;
+}
+.top-subscription__perk-lock {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
 }
 .top-subscription__btn {
   margin-top: 24px;

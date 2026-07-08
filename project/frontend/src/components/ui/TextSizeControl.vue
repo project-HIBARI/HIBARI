@@ -3,9 +3,7 @@
  * 部品名: 文字サイズ切替（小・中・大・特）
  * 役割: html[data-text-size] を更新し tokens.css のスケールを反映
  */
-import { ref, watch } from 'vue'
-
-const STORAGE_KEY = 'hibari-text-size'
+import { useTextSize } from '../../composables/useTextSize.js'
 
 const props = defineProps({
   /** ink: 明るい紙面向け / paper: 暗いヘッダー向け */
@@ -14,38 +12,7 @@ const props = defineProps({
   variant: { type: String, default: 'default' },
 })
 
-function readInitialSize() {
-  if (typeof document === 'undefined') return 'm'
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored && ['s', 'm', 'l', 'xl'].includes(stored)) return stored
-  } catch {
-    /* ignore */
-  }
-  return document.documentElement.getAttribute('data-text-size') || 'm'
-}
-
-const size = ref(readInitialSize())
-
-watch(
-  size,
-  (v) => {
-    document.documentElement.setAttribute('data-text-size', v)
-    try {
-      localStorage.setItem(STORAGE_KEY, v)
-    } catch {
-      /* ignore */
-    }
-  },
-  { immediate: true },
-)
-
-const presets = [
-  ['s', '小'],
-  ['m', '中'],
-  ['l', '大'],
-  ['xl', '特'],
-]
+const { size, setSize, presets } = useTextSize()
 </script>
 
 <template>
@@ -65,7 +32,7 @@ const presets = [
         class="text-size-control__btn"
         :class="{ 'text-size-control__btn--active': size === k }"
         :aria-pressed="size === k"
-        @click="size = k"
+        @click="setSize(k)"
       >
         {{ lbl }}
       </button>

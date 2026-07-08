@@ -1,27 +1,37 @@
 <script setup>
 /**
  * 部品名: 新規登録フォームカード（ステップ形式ウィザード）
- * 流れ: 1.基本情報(氏名/住所/性別) → 2.お支払い → 3.アカウント(メール/パスワード) → 完了
+ * 流れ: 0.プラン選択 → 1.基本情報 → 2.お支払い → 3.アカウント → 完了
  * 完了後: ファンクラブサイトへ誘導（complete イベント）
- * 備考: 登録 API 連携は今後拡張予定（現状は入力検証と画面遷移）
  */
-import { reactive, ref, computed } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
 import RegisterStepIndicator from './RegisterStepIndicator.vue'
+import RegisterStepPlan from './RegisterStepPlan.vue'
 import RegisterStepProfile from './RegisterStepProfile.vue'
 import RegisterStepPayment from './RegisterStepPayment.vue'
 import RegisterStepAccount from './RegisterStepAccount.vue'
 import RegisterComplete from './RegisterComplete.vue'
 import RegisterTermsModal from './RegisterTermsModal.vue'
+import { registerAccount } from '../../../api/auth.js'
+import { MEMBERSHIP, MEMBERSHIP_LABELS } from '../../../constants/membership.js'
+
+const props = defineProps({
+  initialPlan: { type: String, default: MEMBERSHIP.GENERAL },
+})
 
 const emit = defineEmits(['navigate', 'open-auth', 'complete'])
 
-const stepLabels = ['基本情報', 'お支払い', 'アカウント']
+const stepLabels = ['プラン選択', '基本情報', 'お支払い', 'アカウント']
 const step = ref(0)
 const submitted = ref(false)
 const showTerms = ref(false)
+const submitting = ref(false)
+const submitError = ref('')
+const registeredUser = ref(null)
 
 const form = reactive({
+  membershipPlan: props.initialPlan || MEMBERSHIP.GENERAL,
   name: '',
   address: '',
   gender: '',
@@ -46,6 +56,7 @@ const form = reactive({
 })
 
 const errors = reactive({
+  membershipPlan: '',
   name: '',
   address: '',
   gender: '',
@@ -68,6 +79,24 @@ const errors = reactive({
 })
 
 const isDone = computed(() => submitted.value)
+
+watch(
+  () => props.initialPlan,
+  (plan) => {
+    if (plan && !submitted.value) {
+      form.membershipPlan = plan
+    }
+  },
+)
+
+function validatePlan() {
+  clearErrors(['membershipPlan'])
+  if (!form.membershipPlan) {
+    errors.membershipPlan = '会員プランを選択してください。'
+    return false
+  }
+  return true
+}
 
 function clearErrors(keys) {
   keys.forEach((k) => (errors[k] = ''))
@@ -198,7 +227,7 @@ function validateAccount() {
   return ok
 }
 
-const validators = [validateProfile, validatePayment, validateAccount]
+const validators = [validatePlan, validateProfile, validatePayment, validateAccount]
 
 function goNext() {
   if (!validators[step.value]()) return
@@ -217,10 +246,25 @@ function goBack() {
   }
 }
 
-function submit() {
-  // Phase 1: API 未接続。ここで登録 API 呼び出しを行う想定。
-  submitted.value = true
-  scrollTop()
+async function submit() {
+  submitError.value = ''
+  submitting.value = true
+  try {
+    const result = await registerAccount({
+      name: form.name.trim(),
+      email: form.email.trim(),
+      password: form.password,
+      address: form.address.trim(),
+      is_premium: form.membershipPlan === MEMBERSHIP.PREMIUM,
+    })
+    submitted.value = true
+    registeredUser.value = result.user
+    scrollTop()
+  } catch (err) {
+    submitError.value = err.message || '会員登録に失敗しました。'
+  } finally {
+    submitting.value = false
+  }
 }
 
 function scrollTop() {
@@ -250,33 +294,37 @@ function onAgreeTerms() {
       <RegisterStepIndicator :steps="stepLabels" :current="step" />
 
       <form class="reg-card__form" novalidate @submit="onSubmit">
-        <RegisterStepProfile v-if="step === 0" :form="form" :errors="errors" />
-        <RegisterStepPayment v-else-if="step === 1" :form="form" :errors="errors" />
+        <RegisterStepPlan v-if="step === 0" :form="form" :errors="errors" />
+        <RegisterStepProfile v-else-if="step === 1" :form="form" :errors="errors" />
+        <RegisterStepPayment v-else-if="step === 2" :form="form" :errors="errors" />
         <RegisterStepAccount
-          v-else-if="step === 2"
+          v-else-if="step === 3"
           :form="form"
           :errors="errors"
           @request-terms="showTerms = true"
         />
+
+        <p v-if="submitError" class="reg-card__error" role="alert">{{ submitError }}</p>
 
         <div class="reg-card__actions">
           <button
             v-if="step > 0"
             type="button"
             class="reg-card__back"
+            :disabled="submitting"
             @click="goBack"
           >
             <span aria-hidden="true">‹</span>
             戻る
           </button>
-          <button type="submit" class="reg-card__next">
+          <button type="submit" class="reg-card__next" :disabled="submitting">
             <template v-if="step < stepLabels.length - 1">
               次へ進む
               <span aria-hidden="true">›</span>
             </template>
             <template v-else>
               <UiIco name="flower" :size="16" color="#fff" />
-              この内容で登録する
+              {{ submitting ? '登録中…' : 'この内容で登録する' }}
             </template>
           </button>
         </div>
@@ -292,7 +340,11 @@ function onAgreeTerms() {
       </div>
     </template>
 
-    <RegisterComplete v-else :form="form" @go-fanclub="emit('complete')" />
+    <RegisterComplete
+      v-else
+      :form="form"
+      @go-fanclub="emit('complete', registeredUser)"
+    />
 
     <RegisterTermsModal v-if="showTerms" @agree="onAgreeTerms" @close="showTerms = false" />
   </div>
@@ -302,7 +354,7 @@ function onAgreeTerms() {
 .reg-card {
   position: relative;
   width: 100%;
-  max-width: 520px;
+  max-width: 640px;
   margin: 0 auto;
   padding: 40px 48px 36px;
   background: rgba(255, 254, 251, 0.92);
@@ -389,6 +441,22 @@ function onAgreeTerms() {
 }
 .reg-card__next:hover {
   background: var(--murasaki-800);
+}
+.reg-card__next:disabled,
+.reg-card__back:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.reg-card__error {
+  margin: 0;
+  padding: 10px 12px;
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  line-height: 1.6;
+  color: #9b2c2c;
+  background: #fff5f5;
+  border: 1px solid #f0c4c4;
+  border-radius: var(--site-radius-sm);
 }
 .reg-card__login {
   margin-top: 28px;

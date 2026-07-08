@@ -11,6 +11,8 @@ import MemoriesPostAside from './memories/MemoriesPostAside.vue'
 import MemoriesEventsGrid from './memories/MemoriesEventsGrid.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
 
+const emit = defineEmits(['open-auth'])
+
 const memTab = ref('memories')
 const tagFilter = ref('all')
 const postData = ref({ name: '', pref: '', title: '', body: '', song: '' })
@@ -103,10 +105,11 @@ function like(id) {
         @update:post-data="postData = $event"
         @submit="handleSubmit"
         @reset="resetForm"
+        @need-auth="(m) => emit('open-auth', m)"
       />
     </div>
 
-    <MemoriesEventsGrid v-else />
+    <MemoriesEventsGrid v-else @need-auth="(m) => emit('open-auth', m)" />
   </div>
 </template>
 

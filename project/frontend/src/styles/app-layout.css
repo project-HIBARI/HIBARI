@@ -14,6 +14,7 @@ body {
   background: var(--site-bg);
   color: var(--site-text);
   font-family: var(--ff-serif);
+  font-size: 1rem;
 }
 #app {
   min-height: 100vh;
@@ -32,6 +33,9 @@ body {
   padding: 0 !important;
   max-width: none !important;
   margin: 0 !important;
+}
+.main-pad--top {
+  padding-top: 0 !important;
 }
 
 /* —— プレミアムバー —— */

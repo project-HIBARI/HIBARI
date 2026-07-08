@@ -1,10 +1,11 @@
 <script setup>
 /**
  * 部品名: 思い出 — 投稿フォーム（サイド）
- * 用途: 思い出ページ右カラムの投稿フォームを表示する
  */
 import UiButton from '../../ui/UiButton.vue'
+import MemberGate from '../../common/MemberGate.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
+import { useMemberAccess } from '../../../composables/useMemberAccess.js'
 
 const songs = HIBARU_DATA.discography.map((d) => d.title)
 
@@ -14,79 +15,100 @@ const props = defineProps({
   errors: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['update:postData', 'submit', 'reset'])
+const emit = defineEmits(['update:postData', 'submit', 'reset', 'need-auth'])
+
+const { canUse, PERMISSION } = useMemberAccess()
+const canPost = () => canUse(PERMISSION.BOARD_POST)
 
 function patch(partial) {
   emit('update:postData', { ...props.postData, ...partial })
+}
+
+function onSubmit() {
+  if (!canPost()) {
+    emit('need-auth', 'login')
+    return
+  }
+  emit('submit')
 }
 </script>
 
 <template>
   <aside class="mem-post">
     <div class="mem-post__card">
-      <div v-if="submitted" class="mem-post__done">
-        <div class="mem-post__done-icon">✦</div>
-        <div class="mem-post__done-title">投稿ありがとうございます</div>
-        <p class="mem-post__done-text">会員登録で投稿への返信・いいねの通知が届きます。</p>
-        <UiButton variant="primary" size="md" class="mem-post__full">会員登録 ›</UiButton>
-        <UiButton variant="outline" size="md" class="mem-post__full" @click="emit('reset')">続けて投稿</UiButton>
-      </div>
+      <MemberGate
+        v-if="!canPost()"
+        :permission="PERMISSION.BOARD_POST"
+        feature="掲示板投稿"
+        @login="emit('need-auth', 'login')"
+        @register="emit('need-auth', 'register')"
+        @upgrade="emit('need-auth', 'register-premium')"
+      />
       <template v-else>
-        <h2 class="mem-post__heading">思い出を寄せる</h2>
-        <div class="mem-post__fields">
-          <input
-            :value="postData.name"
-            class="mem-post__input"
-            placeholder="お名前（匿名可）"
-            aria-label="お名前"
-            @input="patch({ name: $event.target.value })"
-          />
-          <input
-            :value="postData.pref"
-            class="mem-post__input"
-            placeholder="都道府県"
-            aria-label="都道府県"
-            @input="patch({ pref: $event.target.value })"
-          />
-          <div>
-            <input
-              :value="postData.title"
-              class="mem-post__input"
-              :class="{ 'mem-post__input--error': errors.title }"
-              placeholder="思い出の題 *"
-              aria-label="タイトル"
-              aria-required="true"
-              @input="patch({ title: $event.target.value })"
-            />
-            <div v-if="errors.title" class="mem-post__error" role="alert">{{ errors.title }}</div>
-          </div>
-          <div>
-            <textarea
-              :value="postData.body"
-              rows="5"
-              class="mem-post__input mem-post__textarea"
-              :class="{ 'mem-post__input--error': errors.body }"
-              placeholder="本文 *"
-              aria-label="本文"
-              aria-required="true"
-              @input="patch({ body: $event.target.value })"
-            />
-            <div v-if="errors.body" class="mem-post__error" role="alert">{{ errors.body }}</div>
-          </div>
-          <select
-            :value="postData.song"
-            class="mem-post__input"
-            aria-label="心に残る一曲"
-            @change="patch({ song: $event.target.value })"
-          >
-            <option value="">心に残る一曲を選ぶ</option>
-            <option v-for="s in songs" :key="s" :value="s">{{ s }}</option>
-          </select>
-          <button type="button" class="mem-post__attach" aria-label="写真を添付（任意）">
-            📷 写真を添付（任意）
-          </button>
-          <UiButton variant="primary" size="md" class="mem-post__full" @click="emit('submit')">投稿する</UiButton>
+        <div v-if="submitted" class="mem-post__done">
+          <div class="mem-post__done-icon">✦</div>
+          <div class="mem-post__done-title">投稿ありがとうございます</div>
+          <p class="mem-post__done-text">会員の皆さまの思い出が、ひばりの記憶を紡いでいます。</p>
+          <UiButton variant="outline" size="md" class="mem-post__full" @click="emit('reset')">続けて投稿</UiButton>
         </div>
+        <template v-else>
+          <h2 class="mem-post__heading">思い出を寄せる</h2>
+          <p class="mem-post__member-note">会員限定 · 掲示板投稿</p>
+          <div class="mem-post__fields">
+            <input
+              :value="postData.name"
+              class="mem-post__input"
+              placeholder="お名前（匿名可）"
+              aria-label="お名前"
+              @input="patch({ name: $event.target.value })"
+            />
+            <input
+              :value="postData.pref"
+              class="mem-post__input"
+              placeholder="都道府県"
+              aria-label="都道府県"
+              @input="patch({ pref: $event.target.value })"
+            />
+            <div>
+              <input
+                :value="postData.title"
+                class="mem-post__input"
+                :class="{ 'mem-post__input--error': errors.title }"
+                placeholder="思い出の題 *"
+                aria-label="タイトル"
+                aria-required="true"
+                @input="patch({ title: $event.target.value })"
+              />
+              <div v-if="errors.title" class="mem-post__error" role="alert">{{ errors.title }}</div>
+            </div>
+            <div>
+              <textarea
+                :value="postData.body"
+                rows="5"
+                class="mem-post__input mem-post__textarea"
+                :class="{ 'mem-post__input--error': errors.body }"
+                placeholder="本文 *"
+                aria-label="本文"
+                aria-required="true"
+                @input="patch({ body: $event.target.value })"
+              />
+              <div v-if="errors.body" class="mem-post__error" role="alert">{{ errors.body }}</div>
+            </div>
+            <select
+              :value="postData.song"
+              class="mem-post__input"
+              aria-label="心に残る一曲"
+              @change="patch({ song: $event.target.value })"
+            >
+              <option value="">心に残る一曲を選ぶ</option>
+              <option v-for="s in songs" :key="s" :value="s">{{ s }}</option>
+            </select>
+            <button type="button" class="mem-post__attach" aria-label="写真を添付（任意）">
+              📷 写真を添付（任意）
+            </button>
+            <UiButton variant="primary" size="md" class="mem-post__full" @click="onSubmit">投稿する</UiButton>
+          </div>
+        </template>
       </template>
     </div>
   </aside>
@@ -106,8 +128,13 @@ function patch(partial) {
   font-family: var(--ff-mincho);
   font-size: 18px;
   font-weight: 700;
-  margin: 0 0 var(--sp-4);
+  margin: 0 0 4px;
   color: var(--murasaki-700);
+}
+.mem-post__member-note {
+  margin: 0 0 var(--sp-4);
+  font-size: 11px;
+  color: var(--site-text-muted);
 }
 .mem-post__fields {
   display: flex;

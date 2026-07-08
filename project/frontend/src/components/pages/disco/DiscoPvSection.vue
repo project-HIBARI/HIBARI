@@ -1,17 +1,30 @@
 <script setup>
 /**
  * 部品名: ディスコグラフィ — 公式 PV 風カードエリア
- * 用途: YouTube 公式 PV 風のサムネイルカードを横並びで表示する
+ * 用途: YouTube 公式 PV 風のサムネイルカードを横並びで表示する（プレミアム PV は権限制御）
  */
 import SectionTitle from '../../ui/SectionTitle.vue'
 import UiIco from '../../ui/UiIco.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
+import { useMemberAccess } from '../../../composables/useMemberAccess.js'
 
 const items = HIBARU_DATA.featuredPv
 
-const emit = defineEmits(['play', 'coming-soon'])
+const emit = defineEmits(['play', 'coming-soon', 'need-auth'])
+
+const { canUse, isLoggedIn, PERMISSION } = useMemberAccess()
+
+const PREMIUM_PV_IDS = new Set(['pv-002', 'pv-003'])
+
+function isPremiumPv(pv) {
+  return PREMIUM_PV_IDS.has(pv.id)
+}
 
 function onClick(pv) {
+  if (isPremiumPv(pv) && !canUse(PERMISSION.PREMIUM_VIDEO)) {
+    emit('need-auth', isLoggedIn.value ? 'register-premium' : 'login')
+    return
+  }
   if (pv.youtubeId) {
     window.open(`https://www.youtube.com/watch?v=${pv.youtubeId}`, '_blank', 'noopener,noreferrer')
   } else {
@@ -21,7 +34,6 @@ function onClick(pv) {
 </script>
 
 <template>
-  <!-- 代表曲の PV 風プレビューカード -->
   <section class="disco-pv" aria-label="公式 PV">
     <SectionTitle title="公式 PV" sub="Featured Music Videos" size="md" />
 
@@ -31,6 +43,7 @@ function onClick(pv) {
         :key="pv.id"
         type="button"
         class="disco-pv__card"
+        :class="{ 'disco-pv__card--premium': isPremiumPv(pv) && !canUse(PERMISSION.PREMIUM_VIDEO) }"
         :aria-label="pv.title + 'の PV を見る'"
         @click="onClick(pv)"
       >
@@ -45,6 +58,7 @@ function onClick(pv) {
             :alt="pv.title"
             class="disco-pv__img"
           />
+          <span v-if="isPremiumPv(pv)" class="disco-pv__badge">プレミアム</span>
           <span class="disco-pv__play" aria-hidden="true">
             <UiIco name="play" :size="18" color="#fff" />
           </span>
@@ -83,6 +97,9 @@ function onClick(pv) {
   transform: translateY(-2px);
   box-shadow: var(--site-shadow-md);
 }
+.disco-pv__card--premium .disco-pv__thumb {
+  filter: grayscale(0.35) brightness(0.9);
+}
 .disco-pv__thumb {
   position: relative;
   aspect-ratio: 16 / 9;
@@ -110,6 +127,18 @@ function onClick(pv) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.disco-pv__badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 8px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: #fff;
+  background: var(--kin-600);
+  border-radius: 4px;
+  z-index: 1;
 }
 .disco-pv__play {
   position: absolute;

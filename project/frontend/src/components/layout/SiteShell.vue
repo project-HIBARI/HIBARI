@@ -8,7 +8,7 @@
 
  */
 
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 import SiteHeader from './SiteHeader.vue'
 
@@ -23,6 +23,12 @@ import AppFooterBar from './AppFooterBar.vue'
 import GoodsModal from '../modals/GoodsModal.vue'
 
 import AiModal from '../modals/AiModal.vue'
+
+import NewsListModal from '../modals/NewsListModal.vue'
+
+import EventsListModal from '../modals/EventsListModal.vue'
+
+import GalleryModal from '../modals/GalleryModal.vue'
 
 import AuthNoticeModal from '../modals/AuthNoticeModal.vue'
 
@@ -47,6 +53,10 @@ import PageFanclub from '../pages/PageFanclub.vue'
 import PageFanclubSite from '../pages/PageFanclubSite.vue'
 
 import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
+
+import { useAuth } from '../../composables/useAuth.js'
+
+import { MEMBERSHIP, PERMISSION } from '../../constants/membership.js'
 
 
 
@@ -82,9 +92,21 @@ const modal = ref(null)
 
 const authMode = ref(null)
 
+const registerPlan = ref(MEMBERSHIP.GENERAL)
+
+const auth = useAuth()
+
+const { membership, isLoggedIn, user, setUser, refreshUser } = auth
+
 
 
 useBodyScrollLock(drawerOpen)
+
+
+
+onMounted(() => {
+  refreshUser()
+})
 
 
 
@@ -104,7 +126,15 @@ function handleNav(id) {
 
   if (id === 'news') {
 
-    openAuth('news')
+    if (isLoggedIn.value && auth.can(PERMISSION.NEWSLETTER)) {
+
+      openModal('news')
+
+    } else {
+
+      openAuth('news')
+
+    }
 
     return
 
@@ -156,7 +186,15 @@ function openAuth(mode) {
 
   if (mode === 'register') {
 
-    goTo('register')
+    goRegister(MEMBERSHIP.GENERAL)
+
+    return
+
+  }
+
+  if (mode === 'register-premium') {
+
+    goRegister(MEMBERSHIP.PREMIUM)
 
     return
 
@@ -178,9 +216,31 @@ function closeAuth() {
 
 
 
+function handleLoginSuccess(user) {
+
+  setUser(user)
+
+  goTo('top')
+
+}
+
+
+
+function goRegister(plan = MEMBERSHIP.GENERAL) {
+
+  registerPlan.value = plan
+
+  goTo('register')
+
+}
+
+
+
 /** 新規会員登録の完了後: ファンクラブ会員サイトへ誘導 */
 
-function handleRegisterComplete() {
+function handleRegisterComplete(user) {
+
+  if (user) setUser(user)
 
   goTo('fanclub-site')
 
@@ -238,7 +298,10 @@ function handleRegisterComplete() {
 
       id="main-content"
 
-      :class="['main-pad', { 'main-pad--flush': page === 'login' || page === 'register' }]"
+      :class="['main-pad', {
+        'main-pad--flush': page === 'login' || page === 'register',
+        'main-pad--top': page === 'top',
+      }]"
 
       :style="page === 'login' || page === 'register'
 
@@ -296,7 +359,10 @@ function handleRegisterComplete() {
 
       />
 
-      <PageMemories v-else-if="page === 'memories'" />
+      <PageMemories
+        v-else-if="page === 'memories'"
+        @open-auth="openAuth"
+      />
 
       <PageMessage v-else-if="page === 'message'" />
 
@@ -306,11 +372,15 @@ function handleRegisterComplete() {
 
         @open-auth="openAuth"
 
+        @login-success="handleLoginSuccess"
+
       />
 
       <PageRegister
 
         v-else-if="page === 'register'"
+
+        :initial-plan="registerPlan"
 
         @navigate="goTo"
 
@@ -326,6 +396,8 @@ function handleRegisterComplete() {
 
         @navigate="goTo"
 
+        @register="goRegister"
+
       />
 
       <PageFanclubSite
@@ -340,9 +412,12 @@ function handleRegisterComplete() {
 
 
 
-    <LoginCtaBanner />
+    <LoginCtaBanner v-if="page !== 'top'" />
 
-    <PremiumMemberBar v-if="page !== 'login' && page !== 'register'" @open-fanclub="goTo('fanclub')" />
+    <PremiumMemberBar
+      v-if="page !== 'top' && page !== 'login' && page !== 'register'"
+      @open-fanclub="goTo('fanclub')"
+    />
 
     <AppFooterBar />
 
@@ -350,7 +425,20 @@ function handleRegisterComplete() {
 
     <GoodsModal v-if="modal === 'goods'" @close="modal = null" />
 
-    <AiModal v-if="modal === 'ai'" @close="modal = null" />
+    <AiModal
+      v-if="modal === 'ai'"
+      :membership="membership"
+      :is-logged-in="isLoggedIn"
+      :account-id="user?.account_id"
+      @close="modal = null"
+      @open-auth="(mode) => { modal = null; openAuth(mode) }"
+    />
+
+    <NewsListModal v-if="modal === 'news'" @close="modal = null" />
+
+    <EventsListModal v-if="modal === 'events'" @close="modal = null" />
+
+    <GalleryModal v-if="modal === 'gallery'" @close="modal = null" />
 
     <AuthNoticeModal v-if="authMode" :mode="authMode" @close="closeAuth" />
 
@@ -368,7 +456,7 @@ function handleRegisterComplete() {
 
   font-family: var(--ff-serif);
 
-  font-size: var(--size-base);
+  font-size: 1rem;
 
   position: relative;
 

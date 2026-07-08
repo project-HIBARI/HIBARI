@@ -1,16 +1,29 @@
 <script setup>
 /**
  * 部品名: ホーム — 最新ニュース一覧
- * 用途: ホーム中段のニュースカード内に最新5件を表示する
  */
 import { computed } from 'vue'
 import UiCard from '../../ui/UiCard.vue'
 import SectionTitle from '../../ui/SectionTitle.vue'
+import MemberGate from '../../common/MemberGate.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
+import { useMemberAccess } from '../../../composables/useMemberAccess.js'
 
-const emit = defineEmits(['open-all'])
+const emit = defineEmits(['open-all', 'need-auth'])
 
-const items = computed(() => HIBARU_DATA.news.slice(0, 5))
+const { canUse, PERMISSION } = useMemberAccess()
+
+const canView = computed(() => canUse(PERMISSION.NEWSLETTER))
+const allItems = computed(() => HIBARU_DATA.news.slice(0, 5))
+const visibleItems = computed(() => (canView.value ? allItems.value : allItems.value.slice(0, 2)))
+
+function onOpenAll() {
+  if (canView.value) {
+    emit('open-all')
+  } else {
+    emit('need-auth', 'login')
+  }
+}
 </script>
 
 <template>
@@ -19,18 +32,35 @@ const items = computed(() => HIBARU_DATA.news.slice(0, 5))
       title="最新ニュース"
       size="md"
       link-label="一覧を見る ›"
-      @link-click="emit('open-all')"
+      @link-click="onOpenAll"
     />
 
     <ul class="top-news__list">
-      <li v-for="(n, i) in items" :key="i" class="top-news__item">
+      <li
+        v-for="(n, i) in visibleItems"
+        :key="i"
+        class="top-news__item"
+        :class="{ 'top-news__item--locked': !canView && i >= 2 }"
+      >
         <div class="top-news__row">
           <time class="top-news__date">{{ n.date }}</time>
           <span v-if="i === 0 || n.isNew" class="top-news__new">NEW</span>
+          <span v-if="n.label" class="top-news__label">{{ n.label }}</span>
         </div>
         <p class="top-news__title">{{ n.title }}</p>
       </li>
     </ul>
+
+    <MemberGate
+      v-if="!canView"
+      :permission="PERMISSION.NEWSLETTER"
+      feature="月刊ニュースレター"
+      compact
+      class="top-news__gate"
+      @login="emit('need-auth', 'login')"
+      @register="emit('need-auth', 'register')"
+      @upgrade="emit('need-auth', 'register-premium')"
+    />
   </UiCard>
 </template>
 
@@ -59,6 +89,7 @@ const items = computed(() => HIBARU_DATA.news.slice(0, 5))
   align-items: center;
   gap: 8px;
   margin-bottom: 5px;
+  flex-wrap: wrap;
 }
 .top-news__date {
   font-family: var(--ff-mono);
@@ -77,11 +108,21 @@ const items = computed(() => HIBARU_DATA.news.slice(0, 5))
   background: var(--beni-500);
   border-radius: 3px;
 }
+.top-news__label {
+  font-size: 10px;
+  color: var(--murasaki-700);
+  background: var(--murasaki-100);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
 .top-news__title {
   margin: 0;
   font-size: 13px;
   line-height: 1.65;
   color: var(--site-text);
+}
+.top-news__gate {
+  margin-top: 12px;
 }
 
 @media (max-width: 767px) {

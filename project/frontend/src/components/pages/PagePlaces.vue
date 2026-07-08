@@ -142,7 +142,10 @@ function selectSpot(spot) {
       />
     </div>
 
-    <PlacesGalleryPanel @open-gallery="emit('open-auth', 'gallery')" />
+    <PlacesGalleryPanel
+      @open-gallery="emit('open-modal', 'gallery')"
+      @need-auth="(m) => emit('open-auth', m)"
+    />
 
     <PlacesEpisodePanel />
 

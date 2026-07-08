@@ -1,14 +1,29 @@
 <script setup>
 /**
  * 部品名: AI 美空ひばりモーダル（デモ応答）
- * 用途: チャット UI。実 API 未接続時は定型文で返す（ライトテーマ）
+ * 用途: チャット UI。会員区分に応じた利用制限を適用
  */
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import ModalShell from './ModalShell.vue'
 import TabBar from '../ui/TabBar.vue'
 import UiButton from '../ui/UiButton.vue'
+import {
+  GENERAL_AI_CHAT_MONTHLY_LIMIT,
+  isPremiumMember,
+  PERMISSION,
+  hasPermission,
+} from '../../constants/membership.js'
+import { getAiUsageCount, incrementAiUsage } from '../../lib/aiUsage.js'
 
-const emit = defineEmits(['close'])
+const props = defineProps({
+  membership: { type: String, default: 'general' },
+  isLoggedIn: { type: Boolean, default: false },
+  accountId: { type: [Number, String], default: null },
+})
+
+const emit = defineEmits(['close', 'open-auth'])
+
+const HIBARI_AVATAR_SRC = '/images/ai/hibari-avatar.png'
 
 const aiTab = ref('chat')
 const messages = ref([
@@ -16,26 +31,80 @@ const messages = ref([
 ])
 const input = ref('')
 const loading = ref(false)
+const chatError = ref('')
+const usageTick = ref(0)
 const lyricForm = ref({ theme: '', mood: '', scene: '' })
 const lyricResult = ref('')
 const lyricLoading = ref(false)
 
+const isPremium = computed(() => isPremiumMember(props.membership))
+const usageCount = computed(() => {
+  usageTick.value
+  return getAiUsageCount(props.accountId)
+})
+const chatLimit = computed(() => (isPremium.value ? null : GENERAL_AI_CHAT_MONTHLY_LIMIT))
+const remainingChats = computed(() => {
+  if (!props.isLoggedIn) return 0
+  if (chatLimit.value == null) return null
+  return Math.max(chatLimit.value - usageCount.value, 0)
+})
+const canUseLyric = computed(() => props.isLoggedIn && hasPermission(props.membership, PERMISSION.EXCLUSIVE_CONTENT))
+
+function getDemoReply(userMsg) {
+  const text = userMsg.trim()
+
+  if (/こんにちは|こんばんは|おはよう|はじめまして/i.test(text)) {
+    return 'こんにちは。いつも歌を聴いてくださって、ありがとうございます。今日はどんなお話をしましょうか。'
+  }
+  if (/歌|曲|うた|シングル|名曲/i.test(text)) {
+    return '「川の流れのように」「いつでも夢を」… 皆さんに愛された曲がたくさんありますね。どの曲がお好きですか。'
+  }
+  if (/出身|九州|福岡|ゆかり|地元/i.test(text)) {
+    return '博多生まれの私ですが、全国の皆さんの応援があってこそでした。故郷の風景も、今でも大切に思っています。'
+  }
+  if (/ありがとう|感謝|お礼/i.test(text)) {
+    return 'こちらこそ、温かいお言葉をありがとうございます。あなたの想いが、とてもうれしいです。'
+  }
+  if (/さようなら|ばいばい|またね/i.test(text)) {
+    return 'はい、またお話ししましょう。いつでも、ここでお待ちしていますね。'
+  }
+
+  return `「${text}」ですね。ありがとうございます。デモ版のため簡単なお返事になりますが、いつもひばりを想ってくださる心がとてもうれしいです。`
+}
+
 function send() {
   if (!input.value.trim() || loading.value) return
+  chatError.value = ''
+
+  if (!props.isLoggedIn) {
+    chatError.value = 'AIひばり対話は会員登録・ログイン後にご利用いただけます。'
+    return
+  }
+
+  if (!isPremium.value && usageCount.value >= GENERAL_AI_CHAT_MONTHLY_LIMIT) {
+    chatError.value = '一般会員の今月の利用上限（10回）に達しました。プレミアム会員は無制限でご利用いただけます。'
+    return
+  }
+
   const userMsg = input.value.trim()
   input.value = ''
   messages.value.push({ role: 'user', text: userMsg })
+  if (!isPremium.value) {
+    incrementAiUsage(props.accountId)
+    usageTick.value += 1
+  }
   loading.value = true
   window.setTimeout(() => {
     messages.value.push({
       role: 'ai',
-      text: '（デモ）いつもひばりを想ってくださり、ありがとうございます。心温まるお言葉、大切に受け止めました。',
+      text: getDemoReply(userMsg),
     })
     loading.value = false
   }, 600)
 }
 
 function generateLyric() {
+  if (!canUseLyric.value) return
   lyricLoading.value = true
   lyricResult.value = ''
   window.setTimeout(() => {
@@ -64,6 +133,12 @@ function generateLyric() {
     />
 
     <div v-if="aiTab === 'chat'" class="ai-modal__chat">
+      <p v-if="!isLoggedIn" class="ai-modal__gate">
+        ログイン後に AIひばり対話をご利用いただけます。
+        <button type="button" class="ai-modal__gate-link" @click="emit('open-auth', 'login')">ログイン</button>
+        /
+        <button type="button" class="ai-modal__gate-link" @click="emit('open-auth', 'register')">新規登録</button>
+      </p>
       <div class="ai-modal__messages">
         <div
           v-for="(m, i) in messages"
@@ -71,12 +146,34 @@ function generateLyric() {
           class="ai-modal__row"
           :class="m.role === 'user' ? 'ai-modal__row--user' : 'ai-modal__row--ai'"
         >
+          <img
+            v-if="m.role === 'ai'"
+            :src="HIBARI_AVATAR_SRC"
+            alt=""
+            class="ai-modal__avatar"
+            width="40"
+            height="40"
+            decoding="async"
+          />
           <div class="ai-modal__bubble" :class="m.role === 'user' ? 'ai-modal__bubble--user' : 'ai-modal__bubble--ai'">
             <div v-if="m.role === 'ai'" class="ai-modal__bubble-label">AI美空ひばり</div>
             {{ m.text }}
           </div>
         </div>
-        <div v-if="loading" class="ai-modal__loading">……</div>
+        <div v-if="loading" class="ai-modal__row ai-modal__row--ai ai-modal__row--loading">
+          <img
+            :src="HIBARI_AVATAR_SRC"
+            alt=""
+            class="ai-modal__avatar"
+            width="40"
+            height="40"
+            decoding="async"
+          />
+          <div class="ai-modal__bubble ai-modal__bubble--ai ai-modal__bubble--typing" aria-live="polite">
+            <div class="ai-modal__bubble-label">AI美空ひばり</div>
+            <span class="ai-modal__typing">……</span>
+          </div>
+        </div>
       </div>
       <div class="ai-modal__input-row">
         <input
@@ -84,18 +181,32 @@ function generateLyric() {
           class="ai-modal__input"
           placeholder="ひばりさんに話しかける…"
           aria-label="メッセージを入力"
+          :disabled="!isLoggedIn || (!isPremium && remainingChats === 0)"
           @keydown.enter.prevent="send"
         />
-        <UiButton variant="primary" size="md" :disabled="loading" @click="send">送信</UiButton>
+        <UiButton
+          variant="primary"
+          size="md"
+          :disabled="loading || !isLoggedIn || (!isPremium && remainingChats === 0)"
+          @click="send"
+        >
+          送信
+        </UiButton>
       </div>
-      <p class="ai-modal__hint">一般会員: 月10回まで · プレミアム: 無制限</p>
+      <p v-if="chatError" class="ai-modal__error" role="alert">{{ chatError }}</p>
+      <p class="ai-modal__hint">
+        <template v-if="isPremium">プレミアム会員: AIひばり対話 無制限</template>
+        <template v-else-if="isLoggedIn">一般会員: 今月あと {{ remainingChats }} 回（月10回まで）</template>
+        <template v-else>一般会員: 月10回まで · プレミアム: 無制限</template>
+      </p>
     </div>
 
     <div v-if="aiTab === 'lyric'" class="ai-modal__lyric">
-      <div class="ai-modal__premium">
-        🔒 このモードはプレミアム会員限定です。
-        <button type="button" class="ai-modal__premium-link">アップグレードする ›</button>
+      <div v-if="!canUseLyric" class="ai-modal__premium">
+        🔒 新曲制作支援はプレミアム会員限定の限定コンテンツです。
+        <button type="button" class="ai-modal__premium-link" @click="emit('open-auth', 'register')">プレミアムに登録 ›</button>
       </div>
+      <template v-else>
       <div class="ai-modal__lyric-fields">
         <input v-model="lyricForm.theme" class="ai-modal__input" placeholder="テーマ（例: 別れ・故郷・再会）" aria-label="テーマ" />
         <input v-model="lyricForm.mood" class="ai-modal__input" placeholder="ムード（例: 切ない・温かい・力強い）" aria-label="ムード" />
@@ -103,6 +214,7 @@ function generateLyric() {
       </div>
       <UiButton variant="primary" size="md" :disabled="lyricLoading" @click="generateLyric">歌詞案を生成</UiButton>
       <div v-if="lyricResult" class="ai-modal__lyric-result">{{ lyricResult }}</div>
+      </template>
     </div>
   </ModalShell>
 </template>
@@ -133,12 +245,24 @@ function generateLyric() {
 }
 .ai-modal__row {
   display: flex;
+  align-items: flex-end;
+  gap: 10px;
 }
 .ai-modal__row--user {
   justify-content: flex-end;
 }
 .ai-modal__row--ai {
   justify-content: flex-start;
+}
+.ai-modal__avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--kin-500);
+  box-shadow: 0 2px 8px rgba(60, 40, 30, 0.12);
+  background: var(--site-surface-muted);
 }
 .ai-modal__bubble {
   padding: 10px 14px;
@@ -167,8 +291,7 @@ function generateLyric() {
   margin-bottom: 4px;
   font-family: var(--ff-mincho);
 }
-.ai-modal__loading {
-  text-align: center;
+.ai-modal__typing {
   color: var(--murasaki-600);
   font-family: var(--ff-mincho);
   font-size: 13px;
@@ -196,6 +319,32 @@ function generateLyric() {
   margin: 10px 0 0;
   font-size: 11px;
   color: var(--site-text-light);
+}
+.ai-modal__gate {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--site-text-muted);
+  background: var(--site-surface-muted);
+  border: 1px solid var(--site-border);
+  border-radius: var(--site-radius-sm);
+}
+.ai-modal__gate-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--murasaki-700);
+  cursor: pointer;
+  font-family: var(--ff-mincho);
+  font-size: 12px;
+  text-decoration: underline;
+}
+.ai-modal__error {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #9b2c2c;
 }
 .ai-modal__lyric {
   margin-top: 16px;

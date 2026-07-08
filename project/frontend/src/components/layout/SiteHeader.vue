@@ -1,7 +1,7 @@
 <script setup>
 /**
  * 部品名: 共通サイトヘッダー
- * 用途: ロゴ・ナビ・検索・ログイン/ファンクラブ加入・文字サイズ（1段構成）
+ * 用途: ロゴ・ナビ・検索・ログイン/ファンクラブ加入・文字サイズ（レスポンシブ・1段構成）
  */
 import UiIco from '../ui/UiIco.vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
@@ -104,7 +104,6 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
   z-index: 50;
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
   background: linear-gradient(180deg, #fffefb 0%, #fdf9f5 100%);
   border-bottom: 1px solid var(--site-border);
   box-shadow: 0 2px 12px rgba(60, 40, 30, 0.04);
@@ -114,11 +113,11 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
   max-width: 1520px;
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 14px 16px;
   min-width: 0;
 }
 
@@ -135,15 +134,40 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
 
 .site-header__logo-img {
   display: block;
-  width: min(180px, 52vw);
+  width: min(168px, 48vw);
   height: auto;
   object-fit: contain;
   object-position: left center;
 }
 
-.site-header__nav,
-.site-header__actions-bar {
+/* 1099px以下: ナビ非表示・ハンバーガー */
+.site-header__nav {
   display: none;
+}
+
+.site-header__actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.site-header__text-size {
+  display: none;
+}
+
+.site-header__actions-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.site-header__auth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .site-header__menu {
@@ -168,25 +192,6 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
   border-radius: 1px;
 }
 
-.site-header__actions-bar {
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-}
-
-.site-header__actions-primary {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-}
-
-.site-header__auth {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .site-header__search {
   display: inline-flex;
   align-items: center;
@@ -209,9 +214,9 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 16px;
+  padding: 6px 12px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.06em;
   white-space: nowrap;
@@ -260,37 +265,77 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
   font-size: 11px;
 }
 
-@media (min-width: 1024px) {
+/* 768px以上1099px以下: ヘッダーに検索・認証を表示 */
+@media (min-width: 768px) and (max-width: 1099px) {
+  .site-header__inner {
+    padding: 14px 20px;
+    gap: 12px;
+  }
+
+  .site-header__logo-img {
+    width: min(180px, 36vw);
+  }
+
+  .site-header__actions-primary {
+    gap: 10px;
+  }
+
+  .site-header__auth {
+    gap: 8px;
+  }
+
+  .site-header__btn {
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+}
+
+/* 767px以下: 認証ボタンはドロワー内、ヘッダーは検索+メニュー */
+@media (max-width: 767px) {
+  .site-header__inner {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .site-header__logo-img {
+    width: min(156px, 52vw);
+  }
+
+  .site-header__auth {
+    display: none;
+  }
+}
+
+/* 1100px以上: 横並びナビ（コンパクト） */
+@media (min-width: 1100px) {
   .site-header__inner {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-rows: auto;
     align-items: center;
-    column-gap: 28px;
-    padding: 16px 28px;
-    min-height: 88px;
+    column-gap: 20px;
+    padding: 14px 24px;
+    min-height: 80px;
   }
 
   .site-header__logo {
     grid-column: 1;
-    grid-row: 1;
     justify-self: start;
-    padding-right: 24px;
+    padding-right: 12px;
   }
 
   .site-header__logo-img {
-    width: 170px;
+    width: 150px;
   }
 
   .site-header__nav {
     display: flex;
     grid-column: 2;
-    grid-row: 1;
     justify-self: center;
     align-items: center;
+    justify-content: center;
     flex-wrap: nowrap;
-    gap: 16px;
-    flex-shrink: 0;
+    gap: 10px;
+    min-width: 0;
   }
 
   .site-header__nav-link {
@@ -304,7 +349,7 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
     font-family: var(--ff-sans-jp);
     font-size: 13px;
     font-weight: 500;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     color: var(--site-text);
     white-space: nowrap;
     transition: color 0.2s, border-color 0.2s;
@@ -322,39 +367,52 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
   }
 
   .site-header__actions-bar {
-    display: flex;
     grid-column: 3;
-    grid-row: 1;
     justify-self: end;
-    gap: 14px;
+    margin-left: 0;
+    gap: 12px;
+  }
+
+  .site-header__actions-primary {
+    gap: 10px;
+  }
+
+  .site-header__text-size {
+    display: block;
+  }
+
+  .site-header__text-size :deep(.text-size-control__label) {
+    display: none;
   }
 
   .site-header__menu {
     display: none;
   }
 
-  /* 1360px未満: ラベル非表示 */
-  .site-header__text-size :deep(.text-size-control__label) {
-    display: none;
+  .site-header__btn {
+    padding: 6px 12px;
+    font-size: 12px;
   }
 }
 
-@media (min-width: 1200px) {
+/* 1280px以上: フルPC表示 */
+@media (min-width: 1280px) {
   .site-header__inner {
-    column-gap: 32px;
-    padding: 18px 32px;
+    column-gap: 28px;
+    padding: 16px 32px;
+    min-height: 88px;
   }
 
   .site-header__logo {
-    padding-right: 28px;
+    padding-right: 20px;
   }
 
   .site-header__logo-img {
-    width: 188px;
+    width: 180px;
   }
 
   .site-header__nav {
-    gap: 20px;
+    gap: 16px;
   }
 
   .site-header__nav-link {
@@ -363,7 +421,20 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
   }
 
   .site-header__actions-bar {
-    gap: 16px;
+    gap: 14px;
+  }
+
+  .site-header__actions-primary {
+    gap: 12px;
+  }
+
+  .site-header__auth {
+    gap: 10px;
+  }
+
+  .site-header__btn {
+    padding: 7px 16px;
+    font-size: 13px;
   }
 
   .site-header__text-size :deep(.text-size-control__btn) {
@@ -372,7 +443,6 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
     font-size: 12px;
   }
 
-  /* 1200〜1359px: ラベルを「文字」に短縮 */
   .site-header__text-size :deep(.text-size-control__label) {
     display: inline;
     font-size: 0;
@@ -386,31 +456,32 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
   }
 }
 
+/* 1360px以上: ゆとりあるフル表示 */
 @media (min-width: 1360px) {
   .site-header__inner {
-    column-gap: 36px;
+    column-gap: 32px;
     padding: 18px 36px;
   }
 
   .site-header__logo {
-    padding-right: 32px;
+    padding-right: 24px;
   }
 
   .site-header__logo-img {
-    width: 205px;
+    width: 198px;
   }
 
   .site-header__nav {
-    gap: 22px;
+    gap: 18px;
   }
 
   .site-header__nav-link {
     font-size: 14px;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
   }
 
   .site-header__actions-bar {
-    gap: 18px;
+    gap: 16px;
   }
 
   .site-header__text-size :deep(.text-size-control__label) {
@@ -420,56 +491,6 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
 
   .site-header__text-size :deep(.text-size-control__label)::after {
     content: none;
-  }
-}
-
-/* 1024〜1099px: 横幅不足時のみ文字サイズを2段目へ */
-@media (max-width: 1099px) and (min-width: 1024px) {
-  .site-header__inner {
-    grid-template-rows: auto auto;
-    row-gap: 8px;
-    column-gap: 24px;
-    padding: 14px 24px 10px;
-  }
-
-  .site-header__logo-img {
-    width: 165px;
-  }
-
-  .site-header__nav {
-    gap: 14px;
-  }
-
-  .site-header__actions-bar {
-    display: contents;
-  }
-
-  .site-header__actions-primary {
-    grid-column: 3;
-    grid-row: 1;
-    justify-self: end;
-    gap: 12px;
-  }
-
-  .site-header__text-size {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: end;
-  }
-
-  .site-header__btn {
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 767px) {
-  .site-header__inner {
-    padding: 14px 16px;
-  }
-
-  .site-header__logo-img {
-    width: min(170px, 54vw);
   }
 }
 </style>

@@ -5,6 +5,11 @@
  */
 import LoginHeroBackground from './login/LoginHeroBackground.vue'
 import RegisterFormCard from './register/RegisterFormCard.vue'
+import { MEMBERSHIP } from '../../constants/membership.js'
+
+defineProps({
+  initialPlan: { type: String, default: MEMBERSHIP.GENERAL },
+})
 
 const emit = defineEmits(['navigate', 'open-auth', 'complete'])
 </script>
@@ -14,19 +19,20 @@ const emit = defineEmits(['navigate', 'open-auth', 'complete'])
     <section class="page-login__hero" aria-labelledby="register-page-title">
       <LoginHeroBackground />
 
-      <div class="page-login__inner">
+      <div class="page-login__inner page-login__inner--register">
         <header class="page-login__head">
           <h1 id="register-page-title" class="page-login__title">新規会員登録</h1>
           <p class="page-login__subtitle">Register</p>
           <p class="page-login__lead">
-            会員登録を行うことで、限定コンテンツやイベント情報、ファンクラブ特典をご利用いただけます。
+            一般会員・プレミアム会員からお選びいただき、限定コンテンツやファンクラブ特典をご利用いただけます。
           </p>
         </header>
 
         <RegisterFormCard
+          :initial-plan="initialPlan"
           @navigate="(id) => emit('navigate', id)"
           @open-auth="(m) => emit('open-auth', m)"
-          @complete="emit('complete')"
+          @complete="(user) => emit('complete', user)"
         />
       </div>
     </section>
@@ -56,6 +62,9 @@ const emit = defineEmits(['navigate', 'open-auth', 'complete'])
   z-index: 10;
   width: 100%;
   max-width: 520px;
+}
+.page-login__inner--register {
+  max-width: 680px;
 }
 .page-login__head {
   text-align: center;
@@ -95,7 +104,8 @@ const emit = defineEmits(['navigate', 'open-auth', 'complete'])
   .page-login__head {
     margin-bottom: 24px;
   }
-  .page-login__inner {
+  .page-login__inner,
+  .page-login__inner--register {
     max-width: 100%;
   }
 }

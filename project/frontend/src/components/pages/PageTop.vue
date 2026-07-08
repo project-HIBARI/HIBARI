@@ -1,14 +1,13 @@
 <script setup>
 /**
  * ページ: ホーム（top）
- * 構成: ヒーロー / サブスク・ニュース・イベント / カテゴリ導線 / 楽しみ方
+ * 構成: ヒーロー / サブスク・ニュース・イベント / カテゴリ導線
  */
 import TopHeroSection from './top/TopHeroSection.vue'
 import TopSubscriptionCard from './top/TopSubscriptionCard.vue'
 import TopNewsPanel from './top/TopNewsPanel.vue'
 import TopEventsPanel from './top/TopEventsPanel.vue'
 import TopCategoryCards from './top/TopCategoryCards.vue'
-import TopEnjoyGuide from './top/TopEnjoyGuide.vue'
 
 const emit = defineEmits(['navigate', 'open-auth', 'open-modal'])
 
@@ -16,14 +15,6 @@ function scrollToEnjoy() {
   const el = document.getElementById('home-enjoy-guide')
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-}
-
-function onGuideNavigate(target) {
-  if (target === 'ai') {
-    emit('open-modal', 'ai')
-  } else {
-    emit('navigate', target)
   }
 }
 
@@ -41,19 +32,22 @@ function onComingSoon(target) {
     <TopHeroSection
       @open-auth="(m) => emit('open-auth', m)"
       @scroll-enjoy="scrollToEnjoy"
-      @open-ai="emit('open-modal', 'ai')"
     />
 
     <div class="page-top__body">
       <section class="page-top__columns" aria-label="おすすめと最新情報">
         <TopSubscriptionCard @open-detail="emit('open-modal', 'fanclub')" />
-        <TopNewsPanel @open-all="emit('open-auth', 'news')" />
-        <TopEventsPanel @open-all="emit('open-auth', 'events')" />
+        <TopNewsPanel
+          @open-all="emit('open-modal', 'news')"
+          @need-auth="(m) => emit('open-auth', m)"
+        />
+        <TopEventsPanel
+          @open-all="emit('open-modal', 'events')"
+          @need-auth="(m) => emit('open-auth', m)"
+        />
       </section>
 
       <TopCategoryCards @navigate="(id) => emit('navigate', id)" @coming-soon="onComingSoon" />
-
-      <TopEnjoyGuide @navigate="onGuideNavigate" />
     </div>
   </div>
 </template>

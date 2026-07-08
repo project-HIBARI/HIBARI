@@ -82,15 +82,19 @@
 
 html[data-text-size='s'] {
   --size-base: 14px;
+  font-size: 14px;
 }
 html[data-text-size='m'] {
   --size-base: 16px;
+  font-size: 16px;
 }
 html[data-text-size='l'] {
   --size-base: 19px;
+  font-size: 19px;
 }
 html[data-text-size='xl'] {
   --size-base: 22px;
+  font-size: 22px;
 }
 
 /* サイト全体背景 — 和紙風 */

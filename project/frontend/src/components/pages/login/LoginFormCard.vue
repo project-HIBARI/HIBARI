@@ -5,16 +5,49 @@
  */
 import { ref } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
+import { login as loginApi } from '../../../api/auth.js'
 
-const emit = defineEmits(['open-auth'])
+const emit = defineEmits(['open-auth', 'success'])
 
 const email = ref('')
 const password = ref('')
 const remember = ref(false)
 const showPassword = ref(false)
+const loading = ref(false)
+const error = ref('')
 
-function onSubmit(e) {
+async function onSubmit(e) {
   e.preventDefault()
+  if (loading.value) return
+
+  error.value = ''
+  const emailVal = email.value.trim()
+  const passwordVal = password.value
+
+  if (!emailVal) {
+    error.value = 'メールアドレスを入力してください。'
+    return
+  }
+  if (!passwordVal) {
+    error.value = 'パスワードを入力してください。'
+    return
+  }
+
+  loading.value = true
+  try {
+    const result = await loginApi(emailVal, passwordVal)
+    emit('success', result.user)
+  } catch (err) {
+    if (err.status === 401) {
+      error.value = 'メールアドレスまたはパスワードが正しくありません。'
+    } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+      error.value = 'サーバーに接続できません。バックエンド（Flask）が起動しているか確認してください。'
+    } else {
+      error.value = err.message || 'ログインに失敗しました。'
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
 function onForgotPassword() {
@@ -74,9 +107,11 @@ function onForgotPassword() {
         </button>
       </div>
 
-      <button type="submit" class="login-card__submit">
+      <p v-if="error" class="login-card__error" role="alert">{{ error }}</p>
+
+      <button type="submit" class="login-card__submit" :disabled="loading">
         <UiIco name="flower" :size="16" color="#fff" />
-        ログイン
+        {{ loading ? 'ログイン中…' : 'ログイン' }}
       </button>
     </form>
 
@@ -251,6 +286,17 @@ function onForgotPassword() {
 .login-card__forgot:hover {
   color: var(--murasaki-700);
 }
+.login-card__error {
+  margin: 0;
+  padding: 10px 12px;
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  line-height: 1.6;
+  color: #9b2c2c;
+  background: #fff5f5;
+  border: 1px solid #f0c4c4;
+  border-radius: var(--site-radius-sm);
+}
 .login-card__submit {
   display: flex;
   align-items: center;
@@ -273,6 +319,10 @@ function onForgotPassword() {
 }
 .login-card__submit:hover {
   background: var(--murasaki-800);
+}
+.login-card__submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 .login-card__register {
   margin-top: 28px;

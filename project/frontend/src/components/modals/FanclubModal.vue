@@ -1,28 +1,14 @@
 <script setup>
 /**
  * 部品名: ファンクラブ案内モーダル
- * 用途: 会員プラン紹介をライトテーマで表示する
  */
 import ModalShell from './ModalShell.vue'
 import UiButton from '../ui/UiButton.vue'
+import { MEMBERSHIP_PLANS } from '../../constants/membership.js'
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'register'])
 
-const plans = [
-  {
-    name: '一般会員',
-    price: '¥500 / 月',
-    features: ['月刊ニュースレター', 'チケット先行予約', '掲示板投稿', '月10回AIひばり対話'],
-    locked: ['限定コンテンツ', 'AI新曲制作支援', '優先申込'],
-  },
-  {
-    name: 'プレミアム会員',
-    price: '¥1,500 / 月',
-    features: ['上記すべて', 'プレミアム限定映像', '限定コンテンツ', 'AI新曲制作支援', 'AIひばり無制限', '優先申込 + 割引'],
-    locked: [],
-    recommended: true,
-  },
-]
+const plans = MEMBERSHIP_PLANS
 </script>
 
 <template>
@@ -30,24 +16,24 @@ const plans = [
     <div class="fc-modal__plans">
       <article
         v-for="p in plans"
-        :key="p.name"
+        :key="p.id"
         class="fc-modal__plan"
         :class="{ 'fc-modal__plan--premium': p.recommended }"
       >
         <span v-if="p.recommended" class="fc-modal__badge">おすすめ</span>
         <h3 class="fc-modal__name">{{ p.name }}</h3>
-        <p class="fc-modal__price">{{ p.price }}</p>
+        <p class="fc-modal__price">{{ p.price }}{{ p.unit }}</p>
         <ul class="fc-modal__features">
           <li v-for="f in p.features" :key="f" class="fc-modal__feat">✓ {{ f }}</li>
           <li v-for="f in p.locked" :key="'l' + f" class="fc-modal__feat fc-modal__feat--locked">🔒 {{ f }}</li>
         </ul>
-        <UiButton variant="primary" size="md" class="fc-modal__btn">入会する</UiButton>
+        <UiButton variant="primary" size="md" class="fc-modal__btn" @click="emit('register', p.id)">
+          このプランで登録
+        </UiButton>
       </article>
     </div>
     <p class="fc-modal__note">
-      ※ 決済はプレースホルダーです。詳細は公式サイト（misorahibari.com）の
-      <a href="https://www.misorahibari.com/fanclub.html" target="_blank" rel="noopener noreferrer" class="fc-modal__link">ファンクラブページ</a>
-      をご確認ください。
+      ※ プランは新規会員登録時に選択できます。特典は会員区分に応じてご利用いただけます。
     </p>
   </ModalShell>
 </template>
@@ -123,9 +109,6 @@ const plans = [
   color: var(--site-text-muted);
   line-height: 1.8;
   margin: 0;
-}
-.fc-modal__link {
-  color: var(--murasaki-700);
 }
 
 @media (max-width: 480px) {

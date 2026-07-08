@@ -116,7 +116,10 @@ function openDetail(song) {
       @open-ai="emit('open-modal', 'ai')"
     />
 
-    <DiscoPvSection @coming-soon="emit('open-auth', 'pv')" />
+    <DiscoPvSection
+      @coming-soon="emit('open-auth', 'pv')"
+      @need-auth="(m) => emit('open-auth', m)"
+    />
 
     <DiscoFilterPanel
       :query="query"
