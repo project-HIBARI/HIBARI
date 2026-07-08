@@ -261,7 +261,11 @@ async function submit() {
     registeredUser.value = result.user
     scrollTop()
   } catch (err) {
-    submitError.value = err.message || '会員登録に失敗しました。'
+    if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+      submitError.value = 'サーバーに接続できません。バックエンド（Flask）が起動しているか確認してください。'
+    } else {
+      submitError.value = err.message || '会員登録に失敗しました。'
+    }
   } finally {
     submitting.value = false
   }

@@ -357,7 +357,7 @@ def create_account():
 
         name_val = name.strip()
         email_val = email.strip()
-        password_val = generate_password_hash(password, method="scrypt")
+        password_val = generate_password_hash(password, method="pbkdf2:sha256")
         address_val = address.strip() if isinstance(address, str) and address.strip() else None
         is_premium_val = bool(is_premium)
 
