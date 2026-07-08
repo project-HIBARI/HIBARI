@@ -1,6 +1,11 @@
 import os
+import sys
 import uuid
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+# Flask のリローダー子プロセスでも同ディレクトリのモジュールを import できるようにする
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from flask import Flask, render_template, jsonify, request, session, redirect, send_from_directory
 from dotenv import load_dotenv
