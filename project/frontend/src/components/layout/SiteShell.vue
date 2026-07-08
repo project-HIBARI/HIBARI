@@ -20,8 +20,6 @@ import LoginCtaBanner from '../pages/login/LoginCtaBanner.vue'
 
 import AppFooterBar from './AppFooterBar.vue'
 
-import FanclubModal from '../modals/FanclubModal.vue'
-
 import GoodsModal from '../modals/GoodsModal.vue'
 
 import AiModal from '../modals/AiModal.vue'
@@ -43,6 +41,8 @@ import PageMessage from '../pages/PageMessage.vue'
 import PageLogin from '../pages/PageLogin.vue'
 
 import PageRegister from '../pages/PageRegister.vue'
+
+import PageFanclub from '../pages/PageFanclub.vue'
 
 import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
 
@@ -110,15 +110,33 @@ function handleNav(id) {
 
   if (id === 'fanclub') {
 
-    modal.value = 'fanclub'
-
-    drawerOpen.value = false
+    goTo('fanclub')
 
     return
 
   }
 
   goTo(id)
+
+}
+
+
+
+/** モーダルを開く（fanclub はページ遷移に振り替え） */
+
+function openModal(kind) {
+
+  if (kind === 'fanclub') {
+
+    goTo('fanclub')
+
+    return
+
+  }
+
+  modal.value = kind
+
+  drawerOpen.value = false
 
 }
 
@@ -158,13 +176,11 @@ function closeAuth() {
 
 
 
-/** 新規会員登録の完了後: ファンクラブサイトへ誘導 */
+/** 新規会員登録の完了後: ファンクラブページへ誘導 */
 
 function handleRegisterComplete() {
 
-  goTo('top')
-
-  modal.value = 'fanclub'
+  goTo('fanclub')
 
 }
 
@@ -208,7 +224,7 @@ function handleRegisterComplete() {
 
       @navigate="handleNav"
 
-      @open-modal="(k) => { modal = k; drawerOpen = false }"
+      @open-modal="openModal"
 
       @open-auth="openAuth"
 
@@ -238,7 +254,7 @@ function handleRegisterComplete() {
 
         @open-auth="openAuth"
 
-        @open-modal="(k) => (modal = k)"
+        @open-modal="openModal"
 
       />
 
@@ -250,7 +266,7 @@ function handleRegisterComplete() {
 
         @open-auth="openAuth"
 
-        @open-modal="(k) => (modal = k)"
+        @open-modal="openModal"
 
       />
 
@@ -260,7 +276,7 @@ function handleRegisterComplete() {
 
         @open-auth="openAuth"
 
-        @open-modal="(k) => (modal = k)"
+        @open-modal="openModal"
 
         @navigate="goTo"
 
@@ -274,7 +290,7 @@ function handleRegisterComplete() {
 
         @open-auth="openAuth"
 
-        @open-modal="(k) => (modal = k)"
+        @open-modal="openModal"
 
       />
 
@@ -302,19 +318,25 @@ function handleRegisterComplete() {
 
       />
 
+      <PageFanclub
+
+        v-else-if="page === 'fanclub'"
+
+        @navigate="goTo"
+
+      />
+
     </main>
 
 
 
     <LoginCtaBanner />
 
-    <PremiumMemberBar v-if="page !== 'login' && page !== 'register'" @open-fanclub="modal = 'fanclub'" />
+    <PremiumMemberBar v-if="page !== 'login' && page !== 'register'" @open-fanclub="goTo('fanclub')" />
 
     <AppFooterBar />
 
 
-
-    <FanclubModal v-if="modal === 'fanclub'" @close="modal = null" />
 
     <GoodsModal v-if="modal === 'goods'" @close="modal = null" />
 
