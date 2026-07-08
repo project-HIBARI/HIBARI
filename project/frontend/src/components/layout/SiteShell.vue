@@ -10,7 +10,7 @@
 
 import { ref } from 'vue'
 
-import AppHeader from './AppHeader.vue'
+import SiteHeader from './SiteHeader.vue'
 
 import AppDrawerNav from './AppDrawerNav.vue'
 
@@ -56,7 +56,7 @@ const navItems = [
 
   { id: 'profile', label: '美空ひばりについて' },
 
-  { id: 'disco', label: 'ディスコグラフィー' },
+  { id: 'disco', label: 'ディスコグラフィ' },
 
   { id: 'map', label: 'ゆかりの地' },
 
@@ -164,7 +164,7 @@ function closeAuth() {
 
   <div class="site-shell site-bg">
 
-    <AppHeader
+    <SiteHeader
 
       :items="navItems"
 
