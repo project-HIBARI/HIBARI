@@ -34,9 +34,10 @@ def get_genai_client():
     return genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
-# 初期設定
-load_dotenv()
-load_dotenv("env")  # .env が無い環境向け（project/env）
+# 初期設定（app.py と同じディレクトリの .env / env を読み込む）
+APP_DIR = Path(__file__).resolve().parent
+load_dotenv(APP_DIR / ".env")
+load_dotenv(APP_DIR / "env")
 app = Flask(__name__)
 app.secret_key = "qawsedrftgyhujikolp"
 
