@@ -24,12 +24,53 @@ const paymentLabels = {
   conveni: 'コンビニ払い',
   carrier: 'キャリア決済',
 }
+const bankLabels = {
+  mizuho: 'みずほ銀行',
+  mufg: '三菱UFJ銀行',
+  smbc: '三井住友銀行',
+  yucho: 'ゆうちょ銀行',
+  other: 'その他の金融機関',
+}
+const conveniLabels = {
+  familymart: 'ファミリーマート',
+  seven: 'セブンイレブン',
+  lawson: 'ローソン',
+}
+const carrierLabels = {
+  docomo: 'docomo',
+  au: 'au',
+  softbank: 'SOFTBANK',
+}
+
+const paymentValue = computed(() => {
+  const base = paymentLabels[props.form.payment]
+  if (!base) return '—'
+  if (props.form.payment === 'credit') {
+    const digits = props.form.cardNumber.replace(/\D/g, '')
+    const masked = digits ? `**** **** **** ${digits.slice(-4)}` : ''
+    return masked ? `${base}（${masked}）` : base
+  }
+  if (props.form.payment === 'bank') {
+    return bankLabels[props.form.bankName] ? `${base}（${bankLabels[props.form.bankName]}）` : base
+  }
+  if (props.form.payment === 'conveni') {
+    return conveniLabels[props.form.conveniStore]
+      ? `${base}（${conveniLabels[props.form.conveniStore]}）`
+      : base
+  }
+  if (props.form.payment === 'carrier') {
+    return carrierLabels[props.form.carrierName]
+      ? `${base}（${carrierLabels[props.form.carrierName]}）`
+      : base
+  }
+  return base
+})
 
 const summary = computed(() => [
   { label: '氏名', value: props.form.name },
   { label: '住所', value: props.form.address },
   { label: '性別', value: genderLabels[props.form.gender] || '—' },
-  { label: '支払い方法', value: paymentLabels[props.form.payment] || '—' },
+  { label: '支払い方法', value: paymentValue.value },
   { label: 'メールアドレス', value: props.form.email },
 ])
 </script>

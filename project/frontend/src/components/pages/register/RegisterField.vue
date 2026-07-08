@@ -16,6 +16,10 @@ const props = defineProps({
   type: { type: String, default: 'text' },
   placeholder: { type: String, default: '' },
   autocomplete: { type: String, default: 'off' },
+  /** モバイルキーボード種別（numeric など） */
+  inputmode: { type: String, default: undefined },
+  /** 最大文字数 */
+  maxlength: { type: Number, default: undefined },
   /** バリデーションエラー文言（空なら非表示） */
   error: { type: String, default: '' },
   /** 補足説明 */
@@ -47,6 +51,8 @@ function currentType() {
         :value="modelValue"
         :placeholder="placeholder"
         :autocomplete="autocomplete"
+        :inputmode="inputmode"
+        :maxlength="maxlength"
         :aria-invalid="!!error"
         class="reg-field__input"
         :class="{ 'reg-field__input--error': !!error }"
