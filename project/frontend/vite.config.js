@@ -40,7 +40,6 @@ export default defineConfig({
     strictPort: true,
     /** Vite 標準の --open は既定ブラウザになるため明示的に false */
     open: false,
-    /** 開発時: Flask API へプロキシ（セッション Cookie 同一オリジン化） */
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:5000',

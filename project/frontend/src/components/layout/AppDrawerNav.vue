@@ -39,7 +39,7 @@ const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth'])
 
       <div class="drawer__auth">
         <UiButton variant="outline" size="md" @click="emit('open-auth', 'login')">ログイン</UiButton>
-        <UiButton variant="primary" size="md" @click="emit('open-auth', 'register')">新規登録</UiButton>
+        <UiButton variant="primary" size="md" @click="emit('open-auth', 'register')">ファンクラブ加入</UiButton>
       </div>
 
       <div class="drawer__divider" />

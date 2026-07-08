@@ -34,59 +34,6 @@ body {
   margin: 0 !important;
 }
 
-/* —— 共通ヘッダー —— */
-.app-header {
-  width: 100%;
-  max-width: 100%;
-  background: linear-gradient(180deg, #fffefb 0%, var(--site-surface) 100%);
-  border-bottom: 1px solid var(--site-border);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  box-shadow: 0 2px 16px rgba(60, 40, 30, 0.04);
-  padding: 16px 48px 0;
-}
-
-.app-main-nav {
-  display: flex;
-  border-top: 1px solid var(--site-border);
-  background: rgba(255, 255, 255, 0.85);
-  justify-content: center;
-  gap: 4px;
-}
-
-@media (min-width: 1024px) {
-  .app-header {
-    position: sticky;
-    min-height: 88px;
-    padding: 20px 56px 16px;
-  }
-}
-
-.app-main-nav__link {
-  flex: 1;
-  min-width: max-content;
-  border: 0;
-  background: transparent;
-  color: var(--site-text-muted);
-  padding: 14px 16px;
-  cursor: pointer;
-  font-family: var(--ff-sans-jp);
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-}
-.app-main-nav__link:hover {
-  color: var(--murasaki-700);
-}
-.app-main-nav__link--active {
-  color: var(--murasaki-700);
-  font-weight: 700;
-  border-bottom-color: var(--murasaki-700);
-}
-
 /* —— プレミアムバー —— */
 .premium-bar {
   background: linear-gradient(90deg, var(--site-bg-pink) 0%, var(--site-surface-muted) 50%, var(--site-bg-warm) 100%);
@@ -164,9 +111,6 @@ body {
   }
   .sp-only {
     display: flex !important;
-  }
-  .app-header {
-    padding: 14px 16px 0;
   }
   .main-pad {
     padding: 24px 16px !important;

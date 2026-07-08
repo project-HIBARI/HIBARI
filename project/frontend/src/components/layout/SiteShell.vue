@@ -8,9 +8,9 @@
 
  */
 
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 
-import AppHeader from './AppHeader.vue'
+import SiteHeader from './SiteHeader.vue'
 
 import AppDrawerNav from './AppDrawerNav.vue'
 
@@ -19,8 +19,6 @@ import PremiumMemberBar from './PremiumMemberBar.vue'
 import LoginCtaBanner from '../pages/login/LoginCtaBanner.vue'
 
 import AppFooterBar from './AppFooterBar.vue'
-
-import FanclubModal from '../modals/FanclubModal.vue'
 
 import GoodsModal from '../modals/GoodsModal.vue'
 
@@ -44,9 +42,11 @@ import PageLogin from '../pages/PageLogin.vue'
 
 import PageRegister from '../pages/PageRegister.vue'
 
-import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
+import PageFanclub from '../pages/PageFanclub.vue'
 
-import { useAuth } from '../../composables/useAuth.js'
+import PageFanclubSite from '../pages/PageFanclubSite.vue'
+
+import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
 
 
 
@@ -58,7 +58,7 @@ const navItems = [
 
   { id: 'profile', label: '美空ひばりについて' },
 
-  { id: 'disco', label: 'ディスコグラフィー' },
+  { id: 'disco', label: 'ディスコグラフィ' },
 
   { id: 'map', label: 'ゆかりの地' },
 
@@ -86,20 +86,6 @@ const authMode = ref(null)
 
 useBodyScrollLock(drawerOpen)
 
-const { refreshUser } = useAuth()
-
-onMounted(() => {
-  refreshUser()
-})
-
-function onLoginSuccess() {
-  goTo('top')
-}
-
-function onRegisterSuccess() {
-  goTo('login')
-}
-
 
 
 function goTo(id) {
@@ -126,15 +112,33 @@ function handleNav(id) {
 
   if (id === 'fanclub') {
 
-    modal.value = 'fanclub'
-
-    drawerOpen.value = false
+    goTo('fanclub')
 
     return
 
   }
 
   goTo(id)
+
+}
+
+
+
+/** モーダルを開く（fanclub はページ遷移に振り替え） */
+
+function openModal(kind) {
+
+  if (kind === 'fanclub') {
+
+    goTo('fanclub')
+
+    return
+
+  }
+
+  modal.value = kind
+
+  drawerOpen.value = false
 
 }
 
@@ -172,6 +176,16 @@ function closeAuth() {
 
 }
 
+
+
+/** 新規会員登録の完了後: ファンクラブ会員サイトへ誘導 */
+
+function handleRegisterComplete() {
+
+  goTo('fanclub-site')
+
+}
+
 </script>
 
 
@@ -180,7 +194,7 @@ function closeAuth() {
 
   <div class="site-shell site-bg">
 
-    <AppHeader
+    <SiteHeader
 
       :items="navItems"
 
@@ -212,7 +226,7 @@ function closeAuth() {
 
       @navigate="handleNav"
 
-      @open-modal="(k) => { modal = k; drawerOpen = false }"
+      @open-modal="openModal"
 
       @open-auth="openAuth"
 
@@ -242,7 +256,7 @@ function closeAuth() {
 
         @open-auth="openAuth"
 
-        @open-modal="(k) => (modal = k)"
+        @open-modal="openModal"
 
       />
 
@@ -254,7 +268,7 @@ function closeAuth() {
 
         @open-auth="openAuth"
 
-        @open-modal="(k) => (modal = k)"
+        @open-modal="openModal"
 
       />
 
@@ -264,7 +278,7 @@ function closeAuth() {
 
         @open-auth="openAuth"
 
-        @open-modal="(k) => (modal = k)"
+        @open-modal="openModal"
 
         @navigate="goTo"
 
@@ -278,7 +292,7 @@ function closeAuth() {
 
         @open-auth="openAuth"
 
-        @open-modal="(k) => (modal = k)"
+        @open-modal="openModal"
 
       />
 
@@ -292,8 +306,6 @@ function closeAuth() {
 
         @open-auth="openAuth"
 
-        @login-success="onLoginSuccess"
-
       />
 
       <PageRegister
@@ -304,7 +316,23 @@ function closeAuth() {
 
         @open-auth="openAuth"
 
-        @register-success="onRegisterSuccess"
+        @complete="handleRegisterComplete"
+
+      />
+
+      <PageFanclub
+
+        v-else-if="page === 'fanclub'"
+
+        @navigate="goTo"
+
+      />
+
+      <PageFanclubSite
+
+        v-else-if="page === 'fanclub-site'"
+
+        @navigate="goTo"
 
       />
 
@@ -314,13 +342,11 @@ function closeAuth() {
 
     <LoginCtaBanner />
 
-    <PremiumMemberBar v-if="page !== 'login' && page !== 'register'" @open-fanclub="modal = 'fanclub'" />
+    <PremiumMemberBar v-if="page !== 'login' && page !== 'register'" @open-fanclub="goTo('fanclub')" />
 
     <AppFooterBar />
 
 
-
-    <FanclubModal v-if="modal === 'fanclub'" @close="modal = null" />
 
     <GoodsModal v-if="modal === 'goods'" @close="modal = null" />
 
