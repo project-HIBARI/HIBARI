@@ -142,7 +142,7 @@ function handleNav(id) {
 
   if (id === 'fanclub') {
 
-    goTo('fanclub')
+    goTo(isLoggedIn.value ? 'fanclub-site' : 'fanclub')
 
     return
 
@@ -174,6 +174,90 @@ function openModal(kind) {
 
 
 
+function openMemberFeature(mode) {
+
+  const features = {
+
+    news: { permission: PERMISSION.NEWSLETTER, modal: 'news' },
+
+    events: { permission: PERMISSION.TICKET_PREORDER, modal: 'events' },
+
+    gallery: { permission: PERMISSION.EXCLUSIVE_CONTENT, modal: 'gallery', premium: true },
+
+    ai: { permission: PERMISSION.AI_CHAT, modal: 'ai' },
+
+    memories: { permission: PERMISSION.BOARD_POST, page: 'memories' },
+
+    fanclub: { memberPage: 'fanclub-site', guestPage: 'fanclub' },
+
+    disco: { page: 'disco' },
+
+    pv: { permission: PERMISSION.PREMIUM_VIDEO, page: 'disco', premium: true },
+
+  }
+
+  const feature = features[mode]
+
+  if (!feature) {
+
+    authMode.value = mode
+
+    drawerOpen.value = false
+
+    return
+
+  }
+
+  if (feature.memberPage) {
+
+    goTo(isLoggedIn.value ? feature.memberPage : feature.guestPage)
+
+    return
+
+  }
+
+  if (feature.page && !feature.permission) {
+
+    goTo(feature.page)
+
+    return
+
+  }
+
+  if (!isLoggedIn.value) {
+
+    goTo('login')
+
+    return
+
+  }
+
+  if (feature.permission && !auth.can(feature.permission)) {
+
+    goRegister(feature.premium ? MEMBERSHIP.PREMIUM : MEMBERSHIP.GENERAL)
+
+    return
+
+  }
+
+  if (feature.modal) {
+
+    openModal(feature.modal)
+
+    return
+
+  }
+
+  if (feature.page) {
+
+    goTo(feature.page)
+
+  }
+
+}
+
+
+
 function openAuth(mode) {
 
   if (mode === 'login') {
@@ -200,7 +284,7 @@ function openAuth(mode) {
 
   }
 
-  authMode.value = mode
+  openMemberFeature(mode)
 
   drawerOpen.value = false
 
@@ -406,6 +490,10 @@ function handleRegisterComplete(user) {
 
         @navigate="goTo"
 
+        @open-modal="openModal"
+
+        @open-auth="openAuth"
+
       />
 
     </main>
@@ -416,7 +504,7 @@ function handleRegisterComplete(user) {
 
     <PremiumMemberBar
       v-if="page !== 'top' && page !== 'login' && page !== 'register'"
-      @open-fanclub="goTo('fanclub')"
+      @open-fanclub="openAuth('fanclub')"
     />
 
     <AppFooterBar />

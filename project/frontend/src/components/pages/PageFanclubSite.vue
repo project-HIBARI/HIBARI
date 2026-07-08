@@ -2,24 +2,31 @@
 /**
  * ページ: ファンクラブ会員サイト
  * 構成: 会員向けダッシュボード / AIひばりチャット
- * 導線: 登録完了後に遷移。チャットはバックエンド API 連携
  */
 import PageHead from '../ui/PageHead.vue'
 import SectionTitle from '../ui/SectionTitle.vue'
 import FanclubAiChat from './fanclub/FanclubAiChat.vue'
 import FanclubBenefits from './fanclub/FanclubBenefits.vue'
+import { useMemberAccess } from '../../composables/useMemberAccess.js'
+import { MEMBERSHIP_LABELS } from '../../constants/membership.js'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'open-modal', 'open-auth'])
+
+const { isLoggedIn, membership } = useMemberAccess()
 
 const perks = [
-  { icon: '▶', label: '限定動画', desc: '未公開映像をいつでも視聴' },
-  { icon: '♪', label: 'ハイレゾ音源', desc: '高音質で楽曲をお楽しみ' },
-  { icon: '★', label: '先行予約', desc: 'イベント・コンサート優先申込' },
-  { icon: '✦', label: '会員誌', desc: 'デジタル版を毎月配信' },
+  { feature: 'disco', icon: '▶', label: '限定動画', desc: '未公開映像をいつでも視聴' },
+  { feature: 'gallery', icon: '♪', label: 'ハイレゾ音源', desc: '高音質で楽曲をお楽しみ' },
+  { feature: 'events', icon: '★', label: '先行予約', desc: 'イベント・コンサート優先申込' },
+  { feature: 'news', icon: '✦', label: '会員誌', desc: 'デジタル版を毎月配信' },
 ]
 
 function onNeedLogin() {
-  emit('navigate', 'login')
+  emit('open-auth', 'login')
+}
+
+function useFeature(feature) {
+  emit('open-auth', feature)
 }
 </script>
 
@@ -27,18 +34,24 @@ function onNeedLogin() {
   <div class="page-fc-site">
     <PageHead kanji="會" title="ファンクラブサイト" sub="Member Site · 会員限定コンテンツ" />
 
-    <p class="page-fc-site__welcome">
-      ファンクラブへようこそ。会員限定の特典と、AI美空ひばりとの対話をお楽しみください。
+    <p v-if="isLoggedIn" class="page-fc-site__member">
+      {{ MEMBERSHIP_LABELS[membership] }}としてログイン中 · 下記の特典をご利用いただけます
+    </p>
+    <p v-else class="page-fc-site__welcome">
+      ファンクラブへようこそ。ログインすると会員限定の特典と、AI美空ひばりとの対話をお楽しみいただけます。
+      <button type="button" class="page-fc-site__login-link" @click="emit('open-auth', 'login')">ログイン</button>
     </p>
 
     <section class="page-fc-site__perks">
       <ul class="page-fc-site__perk-grid">
         <li v-for="p in perks" :key="p.label" class="page-fc-site__perk">
-          <span class="page-fc-site__perk-icon">{{ p.icon }}</span>
-          <div>
-            <h3 class="page-fc-site__perk-title">{{ p.label }}</h3>
-            <p class="page-fc-site__perk-desc">{{ p.desc }}</p>
-          </div>
+          <button type="button" class="page-fc-site__perk-btn" @click="useFeature(p.feature)">
+            <span class="page-fc-site__perk-icon">{{ p.icon }}</span>
+            <div>
+              <h3 class="page-fc-site__perk-title">{{ p.label }}</h3>
+              <p class="page-fc-site__perk-desc">{{ p.desc }}</p>
+            </div>
+          </button>
         </li>
       </ul>
     </section>
@@ -50,7 +63,7 @@ function onNeedLogin() {
 
     <section class="page-fc-site__benefits">
       <SectionTitle title="会員特典一覧" sub="Your Benefits" size="md" />
-      <FanclubBenefits />
+      <FanclubBenefits @use-feature="useFeature" />
     </section>
   </div>
 </template>
@@ -59,6 +72,18 @@ function onNeedLogin() {
 .page-fc-site {
   color: var(--site-text);
 }
+.page-fc-site__member {
+  margin: 0 0 var(--sp-6);
+  padding: 12px 16px;
+  max-width: 720px;
+  font-family: var(--ff-sans-jp);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--murasaki-700);
+  background: var(--murasaki-100);
+  border: 1px solid var(--murasaki-400);
+  border-radius: var(--site-radius-md);
+}
 .page-fc-site__welcome {
   margin: 0 0 var(--sp-6);
   max-width: 720px;
@@ -66,6 +91,16 @@ function onNeedLogin() {
   font-size: 14px;
   line-height: 1.9;
   color: var(--site-text-muted);
+}
+.page-fc-site__login-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin-left: 4px;
+  color: var(--murasaki-700);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
 }
 .page-fc-site__perk-grid {
   list-style: none;
@@ -76,13 +111,24 @@ function onNeedLogin() {
   gap: var(--sp-4);
 }
 .page-fc-site__perk {
+  border: 1px solid var(--kin-500);
+  border-radius: var(--site-radius-md);
+  background: linear-gradient(135deg, var(--murasaki-100) 0%, var(--site-surface) 100%);
+  overflow: hidden;
+}
+.page-fc-site__perk-btn {
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  width: 100%;
   padding: 18px 16px;
-  background: linear-gradient(135deg, var(--murasaki-100) 0%, var(--site-surface) 100%);
-  border: 1px solid var(--kin-500);
-  border-radius: var(--site-radius-md);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.page-fc-site__perk-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
 }
 .page-fc-site__perk-icon {
   flex-shrink: 0;

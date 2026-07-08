@@ -10,6 +10,7 @@ import MemoriesBoard from './memories/MemoriesBoard.vue'
 import MemoriesPostAside from './memories/MemoriesPostAside.vue'
 import MemoriesEventsGrid from './memories/MemoriesEventsGrid.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
+import { createPost } from '../../api/posts.js'
 
 const emit = defineEmits(['open-auth'])
 
@@ -18,6 +19,8 @@ const tagFilter = ref('all')
 const postData = ref({ name: '', pref: '', title: '', body: '', song: '' })
 const errors = ref({})
 const submitted = ref(false)
+const submitting = ref(false)
+const submitError = ref('')
 const extraLikes = ref({})
 
 const songs = HIBARU_DATA.discography.map((d) => d.title)
@@ -40,17 +43,38 @@ function validate() {
   return e
 }
 
-function handleSubmit() {
+async function handleSubmit() {
   const e = validate()
   if (Object.keys(e).length) {
     errors.value = e
     return
   }
-  submitted.value = true
+
+  submitting.value = true
+  submitError.value = ''
+  try {
+    await createPost({
+      title: postData.value.title.trim(),
+      content: postData.value.body.trim(),
+      name: postData.value.name.trim() || null,
+      location: postData.value.pref.trim() || null,
+      song_id: null,
+    })
+    submitted.value = true
+  } catch (err) {
+    if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+      submitError.value = 'サーバーに接続できません。バックエンド（Flask）が起動しているか確認してください。'
+    } else {
+      submitError.value = err.message || '投稿に失敗しました。'
+    }
+  } finally {
+    submitting.value = false
+  }
 }
 
 function resetForm() {
   submitted.value = false
+  submitError.value = ''
   postData.value = { name: '', pref: '', title: '', body: '', song: '' }
   errors.value = {}
 }
@@ -101,6 +125,8 @@ function like(id) {
       <MemoriesPostAside
         :post-data="postData"
         :submitted="submitted"
+        :submitting="submitting"
+        :submit-error="submitError"
         :errors="errors"
         @update:post-data="postData = $event"
         @submit="handleSubmit"

@@ -11,6 +11,8 @@ const songs = HIBARU_DATA.discography.map((d) => d.title)
 
 const props = defineProps({
   submitted: { type: Boolean, default: false },
+  submitting: { type: Boolean, default: false },
+  submitError: { type: String, default: '' },
   postData: { type: Object, required: true },
   errors: { type: Object, default: () => ({}) },
 })
@@ -106,7 +108,10 @@ function onSubmit() {
             <button type="button" class="mem-post__attach" aria-label="写真を添付（任意）">
               📷 写真を添付（任意）
             </button>
-            <UiButton variant="primary" size="md" class="mem-post__full" @click="onSubmit">投稿する</UiButton>
+            <UiButton variant="primary" size="md" class="mem-post__full" :disabled="submitting" @click="onSubmit">
+              {{ submitting ? '投稿中…' : '投稿する' }}
+            </UiButton>
+            <p v-if="submitError" class="mem-post__error" role="alert">{{ submitError }}</p>
           </div>
         </template>
       </template>
