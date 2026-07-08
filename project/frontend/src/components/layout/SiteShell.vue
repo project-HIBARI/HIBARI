@@ -94,6 +94,9 @@ const authMode = ref(null)
 
 const registerPlan = ref(MEMBERSHIP.GENERAL)
 
+/** ログイン後に戻るページ／開く特典 */
+const postLoginRedirect = ref(null)
+
 const auth = useAuth()
 
 const { membership, isLoggedIn, user, setUser, refreshUser } = auth
@@ -226,6 +229,8 @@ function openMemberFeature(mode) {
 
   if (!isLoggedIn.value) {
 
+    postLoginRedirect.value = { feature: mode }
+
     goTo('login')
 
     return
@@ -261,6 +266,12 @@ function openMemberFeature(mode) {
 function openAuth(mode) {
 
   if (mode === 'login') {
+
+    if (page.value !== 'login' && page.value !== 'register' && !postLoginRedirect.value) {
+
+      postLoginRedirect.value = { page: page.value }
+
+    }
 
     goTo('login')
 
@@ -304,7 +315,31 @@ function handleLoginSuccess(user) {
 
   setUser(user)
 
-  goTo('top')
+  const redirect = postLoginRedirect.value
+
+  postLoginRedirect.value = null
+
+  if (redirect?.feature) {
+
+    openMemberFeature(redirect.feature)
+
+    return
+
+  }
+
+  const returnPage = redirect?.page
+
+  if (returnPage && !['login', 'register', 'top'].includes(returnPage)) {
+
+    goTo(returnPage)
+
+    if (redirect?.modal) openModal(redirect.modal)
+
+    return
+
+  }
+
+  goTo('fanclub-site')
 
 }
 
@@ -327,6 +362,22 @@ function handleRegisterComplete(user) {
   if (user) setUser(user)
 
   goTo('fanclub-site')
+
+}
+
+
+
+function handleAiModalAuth(mode) {
+
+  if (mode === 'login' && modal.value === 'ai') {
+
+    postLoginRedirect.value = { feature: 'ai' }
+
+  }
+
+  modal.value = null
+
+  openAuth(mode)
 
 }
 
@@ -519,7 +570,7 @@ function handleRegisterComplete(user) {
       :is-logged-in="isLoggedIn"
       :account-id="user?.account_id"
       @close="modal = null"
-      @open-auth="(mode) => { modal = null; openAuth(mode) }"
+      @open-auth="handleAiModalAuth"
     />
 
     <NewsListModal v-if="modal === 'news'" @close="modal = null" />
