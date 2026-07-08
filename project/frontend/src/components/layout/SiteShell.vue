@@ -44,6 +44,8 @@ import PageRegister from '../pages/PageRegister.vue'
 
 import PageFanclub from '../pages/PageFanclub.vue'
 
+import PageFanclubSite from '../pages/PageFanclubSite.vue'
+
 import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
 
 
@@ -176,11 +178,11 @@ function closeAuth() {
 
 
 
-/** 新規会員登録の完了後: ファンクラブページへ誘導 */
+/** 新規会員登録の完了後: ファンクラブ会員サイトへ誘導 */
 
 function handleRegisterComplete() {
 
-  goTo('fanclub')
+  goTo('fanclub-site')
 
 }
 
@@ -321,6 +323,14 @@ function handleRegisterComplete() {
       <PageFanclub
 
         v-else-if="page === 'fanclub'"
+
+        @navigate="goTo"
+
+      />
+
+      <PageFanclubSite
+
+        v-else-if="page === 'fanclub-site'"
 
         @navigate="goTo"
 

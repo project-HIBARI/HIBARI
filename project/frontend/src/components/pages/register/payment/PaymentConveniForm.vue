@@ -11,9 +11,9 @@ defineProps({
 })
 
 const conveniOptions = [
-  { value: 'familymart', label: 'ファミリーマート', desc: 'Famiポートで払込' },
-  { value: 'seven', label: 'セブンイレブン', desc: 'レジで払込票を提示' },
-  { value: 'lawson', label: 'ローソン', desc: 'Loppiで払込' },
+  { value: 'familymart', label: 'ファミリーマート', desc: 'Famiポートで払込', icon: 'familymart' },
+  { value: 'seven', label: 'セブンイレブン', desc: 'レジで払込票を提示', icon: 'seven' },
+  { value: 'lawson', label: 'ローソン', desc: 'Loppiで払込', icon: 'lawson' },
 ]
 </script>
 
@@ -29,7 +29,7 @@ const conveniOptions = [
       required
     />
     <p class="pay-conveni__note">
-      ※ お申し込み後に発行される払込番号を、選択した店舗でお支払いください。
+      お申し込み後に発行される払込番号を、選択した店舗でお支払いください。
     </p>
   </div>
 </template>

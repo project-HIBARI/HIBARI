@@ -2,8 +2,10 @@
 /**
  * 部品名: 登録フォーム用 選択グループ
  * 用途: 性別・支払い方法などの単一選択（ラジオ）をカード風に共通化
- * 特徴: v-model 対応。options は { value, label, desc? } の配列
+ * 特徴: v-model 対応。options は { value, label, desc?, icon? } の配列
  */
+import PaymentBrandIcon from './payment/PaymentBrandIcon.vue'
+
 const props = defineProps({
   modelValue: { type: String, default: '' },
   /** グループ名（ラジオの name 属性・id 接頭辞に使用） */
@@ -45,6 +47,7 @@ const emit = defineEmits(['update:modelValue'])
           @change="emit('update:modelValue', opt.value)"
         />
         <span class="reg-opt__mark" aria-hidden="true" />
+        <PaymentBrandIcon v-if="opt.icon" :brand="opt.icon" :size="32" class="reg-opt__icon" />
         <span class="reg-opt__text">
           <span class="reg-opt__name">{{ opt.label }}</span>
           <span v-if="opt.desc" class="reg-opt__desc">{{ opt.desc }}</span>
@@ -122,6 +125,9 @@ const emit = defineEmits(['update:modelValue'])
   border: 1.5px solid var(--site-border-strong);
   background: #fff;
   transition: border-color 0.2s;
+}
+.reg-opt__icon {
+  flex-shrink: 0;
 }
 .reg-opt__item--active .reg-opt__mark {
   border-color: var(--murasaki-600);

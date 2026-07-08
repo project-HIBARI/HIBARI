@@ -15,10 +15,10 @@ defineProps({
 })
 
 const paymentOptions = [
-  { value: 'credit', label: 'クレジットカード', desc: 'VISA / Master / JCB / AMEX' },
-  { value: 'bank', label: '銀行振込', desc: '毎月末締め・翌月払い' },
-  { value: 'conveni', label: 'コンビニ払い', desc: '払込票でお支払い' },
-  { value: 'carrier', label: 'キャリア決済', desc: '携帯電話料金と合算' },
+  { value: 'credit', label: 'クレジットカード', desc: 'VISA / Master / JCB / AMEX', icon: 'credit' },
+  { value: 'bank', label: '銀行振込', desc: '毎月末締め・翌月払い', icon: 'bank' },
+  { value: 'conveni', label: 'コンビニ払い', desc: '払込票でお支払い', icon: 'conveni' },
+  { value: 'carrier', label: 'キャリア決済', desc: '携帯電話料金と合算', icon: 'carrier' },
 ]
 </script>
 
@@ -49,10 +49,6 @@ const paymentOptions = [
           <PaymentCarrierForm v-else-if="form.payment === 'carrier'" :form="form" :errors="errors" />
         </div>
       </transition>
-
-      <p class="reg-step__note">
-        ※ 実際の決済は行われません（デモ表示）。会費や特典の詳細はファンクラブ案内をご確認ください。
-      </p>
     </div>
   </div>
 </template>

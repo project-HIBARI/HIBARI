@@ -3,7 +3,7 @@
  * 部品名: 新規登録フォームカード（ステップ形式ウィザード）
  * 流れ: 1.基本情報(氏名/住所/性別) → 2.お支払い → 3.アカウント(メール/パスワード) → 完了
  * 完了後: ファンクラブサイトへ誘導（complete イベント）
- * 備考: Phase 1 は API 未接続（入力検証と画面遷移のみ）
+ * 備考: 登録 API 連携は今後拡張予定（現状は入力検証と画面遷移）
  */
 import { reactive, ref, computed } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
@@ -32,6 +32,10 @@ const form = reactive({
   cardCvc: '',
   cardName: '',
   bankName: '',
+  bankBranch: '',
+  bankAccountType: '',
+  bankAccountNumber: '',
+  bankAccountHolder: '',
   conveniStore: '',
   carrierName: '',
   // アカウント
@@ -51,6 +55,10 @@ const errors = reactive({
   cardCvc: '',
   cardName: '',
   bankName: '',
+  bankBranch: '',
+  bankAccountType: '',
+  bankAccountNumber: '',
+  bankAccountHolder: '',
   conveniStore: '',
   carrierName: '',
   email: '',
@@ -91,6 +99,10 @@ function validatePayment() {
     'cardCvc',
     'cardName',
     'bankName',
+    'bankBranch',
+    'bankAccountType',
+    'bankAccountNumber',
+    'bankAccountHolder',
     'conveniStore',
     'carrierName',
   ])
@@ -122,6 +134,22 @@ function validatePayment() {
   } else if (form.payment === 'bank') {
     if (!form.bankName) {
       errors.bankName = '金融機関を選択してください。'
+      ok = false
+    }
+    if (!form.bankBranch.trim()) {
+      errors.bankBranch = '支店名を入力してください。'
+      ok = false
+    }
+    if (!form.bankAccountType) {
+      errors.bankAccountType = '口座種別を選択してください。'
+      ok = false
+    }
+    if (!/^\d{7}$/.test(form.bankAccountNumber)) {
+      errors.bankAccountNumber = '口座番号は7桁の数字で入力してください。'
+      ok = false
+    }
+    if (!form.bankAccountHolder.trim()) {
+      errors.bankAccountHolder = '口座名義を入力してください。'
       ok = false
     }
   } else if (form.payment === 'conveni') {

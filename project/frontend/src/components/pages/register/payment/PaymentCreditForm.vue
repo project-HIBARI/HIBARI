@@ -5,6 +5,7 @@
  * 特徴: 入力値を整形（数字のみ・区切り挿入・大文字化）して form へ反映
  */
 import RegisterField from '../RegisterField.vue'
+import PaymentBrandIcon from './PaymentBrandIcon.vue'
 
 const props = defineProps({
   form: { type: Object, required: true },
@@ -41,6 +42,10 @@ function set(key, value) {
 
 <template>
   <div class="pay-credit">
+    <div class="pay-credit__brands" aria-hidden="true">
+      <PaymentBrandIcon brand="credit" :size="36" />
+      <span class="pay-credit__brand-text">VISA / Master / JCB / AMEX 対応</span>
+    </div>
     <RegisterField
       id="pay-card-number"
       :model-value="form.cardNumber"
@@ -101,6 +106,16 @@ function set(key, value) {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+.pay-credit__brands {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pay-credit__brand-text {
+  font-family: var(--ff-sans-jp);
+  font-size: 11px;
+  color: var(--site-text-muted);
 }
 .pay-credit__row {
   display: grid;

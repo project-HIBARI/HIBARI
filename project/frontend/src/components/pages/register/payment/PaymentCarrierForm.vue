@@ -11,9 +11,9 @@ defineProps({
 })
 
 const carrierOptions = [
-  { value: 'docomo', label: 'docomo', desc: 'ドコモ払い' },
-  { value: 'au', label: 'au', desc: 'auかんたん決済' },
-  { value: 'softbank', label: 'SOFTBANK', desc: 'ソフトバンクまとめて支払い' },
+  { value: 'docomo', label: 'docomo', desc: 'ドコモ払い', icon: 'docomo' },
+  { value: 'au', label: 'au', desc: 'auかんたん決済', icon: 'au' },
+  { value: 'softbank', label: 'Softbank', desc: 'ソフトバンクまとめて支払い', icon: 'softbank' },
 ]
 </script>
 
@@ -29,7 +29,7 @@ const carrierOptions = [
       required
     />
     <p class="pay-carrier__note">
-      ※ 会費は毎月の携帯電話料金と合算して請求されます。
+      会費は毎月の携帯電話料金と合算して請求されます。
     </p>
   </div>
 </template>

@@ -5,6 +5,7 @@
  */
 import { computed } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
+import { findBank } from './payment/bankData.js'
 
 const props = defineProps({
   form: { type: Object, required: true },
@@ -29,7 +30,6 @@ const bankLabels = {
   mufg: '三菱UFJ銀行',
   smbc: '三井住友銀行',
   yucho: 'ゆうちょ銀行',
-  other: 'その他の金融機関',
 }
 const conveniLabels = {
   familymart: 'ファミリーマート',
@@ -39,7 +39,7 @@ const conveniLabels = {
 const carrierLabels = {
   docomo: 'docomo',
   au: 'au',
-  softbank: 'SOFTBANK',
+  softbank: 'Softbank',
 }
 
 const paymentValue = computed(() => {
@@ -51,7 +51,11 @@ const paymentValue = computed(() => {
     return masked ? `${base}（${masked}）` : base
   }
   if (props.form.payment === 'bank') {
-    return bankLabels[props.form.bankName] ? `${base}（${bankLabels[props.form.bankName]}）` : base
+    const bank = findBank(props.form.bankName)
+    const bankLabel = bank?.label || bankLabels[props.form.bankName] || ''
+    const typeLabel = props.form.bankAccountType === 'current' ? '当座' : '普通'
+    const parts = [bankLabel, props.form.bankBranch, `${typeLabel} ${props.form.bankAccountNumber}`].filter(Boolean)
+    return parts.length ? `${base}（${parts.join(' / ')}）` : base
   }
   if (props.form.payment === 'conveni') {
     return conveniLabels[props.form.conveniStore]

@@ -18,7 +18,7 @@ const emit = defineEmits(['join'])
     <p class="fc-cta__lead">ひばりの世界を、もっと近くで。</p>
     <h2 class="fc-cta__title">ファンクラブに加入しませんか</h2>
     <p class="fc-cta__desc">
-      加入手続きは新規会員登録から。数分で完了し、すぐに会員特典をご利用いただけます。
+      加入手続きは数分で完了し、すぐに会員特典をご利用いただけます。
     </p>
 
     <button type="button" class="fc-cta__btn" @click="emit('join')">
@@ -26,7 +26,7 @@ const emit = defineEmits(['join'])
       ファンクラブ加入
       <span aria-hidden="true">›</span>
     </button>
-    <p class="fc-cta__note">※ 加入には会員登録が必要です。</p>
+    <p class="fc-cta__note">加入には会員情報の登録が必要です。</p>
   </section>
 </template>
 
