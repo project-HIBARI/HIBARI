@@ -6,7 +6,7 @@
 import LoginHeroBackground from './login/LoginHeroBackground.vue'
 import RegisterFormCard from './register/RegisterFormCard.vue'
 
-const emit = defineEmits(['navigate', 'open-auth'])
+const emit = defineEmits(['navigate', 'open-auth', 'complete'])
 </script>
 
 <template>
@@ -26,6 +26,7 @@ const emit = defineEmits(['navigate', 'open-auth'])
         <RegisterFormCard
           @navigate="(id) => emit('navigate', id)"
           @open-auth="(m) => emit('open-auth', m)"
+          @complete="emit('complete')"
         />
       </div>
     </section>

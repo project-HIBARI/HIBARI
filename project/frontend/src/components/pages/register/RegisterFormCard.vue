@@ -1,141 +1,277 @@
 <script setup>
 /**
- * 部品名: 新規登録フォームカード
- * 用途: 金枠・角飾り付きの登録フォーム UI（Phase 1: API 未接続）
+ * 部品名: 新規登録フォームカード（ステップ形式ウィザード）
+ * 流れ: 1.基本情報(氏名/住所/性別) → 2.お支払い → 3.アカウント(メール/パスワード) → 完了
+ * 完了後: ファンクラブサイトへ誘導（complete イベント）
+ * 備考: Phase 1 は API 未接続（入力検証と画面遷移のみ）
  */
-import { ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
+import RegisterStepIndicator from './RegisterStepIndicator.vue'
+import RegisterStepProfile from './RegisterStepProfile.vue'
+import RegisterStepPayment from './RegisterStepPayment.vue'
+import RegisterStepAccount from './RegisterStepAccount.vue'
+import RegisterComplete from './RegisterComplete.vue'
+import RegisterTermsModal from './RegisterTermsModal.vue'
 
-const emit = defineEmits(['navigate', 'open-auth'])
+const emit = defineEmits(['navigate', 'open-auth', 'complete'])
 
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const passwordConfirm = ref('')
-const agreeTerms = ref(false)
-const showPassword = ref(false)
-const showPasswordConfirm = ref(false)
+const stepLabels = ['基本情報', 'お支払い', 'アカウント']
+const step = ref(0)
+const submitted = ref(false)
+const showTerms = ref(false)
+
+const form = reactive({
+  name: '',
+  address: '',
+  gender: '',
+  // 支払い方法と各方式の詳細
+  payment: '',
+  cardNumber: '',
+  cardExpiry: '',
+  cardCvc: '',
+  cardName: '',
+  bankName: '',
+  conveniStore: '',
+  carrierName: '',
+  // アカウント
+  email: '',
+  password: '',
+  passwordConfirm: '',
+  agreeTerms: false,
+})
+
+const errors = reactive({
+  name: '',
+  address: '',
+  gender: '',
+  payment: '',
+  cardNumber: '',
+  cardExpiry: '',
+  cardCvc: '',
+  cardName: '',
+  bankName: '',
+  conveniStore: '',
+  carrierName: '',
+  email: '',
+  password: '',
+  passwordConfirm: '',
+  agreeTerms: '',
+})
+
+const isDone = computed(() => submitted.value)
+
+function clearErrors(keys) {
+  keys.forEach((k) => (errors[k] = ''))
+}
+
+function validateProfile() {
+  clearErrors(['name', 'address', 'gender'])
+  let ok = true
+  if (!form.name.trim()) {
+    errors.name = '氏名を入力してください。'
+    ok = false
+  }
+  if (!form.address.trim()) {
+    errors.address = '住所を入力してください。'
+    ok = false
+  }
+  if (!form.gender) {
+    errors.gender = '性別を選択してください。'
+    ok = false
+  }
+  return ok
+}
+
+function validatePayment() {
+  clearErrors([
+    'payment',
+    'cardNumber',
+    'cardExpiry',
+    'cardCvc',
+    'cardName',
+    'bankName',
+    'conveniStore',
+    'carrierName',
+  ])
+  if (!form.payment) {
+    errors.payment = '支払い方法を選択してください。'
+    return false
+  }
+
+  let ok = true
+  if (form.payment === 'credit') {
+    const digits = form.cardNumber.replace(/\D/g, '')
+    if (digits.length < 14) {
+      errors.cardNumber = 'カード番号を正しく入力してください。'
+      ok = false
+    }
+    const m = form.cardExpiry.match(/^(\d{2})\/(\d{2})$/)
+    if (!m || Number(m[1]) < 1 || Number(m[1]) > 12) {
+      errors.cardExpiry = '有効期限を MM/YY 形式で入力してください。'
+      ok = false
+    }
+    if (form.cardCvc.length < 3) {
+      errors.cardCvc = 'セキュリティコードを入力してください。'
+      ok = false
+    }
+    if (!form.cardName.trim()) {
+      errors.cardName = 'カード名義を入力してください。'
+      ok = false
+    }
+  } else if (form.payment === 'bank') {
+    if (!form.bankName) {
+      errors.bankName = '金融機関を選択してください。'
+      ok = false
+    }
+  } else if (form.payment === 'conveni') {
+    if (!form.conveniStore) {
+      errors.conveniStore = 'コンビニを選択してください。'
+      ok = false
+    }
+  } else if (form.payment === 'carrier') {
+    if (!form.carrierName) {
+      errors.carrierName = 'キャリアを選択してください。'
+      ok = false
+    }
+  }
+  return ok
+}
+
+function validateAccount() {
+  clearErrors(['email', 'password', 'passwordConfirm', 'agreeTerms'])
+  let ok = true
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!form.email.trim()) {
+    errors.email = 'メールアドレスを入力してください。'
+    ok = false
+  } else if (!emailPattern.test(form.email)) {
+    errors.email = 'メールアドレスの形式が正しくありません。'
+    ok = false
+  }
+  if (!form.password) {
+    errors.password = 'パスワードを入力してください。'
+    ok = false
+  } else if (form.password.length < 8) {
+    errors.password = 'パスワードは8文字以上で入力してください。'
+    ok = false
+  }
+  if (!form.passwordConfirm) {
+    errors.passwordConfirm = '確認用パスワードを入力してください。'
+    ok = false
+  } else if (form.password !== form.passwordConfirm) {
+    errors.passwordConfirm = 'パスワードが一致しません。'
+    ok = false
+  }
+  if (!form.agreeTerms) {
+    errors.agreeTerms = '利用規約への同意が必要です。'
+    ok = false
+  }
+  return ok
+}
+
+const validators = [validateProfile, validatePayment, validateAccount]
+
+function goNext() {
+  if (!validators[step.value]()) return
+  if (step.value < stepLabels.length - 1) {
+    step.value += 1
+    scrollTop()
+  } else {
+    submit()
+  }
+}
+
+function goBack() {
+  if (step.value > 0) {
+    step.value -= 1
+    scrollTop()
+  }
+}
+
+function submit() {
+  // Phase 1: API 未接続。ここで登録 API 呼び出しを行う想定。
+  submitted.value = true
+  scrollTop()
+}
+
+function scrollTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 function onSubmit(e) {
   e.preventDefault()
+  goNext()
 }
 
-function onTermsLink(type) {
-  emit('open-auth', type)
+function onAgreeTerms() {
+  form.agreeTerms = true
+  errors.agreeTerms = ''
+  showTerms.value = false
 }
 </script>
 
 <template>
-  <div class="login-card">
-    <span class="login-card__corner login-card__corner--tl" aria-hidden="true" />
-    <span class="login-card__corner login-card__corner--tr" aria-hidden="true" />
-    <span class="login-card__corner login-card__corner--bl" aria-hidden="true" />
-    <span class="login-card__corner login-card__corner--br" aria-hidden="true" />
+  <div class="reg-card">
+    <span class="reg-card__corner reg-card__corner--tl" aria-hidden="true" />
+    <span class="reg-card__corner reg-card__corner--tr" aria-hidden="true" />
+    <span class="reg-card__corner reg-card__corner--bl" aria-hidden="true" />
+    <span class="reg-card__corner reg-card__corner--br" aria-hidden="true" />
 
-    <form class="login-card__form" @submit="onSubmit">
-      <div class="login-card__field">
-        <label class="login-card__label" for="register-name">お名前</label>
-        <input
-          id="register-name"
-          v-model="name"
-          type="text"
-          class="login-card__input"
-          placeholder="お名前を入力してください"
-          autocomplete="name"
+    <template v-if="!isDone">
+      <RegisterStepIndicator :steps="stepLabels" :current="step" />
+
+      <form class="reg-card__form" novalidate @submit="onSubmit">
+        <RegisterStepProfile v-if="step === 0" :form="form" :errors="errors" />
+        <RegisterStepPayment v-else-if="step === 1" :form="form" :errors="errors" />
+        <RegisterStepAccount
+          v-else-if="step === 2"
+          :form="form"
+          :errors="errors"
+          @request-terms="showTerms = true"
         />
-      </div>
 
-      <div class="login-card__field">
-        <label class="login-card__label" for="register-email">メールアドレス</label>
-        <input
-          id="register-email"
-          v-model="email"
-          type="email"
-          class="login-card__input"
-          placeholder="メールアドレスを入力してください"
-          autocomplete="email"
-        />
-      </div>
-
-      <div class="login-card__field">
-        <label class="login-card__label" for="register-password">パスワード</label>
-        <div class="login-card__password-wrap">
-          <input
-            id="register-password"
-            v-model="password"
-            :type="showPassword ? 'text' : 'password'"
-            class="login-card__input login-card__input--password"
-            placeholder="パスワードを入力してください"
-            autocomplete="new-password"
-          />
+        <div class="reg-card__actions">
           <button
+            v-if="step > 0"
             type="button"
-            class="login-card__toggle-pw"
-            :aria-label="showPassword ? 'パスワードを隠す' : 'パスワードを表示'"
-            @click="showPassword = !showPassword"
+            class="reg-card__back"
+            @click="goBack"
           >
-            <UiIco :name="showPassword ? 'eye-off' : 'eye'" :size="18" color="var(--site-text-light)" />
+            <span aria-hidden="true">‹</span>
+            戻る
+          </button>
+          <button type="submit" class="reg-card__next">
+            <template v-if="step < stepLabels.length - 1">
+              次へ進む
+              <span aria-hidden="true">›</span>
+            </template>
+            <template v-else>
+              <UiIco name="flower" :size="16" color="#fff" />
+              この内容で登録する
+            </template>
           </button>
         </div>
+      </form>
+
+      <div class="reg-card__login">
+        <hr class="reg-card__divider" />
+        <h2 class="reg-card__login-title">既に会員登録がお済みの方</h2>
+        <button type="button" class="reg-card__login-btn" @click="emit('navigate', 'login')">
+          ログインはこちら
+          <span aria-hidden="true">›</span>
+        </button>
       </div>
+    </template>
 
-      <div class="login-card__field">
-        <label class="login-card__label" for="register-password-confirm">パスワード（確認用）</label>
-        <div class="login-card__password-wrap">
-          <input
-            id="register-password-confirm"
-            v-model="passwordConfirm"
-            :type="showPasswordConfirm ? 'text' : 'password'"
-            class="login-card__input login-card__input--password"
-            placeholder="パスワードを再入力してください"
-            autocomplete="new-password"
-          />
-          <button
-            type="button"
-            class="login-card__toggle-pw"
-            :aria-label="showPasswordConfirm ? 'パスワードを隠す' : 'パスワードを表示'"
-            @click="showPasswordConfirm = !showPasswordConfirm"
-          >
-            <UiIco
-              :name="showPasswordConfirm ? 'eye-off' : 'eye'"
-              :size="18"
-              color="var(--site-text-light)"
-            />
-          </button>
-        </div>
-      </div>
+    <RegisterComplete v-else :form="form" @go-fanclub="emit('complete')" />
 
-      <label class="login-card__check login-card__check--terms">
-        <input v-model="agreeTerms" type="checkbox" class="login-card__checkbox" />
-        <span>
-          <button type="button" class="login-card__link" @click="onTermsLink('terms')">利用規約</button>
-          および
-          <button type="button" class="login-card__link" @click="onTermsLink('privacy')">
-            プライバシーポリシー
-          </button>
-          に同意します
-        </span>
-      </label>
-
-      <button type="submit" class="login-card__submit">
-        <UiIco name="flower" :size="16" color="#fff" />
-        新規会員登録
-      </button>
-    </form>
-
-    <div class="login-card__register">
-      <hr class="login-card__divider" />
-      <h2 class="login-card__register-title">既に会員登録がお済みの方</h2>
-      <button type="button" class="login-card__register-btn" @click="emit('navigate', 'login')">
-        ログインはこちら
-        <span aria-hidden="true">›</span>
-      </button>
-    </div>
+    <RegisterTermsModal v-if="showTerms" @agree="onAgreeTerms" @close="showTerms = false" />
   </div>
 </template>
 
 <style scoped>
-.login-card {
+.reg-card {
   position: relative;
   width: 100%;
   max-width: 520px;
@@ -145,7 +281,7 @@ function onTermsLink(type) {
   border: 1px solid var(--kin-500);
   box-shadow: var(--site-shadow-md);
 }
-.login-card__corner {
+.reg-card__corner {
   position: absolute;
   width: 28px;
   height: 28px;
@@ -153,149 +289,63 @@ function onTermsLink(type) {
   border-style: solid;
   opacity: 0.85;
 }
-.login-card__corner--tl {
+.reg-card__corner--tl {
   top: 10px;
   left: 10px;
   border-width: 2px 0 0 2px;
 }
-.login-card__corner--tr {
+.reg-card__corner--tr {
   top: 10px;
   right: 10px;
   border-width: 2px 2px 0 0;
 }
-.login-card__corner--bl {
+.reg-card__corner--bl {
   bottom: 10px;
   left: 10px;
   border-width: 0 0 2px 2px;
 }
-.login-card__corner--br {
+.reg-card__corner--br {
   bottom: 10px;
   right: 10px;
   border-width: 0 2px 2px 0;
 }
-.login-card__corner::after {
-  content: '❧';
-  position: absolute;
-  font-size: 14px;
-  color: var(--kin-600);
-  line-height: 1;
-}
-.login-card__corner--tl::after {
-  top: -4px;
-  left: -2px;
-  transform: rotate(-45deg);
-}
-.login-card__corner--tr::after {
-  top: -4px;
-  right: -2px;
-  transform: rotate(45deg) scaleX(-1);
-}
-.login-card__corner--bl::after {
-  bottom: -4px;
-  left: -2px;
-  transform: rotate(45deg) scaleY(-1);
-}
-.login-card__corner--br::after {
-  bottom: -4px;
-  right: -2px;
-  transform: rotate(-45deg) scale(-1);
-}
-.login-card__form {
+.reg-card__form {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 28px;
 }
-.login-card__field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.login-card__label {
-  font-family: var(--ff-sans-jp);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--site-text);
-}
-.login-card__input {
-  width: 100%;
-  padding: 14px 16px;
-  font-family: var(--ff-sans-jp);
-  font-size: 14px;
-  color: var(--site-text);
-  background: #f5f2ee;
-  border: 1px solid var(--site-border);
-  border-radius: var(--site-radius-sm);
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.login-card__input::placeholder {
-  color: var(--site-text-light);
-}
-.login-card__input:focus {
-  outline: none;
-  border-color: var(--murasaki-400);
-  box-shadow: 0 0 0 3px rgba(122, 80, 136, 0.12);
-}
-.login-card__password-wrap {
-  position: relative;
-}
-.login-card__input--password {
-  padding-right: 48px;
-}
-.login-card__toggle-pw {
-  position: absolute;
-  top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  padding: 4px;
+.reg-card__actions {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
 }
-.login-card__check {
+.reg-card__back {
   display: inline-flex;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 16px 22px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
-  line-height: 1.75;
-  color: var(--site-text-muted);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--site-text);
+  background: var(--site-surface);
+  border: 1px solid var(--site-border-strong);
+  border-radius: 999px;
   cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
 }
-.login-card__check--terms {
-  margin-top: 4px;
+.reg-card__back:hover {
+  border-color: var(--murasaki-400);
+  background: var(--murasaki-100);
 }
-.login-card__checkbox {
-  width: 16px;
-  height: 16px;
-  margin-top: 3px;
-  flex-shrink: 0;
-  accent-color: var(--murasaki-600);
-  cursor: pointer;
-}
-.login-card__link {
-  background: transparent;
-  border: 0;
-  padding: 0;
-  font-family: inherit;
-  font-size: inherit;
-  color: var(--murasaki-700);
-  text-decoration: underline;
-  cursor: pointer;
-}
-.login-card__link:hover {
-  color: var(--murasaki-800);
-}
-.login-card__submit {
+.reg-card__next {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  width: 100%;
-  margin-top: 4px;
+  flex: 1 1 auto;
   padding: 16px 24px;
   font-family: var(--ff-sans-jp);
   font-size: 15px;
@@ -309,20 +359,20 @@ function onTermsLink(type) {
   box-shadow: 0 4px 16px rgba(93, 58, 107, 0.25);
   transition: background 0.2s;
 }
-.login-card__submit:hover {
+.reg-card__next:hover {
   background: var(--murasaki-800);
 }
-.login-card__register {
+.reg-card__login {
   margin-top: 28px;
   text-align: center;
 }
-.login-card__divider {
+.reg-card__divider {
   border: 0;
   height: 1px;
   background: var(--site-border);
   margin: 0 0 24px;
 }
-.login-card__register-title {
+.reg-card__login-title {
   margin: 0 0 18px;
   font-family: var(--ff-mincho);
   font-size: 16px;
@@ -330,7 +380,7 @@ function onTermsLink(type) {
   letter-spacing: 0.06em;
   color: var(--site-text);
 }
-.login-card__register-btn {
+.reg-card__login-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -348,13 +398,13 @@ function onTermsLink(type) {
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
 }
-.login-card__register-btn:hover {
+.reg-card__login-btn:hover {
   border-color: var(--murasaki-400);
   background: var(--murasaki-100);
 }
 
 @media (max-width: 767px) {
-  .login-card {
+  .reg-card {
     padding: 32px 20px 28px;
     max-width: 100%;
   }
