@@ -156,6 +156,18 @@ function closeAuth() {
 
 }
 
+
+
+/** 新規会員登録の完了後: ファンクラブサイトへ誘導 */
+
+function handleRegisterComplete() {
+
+  goTo('top')
+
+  modal.value = 'fanclub'
+
+}
+
 </script>
 
 
@@ -285,6 +297,8 @@ function closeAuth() {
         @navigate="goTo"
 
         @open-auth="openAuth"
+
+        @complete="handleRegisterComplete"
 
       />
 
