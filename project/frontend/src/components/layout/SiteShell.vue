@@ -621,6 +621,8 @@ function handleAiModalAuth(mode) {
 
         @open-modal="openModal"
 
+        @use-feature="openMemberFeature"
+
       />
 
       <PageNews

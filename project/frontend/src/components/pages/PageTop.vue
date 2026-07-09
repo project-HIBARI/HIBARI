@@ -10,7 +10,7 @@ import TopEventsPanel from './top/TopEventsPanel.vue'
 import TopCategoryCards from './top/TopCategoryCards.vue'
 import { useHomeMotion } from '../../composables/useHomeMotion.js'
 
-const emit = defineEmits(['navigate', 'open-auth', 'open-modal'])
+const emit = defineEmits(['navigate', 'open-auth', 'open-modal', 'use-feature'])
 
 const pageRoot = ref(null)
 useHomeMotion(pageRoot)
@@ -47,7 +47,7 @@ function onComingSoon(target) {
         <div class="page-top__panel home-motion-stagger__item">
           <TopSubscriptionCard
             @open-detail="emit('open-modal', 'fanclub')"
-            @use-feature="(f) => emit('open-auth', f)"
+            @use-feature="(f) => emit('use-feature', f)"
           />
         </div>
         <div class="page-top__panel home-motion-stagger__item">
