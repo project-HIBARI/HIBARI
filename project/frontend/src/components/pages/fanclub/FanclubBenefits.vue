@@ -7,7 +7,7 @@ import { MEMBERSHIP_LABELS } from '../../../constants/membership.js'
 
 const emit = defineEmits(['use-feature'])
 
-const { canUse, isLoggedIn, isFanclubMember, hasGuestTrial, PERMISSION } = useMemberAccess()
+const { canUse, isLoggedIn, isFanclubMember, PERMISSION } = useMemberAccess()
 
 const benefits = [
   { feature: 'news', icon: '✦', title: '月刊ニュースレター', desc: '会員向けの最新情報・コラムを毎月お届けします。', permission: PERMISSION.NEWSLETTER },
@@ -21,12 +21,8 @@ const benefits = [
 ]
 
 function status(b) {
-  if (hasGuestTrial(b.permission)) {
-    return isLoggedIn.value ? '体験版（10回まで）' : '非会員: 10回まで体験可'
-  }
   if (!isFanclubMember.value) {
-    if (b.permission === PERMISSION.OPEN_CHAT) return '有料会員限定'
-    return 'ファンクラブ会員限定'
+    return '有料会員限定'
   }
   if (canUse(b.permission)) return '利用可能'
   if (b.premium) return `${MEMBERSHIP_LABELS.premium}限定`

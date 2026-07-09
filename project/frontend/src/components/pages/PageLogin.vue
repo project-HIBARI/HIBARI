@@ -19,7 +19,7 @@ const emit = defineEmits(['open-auth', 'login-success'])
           <h1 id="login-page-title" class="page-login__title">ログイン</h1>
           <p class="page-login__subtitle">Login</p>
           <p class="page-login__lead">
-            会員の方は、登録したメールアドレスとパスワードでログインしてください。
+            Music Memories 会員の方は、登録したメールアドレスとパスワードでログインしてください。
           </p>
         </header>
 

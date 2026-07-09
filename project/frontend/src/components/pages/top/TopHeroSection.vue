@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
             class="home-cta-btn motion-cta-shine"
             @click="emit('open-auth', 'register')"
           >
-            ファンクラブ加入
+            ファンクラブ特典を見る
           </UiButton>
           <UiButton
             variant="outline"

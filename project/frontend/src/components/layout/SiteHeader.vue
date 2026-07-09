@@ -5,8 +5,8 @@
  */
 import { ref, onMounted, onUnmounted } from 'vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
-import HeaderAccountMenu from './HeaderAccountMenu.vue'
 import HeaderSearch from './HeaderSearch.vue'
+import FanclubMembershipBadge from './FanclubMembershipBadge.vue'
 
 defineProps({
   items: { type: Array, required: true },
@@ -14,10 +14,13 @@ defineProps({
   isLoggedIn: { type: Boolean, default: false },
   userName: { type: String, default: '' },
   membership: { type: String, default: 'general' },
+  isFanclubMember: { type: Boolean, default: false },
   menuOpen: { type: Boolean, default: false },
+  showPlatformBack: { type: Boolean, default: false },
+  authOnPlatformOnly: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['logo', 'navigate', 'toggle-drawer', 'open-auth', 'open-account', 'logout', 'go-fanclub'])
+const emit = defineEmits(['logo', 'navigate', 'toggle-drawer', 'open-auth', 'exit-platform'])
 
 const logoSrc = '/images/misorahibari-logo-cropped.png'
 const scrolled = ref(false)
@@ -43,6 +46,16 @@ onUnmounted(() => {
     :class="{ 'site-header--scrolled': scrolled, 'site-header--menu-open': menuOpen }"
   >
     <div class="site-header__inner">
+      <button
+        v-if="showPlatformBack"
+        type="button"
+        class="site-header__platform-back"
+        @click="emit('exit-platform')"
+      >
+        <span class="site-header__platform-back-icon" aria-hidden="true">←</span>
+        Music Memories
+      </button>
+
       <button
         type="button"
         class="site-header__logo"
@@ -82,15 +95,11 @@ onUnmounted(() => {
 
         <TextSizeControl tone="ink" variant="header" class="site-header__text-size" />
 
-        <HeaderAccountMenu
-          class="site-header__auth"
-          :is-logged-in="isLoggedIn"
+        <FanclubMembershipBadge
+          v-if="authOnPlatformOnly && isLoggedIn"
           :user-name="userName"
           :membership="membership"
-          @open-auth="(mode) => emit('open-auth', mode)"
-          @open-account="emit('open-account')"
-          @logout="emit('logout')"
-          @go-fanclub="emit('go-fanclub')"
+          :is-fanclub-member="isFanclubMember"
         />
       </div>
 
@@ -135,6 +144,36 @@ onUnmounted(() => {
   margin: 0 auto;
   padding: 14px 16px;
   min-width: 0;
+}
+
+.site-header__platform-back {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--site-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--murasaki-700);
+  font-family: var(--ff-sans-jp);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.site-header__platform-back:hover {
+  background: #fff;
+  border-color: var(--murasaki-400);
+  color: var(--murasaki-800);
+}
+
+.site-header__platform-back-icon {
+  font-size: 12px;
+  line-height: 1;
 }
 
 .site-header__logo {

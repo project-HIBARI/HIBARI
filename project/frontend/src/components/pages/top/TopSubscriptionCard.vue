@@ -1,7 +1,7 @@
 <script setup>
 /**
  * 部品名: ホーム — サブスクリプションサービス紹介カード
- * 用途: 非会員（体験）・有料会員・プレミアムの区別を明示する
+ * 用途: 有料会員・プレミアムの区別を明示する
  */
 import { computed } from 'vue'
 import PageImageCard from '../../common/PageImageCard.vue'
@@ -13,35 +13,13 @@ import { PERMISSION } from '../../../constants/membership.js'
 
 const emit = defineEmits(['open-detail', 'use-feature'])
 
-const { isFanclubMember, getPerkState } = useMemberAccess()
+const { getPerkState } = useMemberAccess()
 
 const perkGroups = [
   {
-    id: 'guest',
-    title: '非会員（体験版）',
-    note: '登録なしでお試し可能 · 回数制限あり',
-    hideWhenMember: true,
-    perks: [
-      {
-        icon: '💬',
-        label: '掲示板投稿',
-        permission: PERMISSION.BOARD_POST,
-        feature: 'board',
-        guestTrial: true,
-      },
-      {
-        icon: '♪',
-        label: 'AIひばり対話',
-        permission: PERMISSION.AI_CHAT,
-        feature: 'ai',
-        guestTrial: true,
-      },
-    ],
-  },
-  {
     id: 'core',
     title: '有料会員（一般会員）',
-    note: '月額 ¥500 · ファンクラブ加入で利用可能',
+    note: '月額 ¥500 · Music Memories でファンクラブ加入後に利用可能',
     perks: [
       { icon: '✦', label: '会員誌デジタル版', permission: PERMISSION.NEWSLETTER, feature: 'news' },
       { icon: '★', label: 'チケット先行予約', permission: PERMISSION.TICKET_PREORDER, feature: 'events' },
@@ -63,15 +41,13 @@ const perkGroups = [
 ]
 
 const groups = computed(() =>
-  perkGroups
-    .filter((group) => !(group.hideWhenMember && isFanclubMember.value))
-    .map((group) => ({
-      ...group,
-      perks: group.perks.map((p) => ({
-        ...p,
-        ...getPerkState(p),
-      })),
+  perkGroups.map((group) => ({
+    ...group,
+    perks: group.perks.map((p) => ({
+      ...p,
+      ...getPerkState(p),
     })),
+  })),
 )
 </script>
 
@@ -92,7 +68,7 @@ const groups = computed(() =>
     <p class="top-subscription__lead">特別な体験を、あなたに。</p>
     <h2 class="top-subscription__title">サブスクリプションサービス</h2>
     <p class="top-subscription__desc">
-      非会員の方は掲示板・AI対話を回数制限付きで体験できます。オープンチャットをはじめとする本格特典は、有料会員（ファンクラブ）へのご加入後にご利用いただけます。
+      ファンクラブサイトの特典は、Music Memories で有料会員にご加入いただいた方のみご利用いただけます。ログイン・新規登録はプラットフォーム側で行ってください。
     </p>
 
     <div class="top-subscription__groups">

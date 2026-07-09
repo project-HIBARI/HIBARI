@@ -14,9 +14,11 @@ const props = defineProps({
   page: { type: String, required: true },
   isLoggedIn: { type: Boolean, default: false },
   userName: { type: String, default: '' },
+  showPlatformBack: { type: Boolean, default: false },
+  authOnPlatformOnly: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth', 'open-account', 'logout'])
+const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth', 'exit-platform'])
 
 const panelActive = ref(false)
 
@@ -51,6 +53,16 @@ watch(
         <div class="drawer__sheet">
           <p class="drawer__label drawer__stagger" :style="{ '--drawer-i': 0 }">Menu</p>
 
+          <button
+            v-if="showPlatformBack"
+            type="button"
+            class="drawer__platform-back drawer__stagger"
+            :style="{ '--drawer-i': 0.5 }"
+            @click="emit('exit-platform'); emit('close')"
+          >
+            ← Music Memories へ戻る
+          </button>
+
           <nav class="drawer__nav" aria-label="モバイルナビゲーション">
             <button
               v-for="(n, index) in items"
@@ -68,7 +80,11 @@ watch(
           </nav>
 
           <div class="drawer__extras">
-            <div v-if="isLoggedIn" class="drawer__user drawer__stagger" :style="{ '--drawer-i': items.length + 2 }">
+            <div v-if="isLoggedIn && authOnPlatformOnly" class="drawer__user drawer__stagger" :style="{ '--drawer-i': items.length + 2 }">
+              <p class="drawer__user-name">{{ userName || '会員' }} さん</p>
+              <p class="drawer__user-note">アカウント設定は Music Memories で行えます</p>
+            </div>
+            <div v-else-if="isLoggedIn" class="drawer__user drawer__stagger" :style="{ '--drawer-i': items.length + 2 }">
               <p class="drawer__user-name">{{ userName || '会員' }} さん</p>
               <div class="drawer__user-actions">
                 <UiButton variant="outline" size="md" @click="emit('open-account'); emit('close')">
@@ -77,7 +93,7 @@ watch(
                 <UiButton variant="ghost" size="md" @click="emit('logout'); emit('close')">ログアウト</UiButton>
               </div>
             </div>
-            <div v-else class="drawer__auth drawer__stagger" :style="{ '--drawer-i': items.length + 2 }">
+            <div v-else-if="!authOnPlatformOnly" class="drawer__auth drawer__stagger" :style="{ '--drawer-i': items.length + 2 }">
               <UiButton variant="outline" size="md" @click="emit('open-auth', 'login')">ログイン</UiButton>
               <UiButton variant="primary" size="md" @click="emit('open-auth', 'register')">ファンクラブ加入</UiButton>
             </div>
@@ -167,6 +183,20 @@ watch(
   color: var(--site-text-muted);
 }
 
+.drawer__platform-back {
+  align-self: flex-start;
+  margin: -12px 0 clamp(16px, 3vh, 24px);
+  padding: 8px 14px;
+  border: 1px solid var(--site-border);
+  border-radius: 999px;
+  background: var(--site-surface);
+  color: var(--murasaki-700);
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
 .drawer__nav {
   display: flex;
   flex-direction: column;
@@ -242,6 +272,14 @@ watch(
   font-size: 15px;
   letter-spacing: 0.08em;
   color: var(--murasaki-700);
+}
+
+.drawer__user-note {
+  margin: 0;
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--site-text-muted);
 }
 
 .drawer__search :deep(.header-search) {

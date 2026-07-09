@@ -12,36 +12,27 @@ export function useMemberAccess() {
       return {
         allowed: false,
         reason: 'login',
-        message: 'この機能は会員登録・ログイン後にご利用いただけます。',
+        message: 'この特典は Music Memories でログイン後にご利用いただけます。',
       }
     }
     if (!auth.isFanclubMember.value) {
       return {
         allowed: false,
         reason: 'fanclub',
-        message: 'この機能はファンクラブ有料会員のみご利用いただけます。',
+        message: 'この特典は Music Memories でファンクラブ有料会員に加入するとご利用いただけます。',
       }
     }
     if (!auth.can(permission)) {
       return {
         allowed: false,
         reason: 'upgrade',
-        message: `この機能は${MEMBERSHIP_LABELS.premium}限定です。`,
+        message: `この特典は Music Memories で${MEMBERSHIP_LABELS.premium}に登録するとご利用いただけます。`,
       }
     }
     return { allowed: true, reason: null, message: '' }
   }
 
-  const GUEST_TRIAL_PERMISSIONS = new Set([PERMISSION.BOARD_POST, PERMISSION.AI_CHAT])
-
-  function hasGuestTrial(permission) {
-    return !auth.isFanclubMember.value && GUEST_TRIAL_PERMISSIONS.has(permission)
-  }
-
-  function getPerkState({ permission, premium = false, guestTrial = false }) {
-    if (guestTrial && hasGuestTrial(permission)) {
-      return { unlocked: false, trial: true, lockLabel: '10回まで' }
-    }
+  function getPerkState({ permission, premium = false }) {
     if (canUse(permission)) {
       return { unlocked: true, trial: false, lockLabel: '' }
     }
@@ -62,7 +53,6 @@ export function useMemberAccess() {
     ...auth,
     getAccessState,
     canUse,
-    hasGuestTrial,
     getPerkState,
     PERMISSION,
   }

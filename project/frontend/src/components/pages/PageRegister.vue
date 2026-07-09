@@ -24,7 +24,7 @@ const emit = defineEmits(['navigate', 'open-auth', 'complete'])
           <h1 id="register-page-title" class="page-login__title">新規会員登録</h1>
           <p class="page-login__subtitle">Register</p>
           <p class="page-login__lead">
-            一般会員・プレミアム会員からお選びいただき、限定コンテンツやファンクラブ特典をご利用いただけます。
+            Music Memories でアカウントを作成し、ファンクラブ有料会員の特典をご利用いただけます。
           </p>
         </header>
 
