@@ -49,7 +49,13 @@ const pendingMedia = ref(null)
 const fileInputRef = ref(null)
 
 const messagesEl = ref(null)
+const bottomAnchor = ref(null)
+const isNearBottom = ref(true)
+const pendingNewCount = ref(0)
 let pollTimer = null
+
+const SCROLL_THRESHOLD = 96
+const showJumpToBottom = computed(() => pendingNewCount.value > 0 && !isNearBottom.value)
 
 const activeRoom = computed(() => rooms.value.find((r) => r.room_id === activeRoomId.value) || null)
 
@@ -136,6 +142,8 @@ async function loadMessages(initial = false) {
       limit: initial ? 50 : 100,
     })
     const incoming = data?.messages || []
+    const stickToBottom = initial || checkNearBottom()
+
     if (initial) {
       messages.value = incoming
     } else if (incoming.length) {
@@ -153,7 +161,14 @@ async function loadMessages(initial = false) {
     }
     if (incoming.length) {
       await nextTick()
-      scrollToBottom()
+      if (stickToBottom) {
+        scrollToBottom(true)
+      } else {
+        const newFromOthers = incoming.filter((m) => !m.is_own).length
+        if (newFromOthers > 0) {
+          pendingNewCount.value += newFromOthers
+        }
+      }
       await refreshNotifications()
     }
   } catch (err) {
@@ -173,9 +188,34 @@ async function loadMembers() {
   }
 }
 
-function scrollToBottom() {
+function checkNearBottom() {
   const el = messagesEl.value
-  if (el) el.scrollTop = el.scrollHeight
+  if (!el) return true
+  return el.scrollHeight - el.scrollTop - el.clientHeight <= SCROLL_THRESHOLD
+}
+
+function onMessagesScroll() {
+  isNearBottom.value = checkNearBottom()
+  if (isNearBottom.value) {
+    pendingNewCount.value = 0
+  }
+}
+
+function scrollToBottom(force = false) {
+  if (!force && !isNearBottom.value) return
+  const anchor = bottomAnchor.value
+  if (anchor) {
+    anchor.scrollIntoView({ behavior: force ? 'instant' : 'smooth', block: 'end' })
+  } else {
+    const el = messagesEl.value
+    if (el) el.scrollTop = el.scrollHeight
+  }
+  isNearBottom.value = true
+  pendingNewCount.value = 0
+}
+
+function jumpToLatest() {
+  scrollToBottom(true)
 }
 
 function startPolling() {
@@ -200,6 +240,8 @@ async function selectRoom(roomId) {
   setActiveRoomId(roomId)
   messages.value = []
   lastMessageId.value = null
+  pendingNewCount.value = 0
+  isNearBottom.value = true
   showMembers.value = false
   clearPendingMedia()
   if (activeRoom.value?.is_joined) {
@@ -244,6 +286,8 @@ async function handleLeave() {
     }
     messages.value = []
     lastMessageId.value = null
+    pendingNewCount.value = 0
+    isNearBottom.value = true
     showMembers.value = false
     stopPolling()
   } catch (err) {
@@ -298,7 +342,7 @@ async function handleSend() {
         }
       }
       await nextTick()
-      scrollToBottom()
+      scrollToBottom(true)
       await refreshNotifications()
     }
   } catch (err) {
@@ -458,37 +502,47 @@ onUnmounted(() => {
           </template>
 
           <template v-else>
-            <div ref="messagesEl" class="open-chat__messages">
-              <p v-if="messagesLoading" class="open-chat__muted">メッセージを読み込み中…</p>
-              <p v-else-if="!messages.length" class="open-chat__muted open-chat__empty">
-                まだメッセージはありません。最初の一言を送ってみましょう。
-              </p>
-              <article
-                v-for="msg in messages"
-                :key="msg.message_id"
-                class="open-chat__bubble-row"
-                :class="{ 'open-chat__bubble-row--own': msg.is_own }"
-              >
-                <div class="open-chat__bubble">
-                  <p v-if="!msg.is_own" class="open-chat__author">
-                    {{ msg.author_name }}
-                    <span class="open-chat__author-plan">{{ membershipLabel(msg.membership) }}</span>
-                  </p>
-                  <div v-if="msg.message_type === 'image' && msg.media_path" class="open-chat__media">
-                    <a :href="msg.media_path" target="_blank" rel="noopener noreferrer">
-                      <img :src="msg.media_path" :alt="msg.body || '画像'" class="open-chat__image" />
-                    </a>
+            <div class="open-chat__chat-body">
+              <div ref="messagesEl" class="open-chat__messages" @scroll="onMessagesScroll">
+                <p v-if="messagesLoading" class="open-chat__muted">メッセージを読み込み中…</p>
+                <p v-else-if="!messages.length" class="open-chat__muted open-chat__empty">
+                  まだメッセージはありません。最初の一言を送ってみましょう。
+                </p>
+                <article
+                  v-for="msg in messages"
+                  :key="msg.message_id"
+                  class="open-chat__bubble-row"
+                  :class="{ 'open-chat__bubble-row--own': msg.is_own }"
+                >
+                  <div class="open-chat__bubble">
+                    <p v-if="!msg.is_own" class="open-chat__author">
+                      {{ msg.author_name }}
+                      <span class="open-chat__author-plan">{{ membershipLabel(msg.membership) }}</span>
+                    </p>
+                    <div v-if="msg.message_type === 'image' && msg.media_path" class="open-chat__media">
+                      <a :href="msg.media_path" target="_blank" rel="noopener noreferrer">
+                        <img :src="msg.media_path" :alt="msg.body || '画像'" class="open-chat__image" />
+                      </a>
+                    </div>
+                    <div v-else-if="msg.message_type === 'video' && msg.media_path" class="open-chat__media">
+                      <video :src="msg.media_path" class="open-chat__video" controls playsinline />
+                    </div>
+                    <p v-if="msg.body" class="open-chat__text">{{ msg.body }}</p>
+                    <time class="open-chat__time">{{ formatTime(msg.created_at) }}</time>
                   </div>
-                  <div v-else-if="msg.message_type === 'video' && msg.media_path" class="open-chat__media">
-                    <video :src="msg.media_path" class="open-chat__video" controls playsinline />
-                  </div>
-                  <p v-if="msg.body" class="open-chat__text">{{ msg.body }}</p>
-                  <time class="open-chat__time">{{ formatTime(msg.created_at) }}</time>
-                </div>
-              </article>
-            </div>
+                </article>
+                <button
+                  v-if="showJumpToBottom"
+                  type="button"
+                  class="open-chat__jump-btn"
+                  @click="jumpToLatest"
+                >
+                  新着メッセージ {{ pendingNewCount > 99 ? '99+' : pendingNewCount }}件 ↓
+                </button>
+                <div ref="bottomAnchor" class="open-chat__bottom-anchor" aria-hidden="true" />
+              </div>
 
-            <form class="open-chat__composer" @submit.prevent="handleSend">
+              <form class="open-chat__composer" @submit.prevent="handleSend">
               <div class="open-chat__composer-main">
                 <div v-if="pendingMedia" class="open-chat__pending">
                   <img
@@ -542,7 +596,8 @@ onUnmounted(() => {
                   {{ sending ? '送信中…' : '送信' }}
                 </UiButton>
               </div>
-            </form>
+              </form>
+            </div>
           </template>
         </section>
       </div>
@@ -563,17 +618,24 @@ onUnmounted(() => {
 .open-chat__layout {
   display: grid;
   grid-template-columns: 280px 1fr;
-  gap: var(--sp-4);
-  min-height: 520px;
+  gap: 0;
+  height: min(72vh, 680px);
+  max-height: min(72vh, 680px);
+  min-height: 480px;
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-lg);
   overflow: hidden;
   background: var(--site-surface);
 }
 .open-chat__rooms {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
   border-right: 1px solid var(--site-border);
   background: var(--site-bg-pink);
   padding: var(--sp-4);
+  overflow: hidden;
 }
 .open-chat__rooms-title {
   margin: 0;
@@ -629,6 +691,9 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 .open-chat__room-btn {
   display: flex;
@@ -704,15 +769,47 @@ onUnmounted(() => {
 .open-chat__panel {
   display: flex;
   flex-direction: column;
-  min-height: 520px;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 .open-chat__header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 18px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--site-border);
   background: linear-gradient(180deg, var(--murasaki-100) 0%, var(--site-surface) 100%);
+}
+.open-chat__chat-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.open-chat__jump-btn {
+  position: sticky;
+  bottom: 12px;
+  align-self: center;
+  margin: 4px auto 0;
+  z-index: 2;
+  padding: 8px 16px;
+  border: 1px solid var(--murasaki-400);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--site-shadow-md);
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--murasaki-700);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.open-chat__jump-btn:hover {
+  background: var(--murasaki-100);
 }
 .open-chat__title {
   margin: 0 0 4px;
@@ -761,12 +858,21 @@ onUnmounted(() => {
 }
 .open-chat__messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 16px 18px;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: 16px 18px 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: #faf8f6;
+  gap: 10px;
+  background: #ece8e4;
+  -webkit-overflow-scrolling: touch;
+}
+.open-chat__bottom-anchor {
+  flex-shrink: 0;
+  width: 100%;
+  height: 1px;
 }
 .open-chat__bubble-row {
   display: flex;
@@ -776,16 +882,16 @@ onUnmounted(() => {
   justify-content: flex-end;
 }
 .open-chat__bubble {
-  max-width: min(78%, 520px);
-  padding: 10px 14px;
-  border-radius: 14px;
+  max-width: min(75%, 320px);
+  padding: 10px 12px;
+  border-radius: 18px;
   background: #fff;
-  border: 1px solid var(--site-border);
-  box-shadow: var(--site-shadow-sm);
+  border: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 .open-chat__bubble-row--own .open-chat__bubble {
-  background: var(--murasaki-100);
-  border-color: var(--murasaki-400);
+  background: #d9ecff;
+  border: none;
 }
 .open-chat__author {
   margin: 0 0 4px;
@@ -814,10 +920,11 @@ onUnmounted(() => {
   text-align: right;
 }
 .open-chat__composer {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 14px 18px;
+  padding: 12px 14px;
   border-top: 1px solid var(--site-border);
   background: var(--site-surface);
 }
@@ -916,6 +1023,9 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 .open-chat__member {
   display: flex;
@@ -952,14 +1062,17 @@ onUnmounted(() => {
 @media (max-width: 900px) {
   .open-chat__layout {
     grid-template-columns: 1fr;
+    height: min(78vh, 720px);
+    max-height: min(78vh, 720px);
   }
   .open-chat__rooms {
     border-right: 0;
     border-bottom: 1px solid var(--site-border);
+    max-height: 200px;
+    flex: 0 0 auto;
   }
   .open-chat__room-list {
-    max-height: 180px;
-    overflow-y: auto;
+    max-height: 120px;
   }
 }
 </style>
