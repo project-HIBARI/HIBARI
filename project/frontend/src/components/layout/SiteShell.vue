@@ -16,10 +16,6 @@ import SiteIntroVideo from './SiteIntroVideo.vue'
 
 import AppDrawerNav from './AppDrawerNav.vue'
 
-import PremiumMemberBar from './PremiumMemberBar.vue'
-
-import LoginCtaBanner from '../pages/login/LoginCtaBanner.vue'
-
 import AppFooterBar from './AppFooterBar.vue'
 
 import GoodsModal from '../modals/GoodsModal.vue'
@@ -45,6 +41,14 @@ import PagePlaces from '../pages/PagePlaces.vue'
 import PageMemories from '../pages/PageMemories.vue'
 
 import PageMessage from '../pages/PageMessage.vue'
+
+import PageFaq from '../pages/PageFaq.vue'
+
+import PageContact from '../pages/PageContact.vue'
+
+import PageTerms from '../pages/PageTerms.vue'
+
+import PagePrivacyPolicy from '../pages/PagePrivacyPolicy.vue'
 
 import PageLogin from '../pages/PageLogin.vue'
 
@@ -557,6 +561,14 @@ function handleAiModalAuth(mode) {
 
       <PageMessage v-else-if="page === 'message'" />
 
+      <PageFaq v-else-if="page === 'faq'" />
+
+      <PageContact v-else-if="page === 'contact'" />
+
+      <PageTerms v-else-if="page === 'terms'" />
+
+      <PagePrivacyPolicy v-else-if="page === 'privacy-policy'" />
+
       <PageLogin
 
         v-else-if="page === 'login'"
@@ -609,16 +621,7 @@ function handleAiModalAuth(mode) {
 
     </main>
 
-
-
-    <LoginCtaBanner v-if="page !== 'top'" />
-
-    <PremiumMemberBar
-      v-if="page !== 'top' && page !== 'login' && page !== 'register'"
-      @open-fanclub="openAuth('fanclub')"
-    />
-
-    <AppFooterBar />
+    <AppFooterBar @navigate="goTo" />
 
 
 
