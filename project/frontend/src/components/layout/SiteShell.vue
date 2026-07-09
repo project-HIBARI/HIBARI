@@ -233,23 +233,23 @@ function openMemberFeature(mode) {
 
   const features = {
 
-    news: { page: 'news' },
+    news: { permission: PERMISSION.NEWSLETTER, memberPage: 'fanclub-site', section: 'newsletter', guestPage: 'fanclub' },
 
-    events: { permission: PERMISSION.TICKET_PREORDER, modal: 'events' },
+    events: { permission: PERMISSION.TICKET_PREORDER, memberPage: 'fanclub-site', section: 'events', guestPage: 'fanclub' },
 
-    gallery: { permission: PERMISSION.EXCLUSIVE_CONTENT, modal: 'gallery', premium: true },
+    'priority-events': { permission: PERMISSION.PRIORITY_DISCOUNT, memberPage: 'fanclub-site', section: 'priority-events', premium: true, guestPage: 'fanclub' },
+
+    gallery: { permission: PERMISSION.EXCLUSIVE_CONTENT, memberPage: 'fanclub-site', section: 'exclusive-content', premium: true, guestPage: 'fanclub' },
 
     ai: { permission: PERMISSION.AI_CHAT, modal: 'ai' },
 
-    memories: { permission: PERMISSION.BOARD_POST, page: 'memories' },
-
-    board: { permission: PERMISSION.BOARD_POST, memberPage: 'fanclub-site', section: 'board' },
+    board: { permission: PERMISSION.BOARD_POST, memberPage: 'fanclub-site', section: 'board', guestPage: 'fanclub' },
 
     fanclub: { memberPage: 'fanclub-site', guestPage: 'fanclub' },
 
-    disco: { permission: PERMISSION.PREMIUM_VIDEO, modal: 'premium-video', premium: true },
+    disco: { permission: PERMISSION.PREMIUM_VIDEO, memberPage: 'fanclub-site', section: 'premium-video', premium: true, guestPage: 'fanclub' },
 
-    pv: { permission: PERMISSION.PREMIUM_VIDEO, modal: 'premium-video', premium: true },
+    pv: { permission: PERMISSION.PREMIUM_VIDEO, memberPage: 'fanclub-site', section: 'premium-video', premium: true, guestPage: 'fanclub' },
 
   }
 
@@ -301,19 +301,19 @@ function openMemberFeature(mode) {
 
   }
 
-  if (feature.modal) {
+  if (feature.memberPage && feature.section) {
 
-    openModal(feature.modal)
+    fanclubSection.value = feature.section
+
+    goTo(isLoggedIn.value ? feature.memberPage : (feature.guestPage || 'fanclub'))
 
     return
 
   }
 
-  if (feature.memberPage && feature.section) {
+  if (feature.modal) {
 
-    fanclubSection.value = feature.section
-
-    goTo(feature.memberPage)
+    openModal(feature.modal)
 
     return
 
@@ -690,6 +690,8 @@ function handleAiModalAuth(mode) {
         @navigate="goTo"
 
         @register="goRegister"
+
+        @use-feature="openMemberFeature"
 
       />
 
