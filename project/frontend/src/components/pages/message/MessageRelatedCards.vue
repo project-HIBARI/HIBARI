@@ -1,7 +1,7 @@
 <script setup>
 /**
- * 部品名: ディスコグラフィ — 関連ページ導線カード
- * 用途: ホーム・歩み・献花と同じ下部カテゴリ導線カードを表示する
+ * 部品名: 献花 — 下部関連ページ導線カード
+ * 用途: 歩み・ディスコグラフィー等への誘導カード5枚を表示する
  */
 import SiteCategoryCards from '../../common/SiteCategoryCards.vue'
 import { HOME_CATEGORY_CARDS } from '../../../lib/categoryCards.js'
@@ -11,7 +11,7 @@ const emit = defineEmits(['navigate', 'coming-soon'])
 
 <template>
   <SiteCategoryCards
-    class="disco-related"
+    class="message-related"
     :cards="HOME_CATEGORY_CARDS"
     aria-label="関連コンテンツ"
     @navigate="emit('navigate', $event)"
@@ -20,8 +20,7 @@ const emit = defineEmits(['navigate', 'coming-soon'])
 </template>
 
 <style scoped>
-.disco-related {
+.message-related {
   margin-top: var(--sp-8);
-  margin-bottom: var(--sp-6);
 }
 </style>

@@ -8,10 +8,13 @@ import MessageHero from './message/MessageHero.vue'
 import MessageAnniversaryCards from './message/MessageAnniversaryCards.vue'
 import MessageOfferingBlock from './message/MessageOfferingBlock.vue'
 import MessageWallGrid from './message/MessageWallGrid.vue'
+import MessageRelatedCards from './message/MessageRelatedCards.vue'
 import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
 const pageRoot = ref(null)
 useScrollReveal(pageRoot)
+
+const emit = defineEmits(['navigate', 'open-auth'])
 </script>
 
 <template>
@@ -20,6 +23,11 @@ useScrollReveal(pageRoot)
     <MessageAnniversaryCards class="site-reveal site-reveal--slow site-reveal--delay-1" />
     <MessageOfferingBlock class="site-reveal site-reveal--slow site-reveal--delay-2" />
     <MessageWallGrid class="site-reveal site-reveal--slow site-reveal--delay-3" />
+    <MessageRelatedCards
+      class="site-reveal site-reveal--slow site-reveal--delay-4"
+      @navigate="(id) => emit('navigate', id)"
+      @coming-soon="(mode) => emit('open-auth', mode)"
+    />
   </div>
 </template>
 

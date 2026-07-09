@@ -9,13 +9,14 @@ import TabBar from '../ui/TabBar.vue'
 import MemoriesBoard from './memories/MemoriesBoard.vue'
 import MemoriesPostAside from './memories/MemoriesPostAside.vue'
 import MemoriesEventsGrid from './memories/MemoriesEventsGrid.vue'
+import MemoriesRelatedCards from './memories/MemoriesRelatedCards.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
 import { createPostWithMedia } from '../../api/posts.js'
 import { useBoardPost } from '../../composables/useBoardPost.js'
 import { revokeMediaPreview } from '../../lib/boardMedia.js'
 import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
-const emit = defineEmits(['open-auth', 'navigate'])
+const emit = defineEmits(['navigate', 'open-auth'])
 
 const pageRoot = ref(null)
 useScrollReveal(pageRoot)
@@ -171,7 +172,16 @@ function like(id) {
       />
     </div>
 
-    <MemoriesEventsGrid v-else @need-auth="(m) => emit('open-auth', m)" @navigate="(p) => emit('navigate', p)" />
+    <MemoriesEventsGrid
+      v-else
+      @need-auth="(m) => emit('open-auth', m)"
+      @navigate="(p) => emit('navigate', p)"
+    />
+
+    <MemoriesRelatedCards
+      @navigate="(id) => emit('navigate', id)"
+      @coming-soon="(mode) => emit('open-auth', mode)"
+    />
   </div>
 </template>
 
