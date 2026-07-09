@@ -7,6 +7,7 @@ import { computed } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
 import { findBank } from './payment/bankData.js'
 import { MEMBERSHIP_LABELS } from '../../../constants/membership.js'
+import { SITE_NAME } from '../../../constants/site.js'
 
 const props = defineProps({
   form: { type: Object, required: true },
@@ -88,7 +89,7 @@ const summary = computed(() => [
     </div>
     <h2 class="reg-done__title">会員登録が完了しました</h2>
     <p class="reg-done__lead">
-      ようこそ、美空ひばりファンクラブへ。<br />
+      ようこそ、{{ SITE_NAME }} へ。<br />
       続いてファンクラブサイトで特典コンテンツをお楽しみください。
     </p>
 

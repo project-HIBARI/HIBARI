@@ -11,6 +11,7 @@ import PagePlatformOpenChat from '../pages/PagePlatformOpenChat.vue'
 import HeaderAccountMenu from './HeaderAccountMenu.vue'
 import AccountModal from '../modals/AccountModal.vue'
 import { MEMBERSHIP } from '../../constants/membership.js'
+import { SITE_NAME } from '../../constants/site.js'
 
 defineProps({
   view: { type: String, default: 'hub' },
@@ -82,7 +83,7 @@ function onUserUpdated(account) {
           @click="setView('hub')"
         >
           <span class="platform-shell__brand-mark" aria-hidden="true">♪</span>
-          Music Memories
+          {{ SITE_NAME }}
         </button>
 
         <nav class="platform-shell__nav" aria-label="プラットフォームナビ">
@@ -124,7 +125,7 @@ function onUserUpdated(account) {
 
     <div v-else-if="view === 'login'" class="platform-shell__auth">
       <button type="button" class="platform-shell__back" @click="setView('hub')">
-        ← Music Memories へ戻る
+        ← {{ SITE_NAME }} へ戻る
       </button>
       <PageLogin
         @open-auth="onOpenAuth"
@@ -134,7 +135,7 @@ function onUserUpdated(account) {
 
     <div v-else-if="view === 'register'" class="platform-shell__auth">
       <button type="button" class="platform-shell__back" @click="setView('hub')">
-        ← Music Memories へ戻る
+        ← {{ SITE_NAME }} へ戻る
       </button>
       <PageRegister
         :initial-plan="registerPlan"

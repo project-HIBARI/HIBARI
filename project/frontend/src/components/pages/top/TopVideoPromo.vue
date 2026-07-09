@@ -7,6 +7,7 @@ import { ref } from 'vue'
 import UiButton from '../../ui/UiButton.vue'
 import UiIco from '../../ui/UiIco.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
+import { SITE_NAME } from '../../../constants/site.js'
 
 const promo = HIBARU_DATA.homePromoVideo
 
@@ -42,7 +43,7 @@ function playVideo() {
 
         <div class="home-promo__overlay" :class="{ 'home-promo__overlay--hidden': isPlaying }" aria-hidden="true">
           <span class="home-promo__tag">PROMOTION MOVIE</span>
-          <span class="home-promo__site">Official Fan Site</span>
+          <span class="home-promo__site">{{ SITE_NAME }}</span>
           <button type="button" class="home-promo__play" aria-label="動画を再生" @click="playVideo">
             <UiIco name="play" :size="28" color="#fff" />
           </button>

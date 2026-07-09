@@ -7,6 +7,7 @@ import PlatformShell from './components/layout/PlatformShell.vue'
 import SiteShell from './components/layout/SiteShell.vue'
 import { useAuth } from './composables/useAuth.js'
 import { MEMBERSHIP } from './constants/membership.js'
+import { SITE_DOCUMENT_TITLE } from './constants/site.js'
 
 const appView = ref('platform')
 const platformView = ref('hub')
@@ -18,6 +19,7 @@ const auth = useAuth()
 const { refreshUser, setUser, logout, isLoggedIn, user, membership } = auth
 
 onMounted(() => {
+  document.title = SITE_DOCUMENT_TITLE
   refreshUser()
 })
 

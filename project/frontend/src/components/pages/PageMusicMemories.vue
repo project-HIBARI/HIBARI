@@ -4,7 +4,8 @@
  * 役割: 複数アーティストのファンクラブへの入口ハブ
  */
 import UiButton from '../ui/UiButton.vue'
-import { MUSIC_MEMORIES_ARTISTS } from '../../data/musicMemoriesData.js'
+import { MUSIC_MEMORIES_ARTISTS, PLATFORM_CHAT_ARTISTS } from '../../data/musicMemoriesData.js'
+import { SITE_NAME, SITE_TAGLINE } from '../../constants/site.js'
 
 defineProps({
   /** PlatformShell 内ではヘッダーを非表示 */
@@ -23,11 +24,11 @@ function onArtistClick(artist) {
   <div class="music-memories" :class="{ 'music-memories--embedded': embedded }">
     <header v-if="!embedded" class="music-memories__header" role="banner">
       <div class="music-memories__header-inner">
-        <p class="music-memories__brand" aria-label="Music Memories">
+        <p class="music-memories__brand" :aria-label="SITE_NAME">
           <span class="music-memories__brand-mark" aria-hidden="true">♪</span>
-          Music Memories
+          {{ SITE_NAME }}
         </p>
-        <p class="music-memories__header-tag">音楽の記憶を、いつまでも</p>
+        <p class="music-memories__header-tag">{{ SITE_TAGLINE }}</p>
       </div>
     </header>
 
@@ -115,7 +116,7 @@ function onArtistClick(artist) {
     </main>
 
     <footer class="music-memories__footer" role="contentinfo">
-      <p class="music-memories__copyright">© Music Memories Platform</p>
+      <p class="music-memories__copyright">© {{ SITE_NAME }}</p>
     </footer>
   </div>
 </template>

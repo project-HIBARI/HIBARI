@@ -5,6 +5,7 @@
  * イベント: agree（同意）/ close（閉じる）
  */
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { SITE_NAME } from '../../../constants/site.js'
 
 const emit = defineEmits(['agree', 'close'])
 
@@ -57,7 +58,7 @@ onUnmounted(() => {
           <h3 class="terms__h3">利用規約</h3>
           <p class="terms__p">第1条（適用）</p>
           <p class="terms__p">
-            本規約は、美空ひばりファンクラブ（以下「当会」といいます）が提供する会員向けサービス（以下「本サービス」といいます）の利用に関する条件を、本サービスを利用する会員（以下「会員」といいます）と当会との間で定めるものです。
+            本規約は、{{ SITE_NAME }} が提供するファンクラブ会員向けサービス（以下「本サービス」といいます）の利用に関する条件を、本サービスを利用する会員（以下「会員」といいます）と当プラットフォームとの間で定めるものです。
           </p>
           <p class="terms__p">第2条（会員登録）</p>
           <p class="terms__p">

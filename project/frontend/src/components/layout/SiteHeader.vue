@@ -7,6 +7,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
 import HeaderSearch from './HeaderSearch.vue'
 import FanclubMembershipBadge from './FanclubMembershipBadge.vue'
+import { SITE_NAME, HIBARI_FANCLUB_NAME } from '../../constants/site.js'
 
 defineProps({
   items: { type: Array, required: true },
@@ -53,7 +54,7 @@ onUnmounted(() => {
         @click="emit('exit-platform')"
       >
         <span class="site-header__platform-back-icon" aria-hidden="true">←</span>
-        Music Memories
+        {{ SITE_NAME }}
       </button>
 
       <button
@@ -64,7 +65,7 @@ onUnmounted(() => {
       >
         <img
           :src="logoSrc"
-          alt="美空ひばり 公式ファンサイト"
+          :alt="`${SITE_NAME} · ${HIBARI_FANCLUB_NAME}`"
           class="site-header__logo-img"
           width="948"
           height="337"

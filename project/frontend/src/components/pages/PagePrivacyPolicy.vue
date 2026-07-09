@@ -2,6 +2,7 @@
 /**
  * ページ: プライバシーポリシー
  */
+import { SITE_NAME } from '../../constants/site.js'
 const articles = [
   {
     title: '第1条（個人情報の取得）',
@@ -63,7 +64,7 @@ const articles = [
         </div>
         <h1 class="page-privacy__title">プライバシーポリシー</h1>
         <p class="page-privacy__lead">
-          美空ひばり公式ファンサイト（以下「当サイト」）は、<br />
+          {{ SITE_NAME }}（以下「当サイト」）は、<br />
           ユーザーの個人情報の保護を重要な責務と考え、以下のとおりプライバシーポリシーを定め、<br />
           適切な取り組みを実施します。
         </p>

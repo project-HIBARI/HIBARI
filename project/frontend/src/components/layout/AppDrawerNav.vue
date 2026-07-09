@@ -7,6 +7,7 @@ import { ref, watch, nextTick } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
 import HeaderSearch from './HeaderSearch.vue'
+import { SITE_NAME } from '../../constants/site.js'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -60,7 +61,7 @@ watch(
             :style="{ '--drawer-i': 0.5 }"
             @click="emit('exit-platform'); emit('close')"
           >
-            ← Music Memories へ戻る
+            ← {{ SITE_NAME }} へ戻る
           </button>
 
           <nav class="drawer__nav" aria-label="モバイルナビゲーション">

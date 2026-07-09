@@ -5,6 +5,7 @@
  */
 import { ref, onMounted, onUnmounted } from 'vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
+import { SITE_NAME, HIBARI_FANCLUB_NAME } from '../../constants/site.js'
 
 const emit = defineEmits(['complete'])
 
@@ -83,13 +84,14 @@ onUnmounted(() => {
     />
 
     <div v-else class="site-intro__fallback" aria-hidden="true">
-      <p class="site-intro__fallback-label">Official Fan Site</p>
-      <p class="site-intro__fallback-title">美空ひばり</p>
+      <p class="site-intro__fallback-label">{{ SITE_NAME }}</p>
+      <p class="site-intro__fallback-title">{{ HIBARI_FANCLUB_NAME }}</p>
     </div>
 
     <div class="site-intro__veil" aria-hidden="true" />
 
-    <p class="site-intro__brand">美空ひばり 公式ファンサイト</p>
+    <p class="site-intro__brand">{{ SITE_NAME }}</p>
+    <p class="site-intro__brand-sub">{{ HIBARI_FANCLUB_NAME }}</p>
 
     <button
       v-if="canSkip"
@@ -170,14 +172,28 @@ onUnmounted(() => {
 }
 .site-intro__brand {
   position: absolute;
-  bottom: 48px;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: var(--ff-latin);
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+.site-intro__brand-sub {
+  position: absolute;
+  bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 12px;
-  letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.82);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.72);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
   white-space: nowrap;
 }
@@ -204,8 +220,12 @@ onUnmounted(() => {
 
 @media (max-width: 767px) {
   .site-intro__brand {
-    bottom: 64px;
-    font-size: 11px;
+    bottom: 72px;
+    font-size: 16px;
+  }
+  .site-intro__brand-sub {
+    bottom: 48px;
+    font-size: 10px;
   }
   .site-intro__skip {
     right: 16px;
