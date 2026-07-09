@@ -554,11 +554,13 @@ function handleAiModalAuth(mode) {
 
       :membership="membership"
 
+      :menu-open="drawerOpen"
+
       @logo="goTo('top')"
 
       @navigate="handleNav"
 
-      @open-drawer="drawerOpen = true"
+      @toggle-drawer="drawerOpen = !drawerOpen"
 
       @open-auth="openAuth"
 

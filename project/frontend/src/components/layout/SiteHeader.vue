@@ -14,9 +14,10 @@ defineProps({
   isLoggedIn: { type: Boolean, default: false },
   userName: { type: String, default: '' },
   membership: { type: String, default: 'general' },
+  menuOpen: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['logo', 'navigate', 'open-drawer', 'open-auth', 'open-account', 'logout', 'go-fanclub'])
+const emit = defineEmits(['logo', 'navigate', 'toggle-drawer', 'open-auth', 'open-account', 'logout', 'go-fanclub'])
 
 const logoSrc = '/images/misorahibari-logo-cropped.png'
 const scrolled = ref(false)
@@ -36,7 +37,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header role="banner" class="site-header" :class="{ 'site-header--scrolled': scrolled }">
+  <header
+    role="banner"
+    class="site-header"
+    :class="{ 'site-header--scrolled': scrolled, 'site-header--menu-open': menuOpen }"
+  >
     <div class="site-header__inner">
       <button
         type="button"
@@ -92,8 +97,10 @@ onUnmounted(() => {
       <button
         type="button"
         class="site-header__menu"
-        aria-label="メニューを開く"
-        @click="emit('open-drawer')"
+        :class="{ 'site-header__menu--open': menuOpen }"
+        :aria-label="menuOpen ? 'メニューを閉じる' : 'メニューを開く'"
+        :aria-expanded="menuOpen"
+        @click="emit('toggle-drawer')"
       >
         <span v-for="i in 3" :key="i" class="site-header__menu-line" />
       </button>
@@ -192,6 +199,8 @@ onUnmounted(() => {
   border: 0;
   background: transparent;
   cursor: pointer;
+  position: relative;
+  z-index: 220;
 }
 
 .site-header__menu-line {
@@ -200,6 +209,53 @@ onUnmounted(() => {
   height: 2px;
   background: var(--site-text);
   border-radius: 1px;
+  transform-origin: center;
+  transition:
+    transform 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.32s ease,
+    background 0.25s ease;
+}
+
+.site-header__menu--open .site-header__menu-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.site-header__menu--open .site-header__menu-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.site-header__menu--open .site-header__menu-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.site-header--menu-open {
+  z-index: 250;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+@media (max-width: 1099px) {
+  .site-header--menu-open .site-header__logo,
+  .site-header--menu-open .site-header__actions-bar {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .site-header--menu-open .site-header__inner {
+    justify-content: flex-end;
+  }
+
+  .site-header--menu-open .site-header__menu {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    padding: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 2px 12px rgba(40, 30, 25, 0.12);
+  }
 }
 
 .site-header__search {
@@ -273,6 +329,19 @@ onUnmounted(() => {
   height: 26px;
   padding: 0 4px;
   font-size: 11px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header__menu-line {
+    transition: none !important;
+  }
+
+  .site-header__menu--open .site-header__menu-line:nth-child(1),
+  .site-header__menu--open .site-header__menu-line:nth-child(2),
+  .site-header__menu--open .site-header__menu-line:nth-child(3) {
+    transform: none;
+    opacity: 1;
+  }
 }
 
 /* 768px以上1099px以下: ヘッダーに検索・認証を表示 */
