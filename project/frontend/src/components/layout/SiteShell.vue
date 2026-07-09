@@ -551,10 +551,15 @@ function handleAiModalAuth(mode) {
 
       <PageMemories
         v-else-if="page === 'memories'"
+        @navigate="goTo"
         @open-auth="openAuth"
       />
 
-      <PageMessage v-else-if="page === 'message'" />
+      <PageMessage
+        v-else-if="page === 'message'"
+        @navigate="goTo"
+        @open-auth="openAuth"
+      />
 
       <PageFaq v-else-if="page === 'faq'" />
 

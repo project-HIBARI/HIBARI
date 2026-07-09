@@ -3,7 +3,7 @@
  * 部品名: ディスコグラフィ — ヒーローエリア
  * 用途: ページ冒頭のコピー・肖像・AIカード・80周年バッジ・今日の一曲を表示する
  */
-import { pageImageUrl, PAGE_HERO_IMAGE } from '../../../lib/pageImages.js'
+import { pageImageUrl, PROFILE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import UiCard from '../../ui/UiCard.vue'
 import RecordChip from '../../ui/RecordChip.vue'
 import TopAiCard from '../top/TopAiCard.vue'
@@ -12,7 +12,7 @@ import { todaysSong } from '../../../utils/hibaru.js'
 
 const stats = HIBARU_DATA.discographyStats
 const today = todaysSong()
-const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
+const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
 
 const emit = defineEmits(['open-detail', 'open-ai'])
 </script>
@@ -36,7 +36,7 @@ const emit = defineEmits(['open-detail', 'open-ai'])
             <span class="disco-hero__stat-num">{{ stats.totalSongs }}</span>
             <span class="disco-hero__stat-label">代表曲</span>
           </li>
-          <li class="disco-hero__stat">
+          <li class="disco-hero__stat disco-hero__stat--period">
             <span class="disco-hero__stat-num">{{ stats.yearStart }}—{{ stats.yearEnd }}</span>
             <span class="disco-hero__stat-label">活動期間</span>
           </li>
@@ -48,12 +48,19 @@ const emit = defineEmits(['open-detail', 'open-ai'])
       </div>
 
       <div class="disco-hero__visual">
-        <img :src="heroImg" alt="美空ひばり" class="disco-hero__photo" />
-        <div class="disco-hero__mic" aria-hidden="true" />
+        <img
+          :src="heroImg"
+          alt=""
+          class="disco-hero__photo"
+          width="360"
+          decoding="async"
+        />
       </div>
 
       <div class="disco-hero__side">
-        <TopAiCard @open-ai="emit('open-ai')" />
+        <div class="disco-hero__ai">
+          <TopAiCard @open-ai="emit('open-ai')" />
+        </div>
         <div class="disco-hero__anniversary" aria-label="芸能生活80周年記念">
           <div class="disco-hero__anniversary-ring">
             <span class="disco-hero__anniversary-num">80</span>
@@ -104,10 +111,13 @@ const emit = defineEmits(['open-detail', 'open-ai'])
 .disco-hero__inner {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr minmax(200px, 280px) auto;
+  grid-template-columns: 1fr 360px auto;
   gap: var(--sp-6);
-  align-items: center;
+  align-items: stretch;
   margin-bottom: var(--sp-5);
+}
+.disco-hero__copy {
+  align-self: center;
 }
 .disco-hero__eyebrow {
   margin: 0 0 10px;
@@ -121,9 +131,10 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   font-family: var(--ff-mincho);
   font-size: clamp(28px, 3.5vw, 38px);
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--site-text);
   line-height: 1.3;
+  white-space: nowrap;
 }
 .disco-hero__desc {
   margin: 0 0 var(--sp-5);
@@ -135,25 +146,35 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  gap: var(--sp-4);
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1.35fr 1fr;
+  gap: var(--sp-3);
+  max-width: 440px;
 }
 .disco-hero__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: var(--sp-3) var(--sp-4);
+  padding: var(--sp-3) var(--sp-2);
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-md);
-  min-width: 80px;
+  min-width: 0;
 }
 .disco-hero__stat-num {
   display: block;
   font-family: var(--ff-latin);
-  font-size: 20px;
+  font-size: clamp(15px, 1.6vw, 20px);
   font-weight: 700;
   color: var(--murasaki-600);
   line-height: 1.2;
+  white-space: nowrap;
+}
+.disco-hero__stat--period .disco-hero__stat-num {
+  font-size: clamp(12px, 1.3vw, 16px);
+  letter-spacing: -0.02em;
 }
 .disco-hero__stat-label {
   display: block;
@@ -166,34 +187,37 @@ const emit = defineEmits(['open-detail', 'open-ai'])
 .disco-hero__visual {
   position: relative;
   display: flex;
+  align-items: flex-end;
   justify-content: center;
+  align-self: stretch;
+  overflow: hidden;
 }
 .disco-hero__photo {
-  width: 100%;
-  max-width: 260px;
-  height: auto;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-  border-radius: var(--site-radius-lg);
-  border: 3px solid rgba(255, 255, 255, 0.9);
-  box-shadow: var(--site-shadow-md);
-  filter: grayscale(0.15);
-}
-.disco-hero__mic {
-  position: absolute;
-  bottom: 10%;
-  left: -6%;
-  width: 40px;
-  height: 100px;
-  background: linear-gradient(180deg, #c8c8c8 0%, #888 40%, #666 100%);
-  border-radius: 20px 20px 6px 6px;
-  box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.12);
+  display: block;
+  width: 360px;
+  height: 100%;
+  object-fit: contain;
+  object-position: left bottom;
+  transform: scale(1.18);
+  transform-origin: left bottom;
+  filter: drop-shadow(var(--site-shadow-md));
 }
 .disco-hero__side {
   display: flex;
-  flex-direction: column;
-  gap: var(--sp-5);
-  align-items: flex-end;
+  flex-direction: row;
+  gap: var(--sp-4);
+  align-items: stretch;
+  align-self: stretch;
+}
+.disco-hero__ai {
+  display: flex;
+  width: 320px;
+  flex-shrink: 0;
+}
+.disco-hero__ai :deep(.top-ai-card) {
+  width: 100%;
+  max-width: none;
+  height: 100%;
 }
 .disco-hero__anniversary {
   display: flex;
@@ -204,6 +228,8 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   border: 1px solid var(--kin-500);
   border-radius: var(--site-radius-md);
   box-shadow: var(--site-shadow);
+  flex-shrink: 0;
+  align-self: flex-end;
 }
 .disco-hero__anniversary-ring {
   width: 56px;
@@ -297,17 +323,33 @@ const emit = defineEmits(['open-detail', 'open-ai'])
     grid-template-columns: 1fr;
     gap: var(--sp-7);
   }
+  .disco-hero__stats {
+    max-width: none;
+  }
   .disco-hero__side {
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: stretch;
     justify-content: center;
   }
+  .disco-hero__anniversary {
+    align-self: flex-start;
+  }
+  .disco-hero__ai {
+    width: 100%;
+    max-width: none;
+  }
   .disco-hero__visual {
     order: -1;
+    min-height: 280px;
   }
-  .disco-hero__mic {
-    display: none;
+  .disco-hero__photo {
+    width: 100%;
+    max-width: 360px;
+    height: 100%;
+    min-height: 280px;
+    object-position: left bottom;
+    transform: scale(1.12);
+    transform-origin: left bottom;
   }
 }
 </style>

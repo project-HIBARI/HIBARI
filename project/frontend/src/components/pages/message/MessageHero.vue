@@ -3,15 +3,16 @@
  * 部品名: 献花ページ — ヒーローセクション
  * 用途: タイトル・説明・献花統計カード（ダミーデータ）
  */
+import { pageImageUrl, PAGE_IMAGES, PAGE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import UiButton from '../../ui/UiButton.vue'
 import UiIco from '../../ui/UiIco.vue'
 
-/** 背景・装飾画像（差し替えはここを更新） */
+/** 背景・装飾画像（差し替えは pageImages.js を参照） */
 const HERO_ASSETS = {
   background: '/images/message/hero-placeholder.jpg',
   lily: '/images/login/yuri-white.png',
-  flowers: '/images/page/flower-image.png',
-  portrait: '/images/page/misorahibari-mike-image.png',
+  flowers: pageImageUrl(PAGE_IMAGES.about),
+  portrait: pageImageUrl(PAGE_HERO_IMAGE),
 }
 
 const statCards = [
