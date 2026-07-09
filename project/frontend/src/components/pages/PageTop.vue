@@ -35,13 +35,12 @@ function onComingSoon(target) {
 <template>
   <div ref="pageRoot" class="page-top">
     <TopHeroSection
-      class="site-reveal is-visible"
       @open-auth="(m) => emit('open-auth', m)"
       @scroll-enjoy="scrollToEnjoy"
     />
 
     <div class="page-top__body">
-      <section class="page-top__columns site-reveal site-reveal--delay-1" aria-label="おすすめと最新情報">
+      <section class="page-top__columns motion-section site-reveal site-reveal--delay-1" aria-label="おすすめと最新情報">
         <TopSubscriptionCard
           @open-detail="emit('open-modal', 'fanclub')"
           @use-feature="(f) => emit('open-auth', f)"

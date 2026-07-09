@@ -21,7 +21,7 @@ const emit = defineEmits(['join'])
       加入手続きは数分で完了し、すぐに会員特典をご利用いただけます。
     </p>
 
-    <button type="button" class="fc-cta__btn site-cta-accent" @click="emit('join')">
+    <button type="button" class="fc-cta__btn motion-cta-shine motion-button site-cta-accent" @click="emit('join')">
       <UiIco name="heart" :size="18" color="#fff" />
       ファンクラブ加入
       <span aria-hidden="true">›</span>

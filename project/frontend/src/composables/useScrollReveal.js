@@ -1,16 +1,33 @@
 /**
  * セクションのスクロール reveal（Intersection Observer）
+ * DOM 描画後に監視を開始し、表示域に入った要素へ is-visible を付与する
  */
-import { onMounted, onUnmounted } from 'vue'
+import { nextTick, onMounted, onUnmounted } from 'vue'
 
-export function useScrollReveal(rootRef, selector = '.site-reveal') {
+const REVEAL_SELECTOR = [
+  '.motion-section',
+  '.site-reveal',
+  '.motion-stagger',
+  '.site-reveal-stagger',
+].join(',')
+
+export function useScrollReveal(rootRef, selector = REVEAL_SELECTOR) {
   let observer = null
 
-  onMounted(() => {
-    const root = rootRef?.value ?? document
-    const targets = root.querySelectorAll?.(selector) ?? document.querySelectorAll(selector)
-    if (!targets.length) return
+  function observeTargets() {
+    const root = rootRef?.value
+    const scope = root ?? document
+    const targets = scope.querySelectorAll?.(selector) ?? document.querySelectorAll(selector)
+    if (!targets.length || !observer) return
 
+    targets.forEach((el) => {
+      if (!el.classList.contains('is-visible')) {
+        observer.observe(el)
+      }
+    })
+  }
+
+  onMounted(() => {
     observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -20,13 +37,22 @@ export function useScrollReveal(rootRef, selector = '.site-reveal') {
           }
         })
       },
-      { root: null, rootMargin: '0px 0px -8% 0px', threshold: 0.12 },
+      {
+        root: null,
+        rootMargin: '0px 0px -4% 0px',
+        threshold: 0.08,
+      },
     )
 
-    targets.forEach((el) => observer.observe(el))
+    nextTick(() => {
+      observeTargets()
+      // 子コンポーネントの描画待ち（1フレーム）
+      requestAnimationFrame(observeTargets)
+    })
   })
 
   onUnmounted(() => {
     observer?.disconnect()
+    observer = null
   })
 }

@@ -24,14 +24,14 @@ const items = HIBARU_DATA.news
   <div ref="pageRoot" class="page-news">
     <PageHead kanji="新" title="ニュース" sub="News · 最新のお知らせ" />
 
-    <p class="page-news__intro site-reveal">
+    <p class="page-news__intro motion-section site-reveal">
       美空ひばり公式ファンサイトからのお知らせ、イベント情報、メディア出演などを掲載しています。
     </p>
 
     <section class="page-news__section site-reveal site-reveal--delay-1" aria-label="ニュース一覧">
       <SectionTitle title="最新情報" sub="Latest" size="md" />
 
-      <ul class="page-news__list site-reveal site-reveal-stagger">
+      <ul class="page-news__list motion-stagger site-reveal-stagger">
         <li
           v-for="(n, i) in items"
           :key="i"
@@ -104,9 +104,9 @@ const items = HIBARU_DATA.news
     border-color 0.45s ease;
 }
 .page-news__item:hover .page-news__card {
-  transform: translateY(-4px);
-  box-shadow: var(--site-shadow-md);
-  border-color: rgba(122, 80, 136, 0.18);
+  transform: translateY(-7px);
+  box-shadow: 0 14px 36px rgba(60, 40, 30, 0.14);
+  border-color: rgba(122, 80, 136, 0.28);
 }
 .page-news__item:hover .page-news__label {
   background: var(--murasaki-700);

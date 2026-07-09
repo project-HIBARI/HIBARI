@@ -13,7 +13,7 @@ defineProps({
 </script>
 
 <template>
-  <header class="page-head" :class="`page-head--${tone}`">
+  <header class="page-head motion-page-title" :class="`page-head--${tone}`">
     <div class="page-head__row">
       <span class="page-head__kanji">{{ kanji }}</span>
       <div>

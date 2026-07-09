@@ -116,7 +116,7 @@ function openDetail(song) {
 <template>
   <div ref="pageRoot" class="page-disco">
     <DiscoHeroSection
-      class="site-reveal is-visible"
+      class="motion-section site-reveal"
       @open-detail="openDetail"
       @open-ai="emit('open-modal', 'ai')"
     />

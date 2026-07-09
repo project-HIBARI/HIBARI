@@ -16,7 +16,7 @@ useScrollReveal(pageRoot)
 
 <template>
   <div ref="pageRoot" class="page-message">
-    <MessageHero class="site-reveal is-visible site-reveal--slow" />
+    <MessageHero class="motion-section site-reveal site-reveal--slow" />
     <MessageAnniversaryCards class="site-reveal site-reveal--slow site-reveal--delay-1" />
     <MessageOfferingBlock class="site-reveal site-reveal--slow site-reveal--delay-2" />
     <MessageWallGrid class="site-reveal site-reveal--slow site-reveal--delay-3" />

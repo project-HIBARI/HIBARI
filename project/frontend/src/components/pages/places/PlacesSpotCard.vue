@@ -36,7 +36,7 @@ function onFavoriteClick(e) {
 
 <template>
   <article class="places-spot-card motion-card">
-    <div class="places-spot-card__photo">
+    <div class="places-spot-card__photo motion-image">
       <Photo :w="320" :h="160" :caption="spot.name" variant="sepia" class="places-spot-card__ph" />
       <span class="places-spot-card__cat">{{ categoryLabel }}</span>
       <span v-if="spot.visitable" class="places-spot-card__badge places-spot-card__badge--open">見学可</span>
@@ -64,7 +64,7 @@ function onFavoriteClick(e) {
       </div>
 
       <div class="places-spot-card__actions">
-        <UiButton variant="outline" size="sm" @click="expanded = !expanded">
+        <UiButton variant="outline" size="sm" class="motion-button" @click="expanded = !expanded">
           {{ expanded ? '閉じる' : '詳細を見る' }}
         </UiButton>
         <button type="button" class="places-spot-card__share" aria-label="共有（準備中）" title="共有機能は準備中です">

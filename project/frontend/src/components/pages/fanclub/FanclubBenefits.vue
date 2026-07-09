@@ -33,7 +33,7 @@ function onUse(b) {
 </script>
 
 <template>
-  <ul class="fc-benefits site-reveal site-reveal-stagger">
+  <ul class="fc-benefits motion-stagger site-reveal-stagger">
     <li
       v-for="(b, i) in benefits"
       :key="`${b.feature}-${i}`"

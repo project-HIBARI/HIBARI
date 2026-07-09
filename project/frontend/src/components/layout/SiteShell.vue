@@ -483,6 +483,7 @@ function handleAiModalAuth(mode) {
       :class="[
         'main-pad',
         'site-main',
+        'motion-page-enter',
         'site-page-enter',
         {
           'main-pad--flush': page === 'login' || page === 'register',

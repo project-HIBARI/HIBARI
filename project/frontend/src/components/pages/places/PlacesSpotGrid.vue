@@ -16,14 +16,14 @@ const emit = defineEmits(['toggle-favorite', 'select'])
 
 <template>
   <!-- スポット一覧グリッド -->
-  <section class="places-grid site-reveal" aria-label="スポット一覧">
+  <section class="places-grid" aria-label="スポット一覧">
     <SectionTitle title="スポット一覧" sub="Spots" size="md" />
 
     <p v-if="spots.length === 0" class="places-grid__empty" role="status">
       条件に一致するスポットが見つかりませんでした。フィルタを変更してお試しください。
     </p>
 
-    <div v-else class="places-grid__list site-reveal-stagger">
+    <div v-else class="places-grid__list motion-stagger site-reveal-stagger">
       <PlacesSpotCard
         v-for="(spot, i) in spots"
         :key="spot.id"

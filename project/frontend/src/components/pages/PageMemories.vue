@@ -122,7 +122,7 @@ function like(id) {
 
 <template>
   <div ref="pageRoot" class="page-memories">
-    <PageHead kanji="憶" title="思い出" sub="Memories · 証言と愛唱 · ファンの集い" class="site-reveal is-visible" />
+    <PageHead kanji="憶" title="思い出" sub="Memories · 証言と愛唱 · ファンの集い" />
 
     <TabBar
       :dark="false"

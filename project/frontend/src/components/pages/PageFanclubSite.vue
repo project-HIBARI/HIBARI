@@ -102,12 +102,13 @@ function useFeature(feature) {
         <button type="button" class="page-fc-site__login-link" @click="emit('open-auth', 'login')">ログイン</button>
       </p>
 
-      <section class="page-fc-site__perks site-reveal site-reveal--delay-1">
-        <ul class="page-fc-site__perk-grid site-reveal site-reveal-stagger">
+      <section class="page-fc-site__perks">
+        <ul class="page-fc-site__perk-grid motion-stagger site-reveal-stagger">
           <li
             v-for="(p, i) in perks"
             :key="p.label"
             class="page-fc-site__perk stagger-item motion-card"
+            :class="{ 'page-fc-site__perk--highlight': p.feature === 'ai' || p.feature === 'board' }"
             :style="{ '--stagger-i': i }"
           >
             <button type="button" class="page-fc-site__perk-btn" @click="useFeature(p.feature)">

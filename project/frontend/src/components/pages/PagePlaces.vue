@@ -111,7 +111,7 @@ function selectSpot(spot) {
 
 <template>
   <div ref="pageRoot" class="page-places">
-    <PlacesHeroSection class="site-reveal is-visible" @open-ai="emit('open-modal', 'ai')" />
+    <PlacesHeroSection class="motion-section site-reveal" @open-ai="emit('open-modal', 'ai')" />
 
     <div class="page-places__map-layout site-reveal site-reveal--delay-1">
       <PlacesMapPanel

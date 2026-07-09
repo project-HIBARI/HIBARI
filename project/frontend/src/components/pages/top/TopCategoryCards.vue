@@ -66,7 +66,7 @@ function onClick(card) {
 </script>
 
 <template>
-  <section class="top-categories site-reveal site-reveal-stagger site-reveal--delay-2" aria-label="コンテンツ一覧">
+  <section class="top-categories motion-stagger site-reveal-stagger motion-section--delay-2" aria-label="コンテンツ一覧">
     <button
       v-for="(c, i) in cards"
       :key="c.id"
