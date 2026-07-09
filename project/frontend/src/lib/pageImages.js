@@ -20,6 +20,12 @@ export const PROFILE_HERO_IMAGE = 'misorahibari-profile-hero.png'
 /** 歩みページサイドバー肖像 */
 export const PROFILE_SIDEBAR_IMAGE = 'misorahibari-profile-sidebar.png'
 
+/** イベント別ヒーロー画像（先行予約ページ） */
+export const EVENT_HERO_IMAGES = {
+  b3: 'event-b3-shioyazaki-hero.png',
+  b4: 'event-b4-noge-hero.png',
+}
+
 /** @param {string} filename */
 export function pageImageUrl(filename) {
   return `/images/page/${filename}`

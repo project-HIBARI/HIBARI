@@ -8,11 +8,11 @@ import { HIBARU_DATA } from '../../data/hibaruData.js'
 import { useMemberAccess } from '../../composables/useMemberAccess.js'
 import { PERMISSION } from '../../constants/membership.js'
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'preorder'])
 
 const { canUse, isPremium } = useMemberAccess()
 
-/** ツアー系イベントの料金（デモ） */
+/** イベント別の料金（デモ）。設定がないイベントは料金非表示 */
 const tourPricing = {
   b3: { regular: '¥8,800', member: '¥7,500', premium: '¥6,600' },
 }
@@ -25,7 +25,11 @@ function getFee(id) {
 }
 
 function canPreorder(ev) {
-  return ev.id === 'b3' && canUse(PERMISSION.TICKET_PREORDER)
+  return ev.type !== 'broadcast' && canUse(PERMISSION.TICKET_PREORDER)
+}
+
+function goPreorder(ev) {
+  emit('preorder', ev.id)
 }
 </script>
 
@@ -44,7 +48,7 @@ function canPreorder(ev) {
           <span class="events-modal__fee-regular">（一般 {{ tourPricing[ev.id].regular }}）</span>
         </p>
         <div v-if="canPreorder(ev)" class="events-modal__actions">
-          <UiButton variant="primary" size="sm">先行予約する</UiButton>
+          <UiButton variant="primary" size="sm" @click="goPreorder(ev)">先行予約する</UiButton>
           <span v-if="isPremium" class="events-modal__priority">優先枠あり</span>
         </div>
       </li>

@@ -315,10 +315,10 @@ export const HIBARU_DATA = {
 
   /** ホームページ「今後の放送・イベント」表示用（テレビ放映 + イベント） */
   homeSchedule: [
-    { id: 'b1', date: '6/13 土', time: '19:00〜', title: 'NHK 総合 Eテレ「美空ひばり 世界の歌講座」', note: '再放送 · 第3回「川の流れのように」特集' },
-    { id: 'b2', date: '6/18 水', time: '20:30〜', title: 'NHK BS プレミアム「美空ひばり 不死鳥コンサート」', note: '1988年 東京ドーム公演より' },
-    { id: 'b3', date: '5/17 日', time: '10:00〜', title: 'みだれ髪ゆかりの地ツアー', note: '福島県いわき市 塩屋崎灯台 · 定員30名' },
-    { id: 'b4', date: '5/29 木', time: '14:00〜', title: '横浜・野毛 銅像前ファン交流会', note: '誕生日記念 · 自由参加' },
+    { id: 'b1', type: 'broadcast', date: '6/13 土', time: '19:00〜', title: 'NHK 総合 Eテレ「美空ひばり 世界の歌講座」', note: '再放送 · 第3回「川の流れのように」特集' },
+    { id: 'b2', type: 'broadcast', date: '6/18 水', time: '20:30〜', title: 'NHK BS プレミアム「美空ひばり 不死鳥コンサート」', note: '1988年 東京ドーム公演より' },
+    { id: 'b3', type: 'event', date: '5/17 日', time: '10:00〜', title: 'みだれ髪ゆかりの地ツアー', note: '福島県いわき市 塩屋崎灯台 · 定員30名' },
+    { id: 'b4', type: 'event', date: '5/29 木', time: '14:00〜', title: '横浜・野毛 銅像前ファン交流会', note: '誕生日記念 · 自由参加' },
   ],
 
   messages: [

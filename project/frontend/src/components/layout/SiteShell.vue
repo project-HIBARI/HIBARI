@@ -52,6 +52,8 @@ import PageFanclub from '../pages/PageFanclub.vue'
 
 import PageFanclubSite from '../pages/PageFanclubSite.vue'
 
+import PageEventPreorder from '../pages/PageEventPreorder.vue'
+
 import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
 
 import { useAuth } from '../../composables/useAuth.js'
@@ -99,6 +101,9 @@ const postLoginRedirect = ref(null)
 
 /** ファンクラブ会員サイト内の表示セクション */
 const fanclubSection = ref('overview')
+
+/** 先行予約ページで対象にしているイベント ID */
+const preorderEventId = ref(null)
 
 const auth = useAuth()
 
@@ -187,6 +192,13 @@ function openModal(kind) {
 }
 
 
+
+/** イベント一覧から先行予約ページへ遷移 */
+function goPreorder(eventId) {
+  preorderEventId.value = eventId
+  modal.value = null
+  goTo('event-preorder')
+}
 
 function openMemberFeature(mode) {
 
@@ -572,6 +584,12 @@ function handleAiModalAuth(mode) {
 
       />
 
+      <PageEventPreorder
+        v-else-if="page === 'event-preorder'"
+        :event-id="preorderEventId"
+        @back="goTo(isLoggedIn ? 'fanclub-site' : 'fanclub')"
+      />
+
     </main>
 
 
@@ -600,7 +618,7 @@ function handleAiModalAuth(mode) {
 
     <NewsListModal v-if="modal === 'news'" @close="modal = null" />
 
-    <EventsListModal v-if="modal === 'events'" @close="modal = null" />
+    <EventsListModal v-if="modal === 'events'" @close="modal = null" @preorder="goPreorder" />
 
     <GalleryModal v-if="modal === 'gallery'" @close="modal = null" />
 

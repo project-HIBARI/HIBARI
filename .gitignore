@@ -1,1 +1,5 @@
 .env
+.venv
+.Claude
+__pycache__/
+*.pyc
