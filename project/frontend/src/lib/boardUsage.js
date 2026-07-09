@@ -1,30 +1,18 @@
 /**
- * 掲示板投稿の月間利用回数（localStorage）
+ * 掲示板投稿 — 利用回数（バックエンド API + セッション Cookie）
  */
-function monthKey() {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+import { fetchUsage } from '../api/usage.js'
+
+const FEATURE = 'board-post'
+
+let statusRef = null
+
+export function bindBoardUsageRef(ref) {
+  statusRef = ref
 }
 
-function storageKey(accountId) {
-  return `hibari-board-usage-${accountId || 'guest'}-${monthKey()}`
-}
-
-export function getBoardUsageCount(accountId) {
-  if (typeof window === 'undefined') return 0
-  try {
-    return Number(localStorage.getItem(storageKey(accountId)) || 0)
-  } catch {
-    return 0
-  }
-}
-
-export function incrementBoardUsage(accountId) {
-  const next = getBoardUsageCount(accountId) + 1
-  try {
-    localStorage.setItem(storageKey(accountId), String(next))
-  } catch {
-    /* ignore */
-  }
-  return next
+export async function refreshBoardUsageStatus() {
+  const status = await fetchUsage(FEATURE)
+  if (statusRef) statusRef.value = status
+  return status
 }

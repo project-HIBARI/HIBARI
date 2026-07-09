@@ -201,6 +201,11 @@ function openModal(kind) {
 
 function openMemberFeature(mode) {
 
+  if (mode === 'ai') {
+    openModal('ai')
+    return
+  }
+
   const features = {
 
     news: { page: 'news' },

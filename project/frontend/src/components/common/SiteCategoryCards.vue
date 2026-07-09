@@ -9,6 +9,7 @@ defineProps({
   cards: { type: Array, required: true },
   ariaLabel: { type: String, default: 'コンテンツ一覧' },
   motion: { type: Boolean, default: false },
+  homeMotion: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['navigate', 'coming-soon'])
@@ -26,8 +27,10 @@ function onClick(card) {
   <section
     class="site-categories"
     :class="{
-      'motion-stagger site-reveal-stagger': motion,
-      'motion-section--delay-2': motion,
+      'top-categories': homeMotion,
+      'home-motion-stagger': homeMotion,
+      'motion-stagger site-reveal-stagger': motion && !homeMotion,
+      'motion-section--delay-2': motion && !homeMotion,
     }"
     :aria-label="ariaLabel"
   >
@@ -36,17 +39,31 @@ function onClick(card) {
       :key="c.id"
       type="button"
       class="site-categories__card"
-      :class="{ 'stagger-item motion-card': motion }"
-      :style="motion ? { '--stagger-i': i } : undefined"
+      :class="{
+        'top-categories__card': homeMotion,
+        'home-category-card': homeMotion,
+        'home-motion-stagger__item': homeMotion,
+        'stagger-item motion-card': motion && !homeMotion,
+      }"
+      :style="motion && !homeMotion ? { '--stagger-i': i } : undefined"
       :aria-label="c.title"
       @click="onClick(c)"
     >
-      <div class="site-categories__body">
-        <h3 class="site-categories__title">{{ c.title }}</h3>
-        <p class="site-categories__desc">{{ c.desc }}</p>
-        <span class="site-categories__arrow">›</span>
+      <div class="site-categories__body" :class="{ 'top-categories__body': homeMotion }">
+        <h3 class="site-categories__title" :class="{ 'top-categories__title': homeMotion }">{{ c.title }}</h3>
+        <p class="site-categories__desc" :class="{ 'top-categories__desc': homeMotion }">{{ c.desc }}</p>
+        <span
+          class="site-categories__arrow"
+          :class="{ 'top-categories__arrow': homeMotion }"
+        >›</span>
       </div>
-      <div class="site-categories__visual">
+      <div
+        class="site-categories__visual"
+        :class="{
+          'top-categories__visual': homeMotion,
+          'home-category-card__visual': homeMotion,
+        }"
+      >
         <PageImageCard
           :image="c.image"
           :alt="c.alt"
@@ -84,12 +101,12 @@ function onClick(card) {
     box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
     border-color 0.45s ease;
 }
-.site-categories__card:hover {
+.site-categories__card:not(.home-category-card):hover {
   transform: translateY(-4px);
   box-shadow: var(--site-shadow-md);
   border-color: rgba(122, 80, 136, 0.22);
 }
-.site-categories__card:hover .site-categories__arrow {
+.site-categories__card:not(.home-category-card):hover .site-categories__arrow {
   transform: translateX(3px);
   color: var(--murasaki-700);
 }
@@ -110,6 +127,14 @@ function onClick(card) {
   align-items: stretch;
   background: var(--site-surface-muted);
   overflow: hidden;
+}
+.home-category-card:hover .site-categories__visual :deep(.page-image-card__img),
+.home-category-card:hover .site-categories__visual :deep(img) {
+  transform: scale(1.05);
+}
+.site-categories__visual :deep(.page-image-card__img),
+.site-categories__visual :deep(img) {
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .site-categories__title {
   margin: 0 0 6px;

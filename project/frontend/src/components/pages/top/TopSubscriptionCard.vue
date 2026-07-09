@@ -67,7 +67,7 @@ const perkStates = computed(() =>
       </li>
     </ul>
 
-    <UiButton variant="gold" size="md" class="top-subscription__btn" @click="emit('open-detail')">
+    <UiButton variant="gold" size="md" class="top-subscription__btn home-cta-btn home-cta-btn--gold" @click="emit('open-detail')">
       サービスの詳細を見る ›
     </UiButton>
   </UiCard>
