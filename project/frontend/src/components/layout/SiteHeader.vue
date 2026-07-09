@@ -6,13 +6,17 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import UiIco from '../ui/UiIco.vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
+import HeaderAccountMenu from './HeaderAccountMenu.vue'
 
 defineProps({
   items: { type: Array, required: true },
   page: { type: String, required: true },
+  isLoggedIn: { type: Boolean, default: false },
+  userName: { type: String, default: '' },
+  membership: { type: String, default: 'general' },
 })
 
-const emit = defineEmits(['logo', 'navigate', 'open-drawer', 'open-auth', 'open-search'])
+const emit = defineEmits(['logo', 'navigate', 'open-drawer', 'open-auth', 'open-search', 'open-account', 'logout', 'go-fanclub'])
 
 const logoSrc = '/images/misorahibari-logo-cropped.png'
 const scrolled = ref(false)
@@ -73,28 +77,22 @@ onUnmounted(() => {
           <button
             type="button"
             class="site-header__search"
-            aria-label="検索（準備中）"
+            aria-label="サイト内検索"
             @click="emit('open-search')"
           >
             <UiIco name="search" :size="20" color="var(--site-text)" />
           </button>
 
-          <div class="site-header__auth">
-            <button
-              type="button"
-              class="site-header__btn site-header__btn--login"
-              @click="emit('open-auth', 'login')"
-            >
-              ログイン
-            </button>
-            <button
-              type="button"
-              class="site-header__btn site-header__btn--register site-cta-accent"
-              @click="emit('open-auth', 'register')"
-            >
-              ファンクラブ加入
-            </button>
-          </div>
+          <HeaderAccountMenu
+            class="site-header__auth"
+            :is-logged-in="isLoggedIn"
+            :user-name="userName"
+            :membership="membership"
+            @open-auth="(mode) => emit('open-auth', mode)"
+            @open-account="emit('open-account')"
+            @logout="emit('logout')"
+            @go-fanclub="emit('go-fanclub')"
+          />
         </div>
 
         <TextSizeControl tone="ink" variant="header" class="site-header__text-size" />

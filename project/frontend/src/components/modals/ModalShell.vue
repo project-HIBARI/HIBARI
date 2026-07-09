@@ -7,6 +7,7 @@ import { onMounted, onUnmounted } from 'vue'
 
 defineProps({
   title: { type: String, required: true },
+  wide: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['close'])
@@ -27,7 +28,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
     class="modal-shell"
   >
     <div class="modal-shell__overlay" @click="emit('close')" />
-    <div class="modal-shell__panel">
+    <div class="modal-shell__panel" :class="{ 'modal-shell__panel--wide': wide }">
       <button
         type="button"
         class="modal-shell__close"
@@ -71,6 +72,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   z-index: 1;
   box-shadow: var(--site-shadow-md);
   color: var(--site-text);
+}
+.modal-shell__panel--wide {
+  max-width: 760px;
 }
 .modal-shell__close {
   position: absolute;

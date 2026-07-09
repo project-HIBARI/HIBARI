@@ -1,18 +1,25 @@
 /**
  * 掲示板投稿 — 利用回数（バックエンド API + セッション Cookie）
+ * モジュール共有 state で複数コンポーネント間の不整合を防ぐ
  */
+import { ref } from 'vue'
 import { fetchUsage } from '../api/usage.js'
 
 const FEATURE = 'board-post'
 
-let statusRef = null
-
-export function bindBoardUsageRef(ref) {
-  statusRef = ref
-}
+export const boardUsageStatus = ref(null)
+export const boardUsageLoading = ref(false)
 
 export async function refreshBoardUsageStatus() {
-  const status = await fetchUsage(FEATURE)
-  if (statusRef) statusRef.value = status
-  return status
+  boardUsageLoading.value = true
+  try {
+    const status = await fetchUsage(FEATURE)
+    boardUsageStatus.value = status
+    return status
+  } catch (err) {
+    boardUsageStatus.value = null
+    throw err
+  } finally {
+    boardUsageLoading.value = false
+  }
 }

@@ -172,7 +172,11 @@ function like(id) {
       />
     </div>
 
-    <MemoriesEventsGrid v-else @need-auth="(m) => emit('open-auth', m)" />
+    <MemoriesEventsGrid
+      v-else
+      @need-auth="(m) => emit('open-auth', m)"
+      @navigate="(p) => emit('navigate', p)"
+    />
 
     <MemoriesRelatedCards
       @navigate="(id) => emit('navigate', id)"

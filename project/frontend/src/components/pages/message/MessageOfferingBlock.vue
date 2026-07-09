@@ -1,11 +1,13 @@
 <script setup>
 /**
  * 部品名: 献花 — 花の選択とフォーム
- * 用途: 献花ページで花の選択とメッセージ入力フォームを表示する
  */
 import { ref } from 'vue'
 import UiButton from '../../ui/UiButton.vue'
 import UiIco from '../../ui/UiIco.vue'
+import { submitFlowerOffering } from '../../../api/flowers.js'
+
+const emit = defineEmits(['submitted'])
 
 const flowers = ['白百合', '紅薔薇', '白菊', 'かすみ草', '桔梗', '小手毬']
 const flowerEmoji = ['🌸', '🌹', '🌼', '🌿', '🔔', '🍃']
@@ -13,6 +15,9 @@ const flowerEmoji = ['🌸', '🌹', '🌼', '🌿', '🔔', '🍃']
 const selFlower = ref(0)
 const particles = ref([])
 const formData = ref({ name: '', location: '', body: '' })
+const submitting = ref(false)
+const error = ref('')
+const success = ref(false)
 
 function pickFlower(i) {
   selFlower.value = i
@@ -27,6 +32,31 @@ function pickFlower(i) {
     particles.value = []
   }, 1600)
 }
+
+async function submitOffering() {
+  if (submitting.value) return
+  error.value = ''
+  if (!formData.value.body.trim()) {
+    error.value = 'メッセージを入力してください。'
+    return
+  }
+  submitting.value = true
+  try {
+    await submitFlowerOffering({
+      name: formData.value.name.trim() || '匿名',
+      location: formData.value.location.trim() || null,
+      content: formData.value.body.trim(),
+      flower_type: flowers[selFlower.value],
+    })
+    success.value = true
+    formData.value = { name: '', location: '', body: '' }
+    emit('submitted')
+  } catch (err) {
+    error.value = err.message || '献花の送信に失敗しました。'
+  } finally {
+    submitting.value = false
+  }
+}
 </script>
 
 <template>
@@ -40,36 +70,40 @@ function pickFlower(i) {
       {{ p.emoji }}
     </div>
     <h3 class="msg-offer__title">献花する</h3>
-    <p class="msg-offer__lead">お花を選び、短いメッセージをお書きください。</p>
-    <div class="msg-offer__flowers">
-      <button
-        v-for="(f, i) in flowers"
-        :key="f"
-        type="button"
-        class="msg-offer__flower"
-        :class="{ 'msg-offer__flower--active': selFlower === i }"
-        :aria-pressed="selFlower === i"
-        :aria-label="f + 'を選択'"
-        @click="pickFlower(i)"
-      >
-        <span class="msg-offer__emoji">{{ flowerEmoji[i] }}</span>
-        {{ f }}
-      </button>
-    </div>
-    <div class="msg-offer__row">
-      <input v-model="formData.name" class="msg-offer__input" placeholder="お名前（匿名可）" aria-label="お名前" />
-      <input v-model="formData.location" class="msg-offer__input" placeholder="お住まい" aria-label="お住まい" />
-    </div>
-    <textarea
-      v-model="formData.body"
-      rows="4"
-      class="msg-offer__input msg-offer__textarea"
-      placeholder="ひばりさんへ、一言——"
-      aria-label="メッセージ"
-    />
-    <UiButton variant="primary" size="md" aria-label="献花する">
-      献花する <UiIco name="flower" :size="14" color="#fff" />
-    </UiButton>
+    <p v-if="success" class="msg-offer__success">献花ありがとうございます。メッセージを記録しました。</p>
+    <template v-else>
+      <p class="msg-offer__lead">お花を選び、短いメッセージをお書きください。</p>
+      <div class="msg-offer__flowers">
+        <button
+          v-for="(f, i) in flowers"
+          :key="f"
+          type="button"
+          class="msg-offer__flower"
+          :class="{ 'msg-offer__flower--active': selFlower === i }"
+          :aria-pressed="selFlower === i"
+          :aria-label="f + 'を選択'"
+          @click="pickFlower(i)"
+        >
+          <span class="msg-offer__emoji">{{ flowerEmoji[i] }}</span>
+          {{ f }}
+        </button>
+      </div>
+      <div class="msg-offer__row">
+        <input v-model="formData.name" class="msg-offer__input" placeholder="お名前（匿名可）" aria-label="お名前" />
+        <input v-model="formData.location" class="msg-offer__input" placeholder="お住まい" aria-label="お住まい" />
+      </div>
+      <textarea
+        v-model="formData.body"
+        rows="4"
+        class="msg-offer__input msg-offer__textarea"
+        placeholder="ひばりさんへ、一言——"
+        aria-label="メッセージ"
+      />
+      <p v-if="error" class="msg-offer__error">{{ error }}</p>
+      <UiButton variant="primary" size="md" aria-label="献花する" :disabled="submitting" @click="submitOffering">
+        {{ submitting ? '送信中…' : '献花する' }} <UiIco name="flower" :size="14" color="#fff" />
+      </UiButton>
+    </template>
   </section>
 </template>
 
@@ -99,6 +133,17 @@ function pickFlower(i) {
   font-size: 13px;
   color: var(--site-text-muted);
   margin: 0 0 var(--sp-5);
+}
+.msg-offer__success {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--murasaki-700);
+}
+.msg-offer__error {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--beni-600);
 }
 .msg-offer__flowers {
   display: grid;

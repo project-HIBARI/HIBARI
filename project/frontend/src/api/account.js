@@ -26,3 +26,25 @@ export function changeAccountPassword(payload) {
     body: JSON.stringify(payload),
   })
 }
+
+/**
+ * 支払い方法の更新
+ * @param {{ payment_method: string, payment_details?: object }} payload
+ */
+export function updateAccountPayment(payload) {
+  return apiRequest('/api/account/payment', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+/**
+ * 会員プラン変更
+ * @param {{ is_premium: boolean }} payload
+ */
+export function updateAccountMembership(payload) {
+  return apiRequest('/api/account/membership', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}

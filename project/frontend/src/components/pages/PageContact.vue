@@ -3,6 +3,7 @@
  * ページ: お問い合わせ
  */
 import { reactive, ref } from 'vue'
+import { submitContact } from '../../api/contact.js'
 
 const categoryOptions = [
   'サイトについて',
@@ -31,6 +32,8 @@ const errors = reactive({
 })
 
 const submitted = ref(false)
+const submitting = ref(false)
+const submitError = ref('')
 
 function validate() {
   errors.name = ''
@@ -76,12 +79,28 @@ function validate() {
 function onSubmit(event) {
   event.preventDefault()
   submitted.value = false
+  submitError.value = ''
 
   if (!validate()) return
 
-  // TODO: 確認画面・送信APIは未実装。現時点ではバリデーション通過のみ。
-  submitted.value = true
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  submitting.value = true
+  submitContact({
+    name: form.name.trim(),
+    email: form.email.trim(),
+    category: form.category,
+    subject: form.subject.trim(),
+    body: form.body.trim(),
+  })
+    .then(() => {
+      submitted.value = true
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    })
+    .catch((err) => {
+      submitError.value = err.message || '送信に失敗しました。'
+    })
+    .finally(() => {
+      submitting.value = false
+    })
 }
 </script>
 
@@ -114,8 +133,9 @@ function onSubmit(event) {
       </header>
 
       <p v-if="submitted" class="page-contact__notice" role="status">
-        入力内容を確認しました。確認画面・送信機能は現在準備中です。
+        お問い合わせを受け付けました。内容を確認のうえ、担当者よりご連絡いたします。
       </p>
+      <p v-if="submitError" class="page-contact__error-banner" role="alert">{{ submitError }}</p>
 
       <form class="page-contact__card" novalidate @submit="onSubmit">
         <div class="page-contact__field">
@@ -203,7 +223,9 @@ function onSubmit(event) {
         </p>
 
         <div class="page-contact__actions">
-          <button type="submit" class="page-contact__submit">確認画面へ</button>
+          <button type="submit" class="page-contact__submit" :disabled="submitting">
+            {{ submitting ? '送信中…' : '送信する' }}
+          </button>
         </div>
       </form>
     </div>
@@ -335,6 +357,16 @@ function onSubmit(event) {
   color: var(--murasaki-700);
   background: var(--murasaki-100);
   border: 1px solid var(--murasaki-300);
+  border-radius: var(--site-radius-sm);
+}
+
+.page-contact__error-banner {
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--beni-600);
+  background: #fff5f4;
+  border: 1px solid var(--beni-300);
   border-radius: var(--site-radius-sm);
 }
 

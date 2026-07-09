@@ -32,6 +32,19 @@ function onFavoriteClick(e) {
   e.stopPropagation()
   emit('toggle-favorite', props.spot.id)
 }
+
+function onShareClick(e) {
+  e.stopPropagation()
+  const text = `${props.spot.name} — ${props.spot.area}`
+  const url = window.location.href
+  if (navigator.share) {
+    navigator.share({ title: props.spot.name, text, url }).catch(() => {})
+    return
+  }
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(`${text}\n${url}`)
+  }
+}
 </script>
 
 <template>
@@ -67,7 +80,7 @@ function onFavoriteClick(e) {
         <UiButton variant="outline" size="sm" class="motion-button" @click="expanded = !expanded">
           {{ expanded ? '閉じる' : '詳細を見る' }}
         </UiButton>
-        <button type="button" class="places-spot-card__share" aria-label="共有（準備中）" title="共有機能は準備中です">
+        <button type="button" class="places-spot-card__share" aria-label="共有" title="共有する" @click="onShareClick">
           <span class="places-spot-card__share-icon" aria-hidden="true">↗</span>
         </button>
         <button

@@ -1,17 +1,32 @@
 /**
  * 掲示板投稿 — 利用回数・権限チェック（API 連携）
  */
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useMemberAccess } from './useMemberAccess.js'
 import { GENERAL_BOARD_POST_MONTHLY_LIMIT, PERMISSION } from '../constants/membership.js'
-import { bindBoardUsageRef, refreshBoardUsageStatus } from '../lib/boardUsage.js'
+import {
+  boardUsageLoading,
+  boardUsageStatus,
+  refreshBoardUsageStatus,
+} from '../lib/boardUsage.js'
+
+let refreshScheduled = false
+
+function ensureUsageLoaded() {
+  if (refreshScheduled || boardUsageLoading.value) return
+  refreshScheduled = true
+  refreshBoardUsageStatus()
+    .catch(() => {})
+    .finally(() => {
+      refreshScheduled = false
+    })
+}
 
 export function useBoardPost() {
   const { canUse, isLoggedIn, isPremium } = useMemberAccess()
-  const usageStatus = ref(null)
-  const loading = ref(false)
 
-  bindBoardUsageRef(usageStatus)
+  const usageStatus = boardUsageStatus
+  const loading = boardUsageLoading
 
   const isGuest = computed(() => usageStatus.value?.is_guest ?? !isLoggedIn.value)
 
@@ -29,13 +44,17 @@ export function useBoardPost() {
 
   const canPostNow = computed(() => {
     if (usageStatus.value != null) return Boolean(usageStatus.value.can_use)
-    if (isLoggedIn.value && !canUse(PERMISSION.BOARD_POST)) return false
-    return false
+    if (loading.value) return !isLoggedIn.value
+    if (!isLoggedIn.value) return true
+    return canUse(PERMISSION.BOARD_POST)
   })
 
   const guestResetLabel = computed(() => usageStatus.value?.reset_label ?? '')
 
   const limitMessage = computed(() => {
+    if (loading.value && usageStatus.value == null) {
+      return '利用状況を確認しています…'
+    }
     if (usageStatus.value?.is_guest) {
       if (canPostNow.value) {
         return `非会員: あと ${remainingPosts.value} 回投稿できます（10回まで・上限到達後1週間で解除）`
@@ -53,12 +72,7 @@ export function useBoardPost() {
   })
 
   async function refreshUsage() {
-    loading.value = true
-    try {
-      await refreshBoardUsageStatus()
-    } finally {
-      loading.value = false
-    }
+    await refreshBoardUsageStatus()
   }
 
   async function recordPost() {
@@ -66,7 +80,7 @@ export function useBoardPost() {
   }
 
   onMounted(() => {
-    refreshUsage()
+    ensureUsageLoaded()
   })
 
   return {
