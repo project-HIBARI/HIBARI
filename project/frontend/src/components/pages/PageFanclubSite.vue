@@ -1,9 +1,8 @@
 <script setup>
 /**
  * ページ: ファンクラブ会員サイト
- * 構成: トップ / 会員掲示板 / AIチャット / 特典一覧（セクション切替）
  */
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import PageHead from '../ui/PageHead.vue'
 import SectionTitle from '../ui/SectionTitle.vue'
 import TabBar from '../ui/TabBar.vue'
@@ -11,8 +10,7 @@ import FanclubAiChat from './fanclub/FanclubAiChat.vue'
 import FanclubBoard from './fanclub/FanclubBoard.vue'
 import FanclubBenefits from './fanclub/FanclubBenefits.vue'
 import { useMemberAccess } from '../../composables/useMemberAccess.js'
-import { MEMBERSHIP_LABELS } from '../../constants/membership.js'
-import { useScrollReveal } from '../../composables/useScrollReveal.js'
+import { MEMBERSHIP_LABELS, PERMISSION } from '../../constants/membership.js'
 
 const props = defineProps({
   activeSection: { type: String, default: 'overview' },
@@ -20,12 +18,10 @@ const props = defineProps({
 
 const emit = defineEmits(['navigate', 'open-modal', 'open-auth', 'section-change'])
 
-const { isLoggedIn, membership } = useMemberAccess()
+const { canUse, isLoggedIn, membership, isPremium } = useMemberAccess()
 
 const section = ref(props.activeSection)
 const pageRoot = ref(null)
-
-useScrollReveal(pageRoot)
 
 watch(
   () => props.activeSection,
@@ -42,11 +38,12 @@ const sectionTabs = [
 ]
 
 const perks = [
-  { feature: 'disco', icon: '▶', label: '限定動画', desc: '未公開映像をいつでも視聴' },
-  { feature: 'gallery', icon: '♪', label: 'ハイレゾ音源', desc: '高音質で楽曲をお楽しみ' },
-  { feature: 'events', icon: '★', label: '先行予約', desc: 'イベント・コンサート優先申込' },
   { feature: 'news', icon: '✦', label: '会員誌', desc: 'デジタル版を毎月配信' },
+  { feature: 'events', icon: '★', label: '先行予約', desc: 'イベント・コンサート優先申込' },
   { feature: 'board', icon: '💬', label: '会員掲示板', desc: '月10回まで投稿（プレミアム無制限）' },
+  { feature: 'ai', icon: '♪', label: 'AIひばり対話', desc: '月10回（プレミアム無制限）' },
+  { feature: 'disco', icon: '▶', label: '限定動画', desc: '未公開映像をいつでも視聴', premium: true },
+  { feature: 'gallery', icon: '✧', label: '限定コンテンツ', desc: 'ハイレゾ音源・会員ギャラリー', premium: true },
 ]
 
 function setSection(id) {
@@ -59,21 +56,68 @@ function onNeedLogin() {
   emit('open-auth', 'login')
 }
 
-function useFeature(feature) {
-  if (feature === 'news') {
-    emit('navigate', 'news')
-    return
+function requireAccess(permission, premiumOnly = false) {
+  if (!isLoggedIn.value) {
+    emit('open-auth', 'login')
+    return false
   }
-  if (feature === 'board' || feature === 'memories') {
-    setSection('board')
-    return
+  if (premiumOnly && !isPremium.value) {
+    emit('open-auth', 'register-premium')
+    return false
   }
-  if (feature === 'ai') {
-    setSection('chat')
-    return
+  if (permission && !canUse(permission)) {
+    emit('open-auth', premiumOnly ? 'register-premium' : 'register')
+    return false
   }
-  emit('open-auth', feature)
+  return true
 }
+
+function useFeature(feature) {
+  switch (feature) {
+    case 'news':
+      if (!requireAccess(PERMISSION.NEWSLETTER)) return
+      emit('navigate', 'news')
+      return
+    case 'events':
+      if (!requireAccess(PERMISSION.TICKET_PREORDER)) return
+      emit('open-modal', 'events')
+      return
+    case 'priority-events':
+      if (!requireAccess(PERMISSION.PRIORITY_DISCOUNT, true)) return
+      emit('open-modal', 'events')
+      return
+    case 'board':
+      if (!requireAccess(PERMISSION.BOARD_POST)) return
+      setSection('board')
+      return
+    case 'ai':
+      if (!requireAccess(PERMISSION.AI_CHAT)) return
+      setSection('chat')
+      return
+    case 'disco':
+      if (!requireAccess(PERMISSION.PREMIUM_VIDEO, true)) return
+      emit('open-modal', 'premium-video')
+      return
+    case 'gallery':
+      if (!requireAccess(PERMISSION.EXCLUSIVE_CONTENT, true)) return
+      emit('open-modal', 'gallery')
+      return
+    case 'memories':
+      emit('navigate', 'memories')
+      return
+    default:
+      emit('open-auth', feature)
+  }
+}
+
+/** タブ切替後に特典カードを確実に表示 */
+watch(section, () => {
+  nextTick(() => {
+    pageRoot.value?.querySelectorAll('.site-reveal-stagger, .fc-benefits').forEach((el) => {
+      el.classList.add('is-visible')
+    })
+  })
+})
 </script>
 
 <template>
@@ -97,18 +141,20 @@ function useFeature(feature) {
       </p>
 
       <section class="page-fc-site__perks">
-        <ul class="page-fc-site__perk-grid motion-stagger site-reveal-stagger">
+        <ul class="page-fc-site__perk-grid is-visible">
           <li
-            v-for="(p, i) in perks"
+            v-for="p in perks"
             :key="p.label"
-            class="page-fc-site__perk stagger-item motion-card"
+            class="page-fc-site__perk motion-card"
             :class="{ 'page-fc-site__perk--highlight': p.feature === 'ai' || p.feature === 'board' }"
-            :style="{ '--stagger-i': i }"
           >
             <button type="button" class="page-fc-site__perk-btn" @click="useFeature(p.feature)">
               <span class="page-fc-site__perk-icon">{{ p.icon }}</span>
               <div>
-                <h3 class="page-fc-site__perk-title">{{ p.label }}</h3>
+                <h3 class="page-fc-site__perk-title">
+                  {{ p.label }}
+                  <span v-if="p.premium" class="page-fc-site__perk-premium">Premium</span>
+                </h3>
                 <p class="page-fc-site__perk-desc">{{ p.desc }}</p>
               </div>
             </button>
@@ -131,6 +177,9 @@ function useFeature(feature) {
     </section>
 
     <section v-else-if="section === 'benefits'" class="page-fc-site__panel">
+      <p v-if="isLoggedIn" class="page-fc-site__member">
+        {{ MEMBERSHIP_LABELS[membership] }}としてログイン中 · 各特典をタップしてご利用ください
+      </p>
       <SectionTitle title="会員特典一覧" sub="Your Benefits" size="md" />
       <FanclubBenefits @use-feature="useFeature" />
     </section>
@@ -182,20 +231,12 @@ function useFeature(feature) {
   line-height: 1.8;
   color: var(--site-text-muted);
 }
-.page-fc-site__account-lead {
-  margin: 0 0 var(--sp-5);
-  max-width: 720px;
-  font-family: var(--ff-sans-jp);
-  font-size: 13px;
-  line-height: 1.8;
-  color: var(--site-text-muted);
-}
 .page-fc-site__perk-grid {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--sp-4);
 }
 .page-fc-site__perk {
@@ -236,6 +277,17 @@ function useFeature(feature) {
   font-size: 14px;
   font-weight: 700;
   color: var(--murasaki-700);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.page-fc-site__perk-premium {
+  font-family: var(--ff-sans-jp);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--kin-600);
+  letter-spacing: 0.06em;
 }
 .page-fc-site__perk-desc {
   margin: 0;

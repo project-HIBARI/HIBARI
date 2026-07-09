@@ -1,14 +1,13 @@
 <script setup>
 /**
  * 部品名: ファンクラブ 特典ハイライト
- * 用途: 会員特典一覧（クリックで各機能へ）
  */
 import { useMemberAccess } from '../../../composables/useMemberAccess.js'
 import { MEMBERSHIP_LABELS } from '../../../constants/membership.js'
 
 const emit = defineEmits(['use-feature'])
 
-const { canUse, isLoggedIn, membership, PERMISSION } = useMemberAccess()
+const { canUse, isLoggedIn, PERMISSION } = useMemberAccess()
 
 const benefits = [
   { feature: 'news', icon: '✦', title: '月刊ニュースレター', desc: '会員向けの最新情報・コラムを毎月お届けします。', permission: PERMISSION.NEWSLETTER },
@@ -17,7 +16,7 @@ const benefits = [
   { feature: 'ai', icon: '♪', title: 'AIひばり対話', desc: '一般会員は月10回、プレミアム会員は無制限で対話できます。', permission: PERMISSION.AI_CHAT },
   { feature: 'disco', icon: '▶', title: 'プレミアム限定映像', desc: 'プレミアム会員だけの未公開映像・特別コンテンツ。', permission: PERMISSION.PREMIUM_VIDEO, premium: true },
   { feature: 'gallery', icon: '✧', title: '限定コンテンツ', desc: 'ハイレゾ音源や会員限定の特典コンテンツ。', permission: PERMISSION.EXCLUSIVE_CONTENT, premium: true },
-  { feature: 'events', icon: '◎', title: '優先申込＋会員割引', desc: 'イベントの優先申込と会員割引価格がご利用いただけます。', permission: PERMISSION.PRIORITY_DISCOUNT, premium: true },
+  { feature: 'priority-events', icon: '◎', title: '優先申込＋会員割引', desc: 'イベントの優先申込と会員割引価格がご利用いただけます。', permission: PERMISSION.PRIORITY_DISCOUNT, premium: true },
 ]
 
 function status(b) {
@@ -33,12 +32,11 @@ function onUse(b) {
 </script>
 
 <template>
-  <ul class="fc-benefits motion-stagger site-reveal-stagger">
+  <ul class="fc-benefits is-visible">
     <li
-      v-for="(b, i) in benefits"
-      :key="`${b.feature}-${i}`"
-      class="fc-benefits__item stagger-item motion-card"
-      :style="{ '--stagger-i': i }"
+      v-for="b in benefits"
+      :key="b.feature"
+      class="fc-benefits__item motion-card"
       :class="{
         'fc-benefits__item--premium': b.premium,
         'fc-benefits__item--ready': isLoggedIn && canUse(b.permission),
@@ -63,7 +61,7 @@ function onUse(b) {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--sp-4);
 }
 .fc-benefits__item {
@@ -141,11 +139,6 @@ function onUse(b) {
 }
 
 @media (max-width: 1100px) {
-  .fc-benefits {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-@media (max-width: 900px) {
   .fc-benefits {
     grid-template-columns: repeat(2, 1fr);
   }

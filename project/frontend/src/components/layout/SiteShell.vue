@@ -27,10 +27,10 @@ import NewsListModal from '../modals/NewsListModal.vue'
 import EventsListModal from '../modals/EventsListModal.vue'
 
 import GalleryModal from '../modals/GalleryModal.vue'
+import PremiumVideoModal from '../modals/PremiumVideoModal.vue'
 
 import AuthNoticeModal from '../modals/AuthNoticeModal.vue'
 import AccountModal from '../modals/AccountModal.vue'
-import SearchModal from '../modals/SearchModal.vue'
 
 import PageTop from '../pages/PageTop.vue'
 
@@ -183,6 +183,12 @@ function handleNav(id) {
 
 /** モーダルを開く（fanclub はページ遷移に振り替え） */
 
+const GATED_MODALS = {
+  gallery: { permission: PERMISSION.EXCLUSIVE_CONTENT, premium: true, feature: 'gallery' },
+  'premium-video': { permission: PERMISSION.PREMIUM_VIDEO, premium: true, feature: 'pv' },
+  events: { permission: PERMISSION.TICKET_PREORDER, premium: false, feature: 'events' },
+}
+
 function openModal(kind) {
 
   if (kind === 'fanclub') {
@@ -191,6 +197,23 @@ function openModal(kind) {
 
     return
 
+  }
+
+  const gate = GATED_MODALS[kind]
+  if (gate) {
+    if (!isLoggedIn.value) {
+      postLoginRedirect.value = { feature: gate.feature }
+      goTo('login')
+      return
+    }
+    if (gate.premium && !auth.isPremium.value) {
+      goRegister(MEMBERSHIP.PREMIUM)
+      return
+    }
+    if (!auth.can(gate.permission)) {
+      goRegister(gate.premium ? MEMBERSHIP.PREMIUM : MEMBERSHIP.GENERAL)
+      return
+    }
   }
 
   modal.value = kind
@@ -224,9 +247,9 @@ function openMemberFeature(mode) {
 
     fanclub: { memberPage: 'fanclub-site', guestPage: 'fanclub' },
 
-    disco: { page: 'disco' },
+    disco: { permission: PERMISSION.PREMIUM_VIDEO, modal: 'premium-video', premium: true },
 
-    pv: { permission: PERMISSION.PREMIUM_VIDEO, page: 'disco', premium: true },
+    pv: { permission: PERMISSION.PREMIUM_VIDEO, modal: 'premium-video', premium: true },
 
   }
 
@@ -333,16 +356,6 @@ function openAuth(mode) {
   if (mode === 'register-premium') {
 
     goRegister(MEMBERSHIP.PREMIUM)
-
-    return
-
-  }
-
-  if (mode === 'search') {
-
-    modal.value = 'search'
-
-    drawerOpen.value = false
 
     return
 
@@ -515,8 +528,6 @@ function handleAiModalAuth(mode) {
       @open-drawer="drawerOpen = true"
 
       @open-auth="openAuth"
-
-      @open-search="openAuth('search')"
 
       @open-account="openAccountModal"
 
@@ -715,7 +726,17 @@ function handleAiModalAuth(mode) {
 
     <EventsListModal v-if="modal === 'events'" @close="modal = null" @navigate="goTo" />
 
-    <GalleryModal v-if="modal === 'gallery'" @close="modal = null" />
+    <GalleryModal
+      v-if="modal === 'gallery'"
+      @close="modal = null"
+      @need-auth="(m) => { modal = null; openAuth(m) }"
+    />
+
+    <PremiumVideoModal
+      v-if="modal === 'premium-video'"
+      @close="modal = null"
+      @need-auth="(m) => { modal = null; openAuth(m) }"
+    />
 
     <AuthNoticeModal v-if="authMode" :mode="authMode" @close="closeAuth" />
 
@@ -725,12 +746,6 @@ function handleAiModalAuth(mode) {
       @need-login="modal = null; openAuth('login')"
       @logout="handleLogout"
       @user-updated="handleAccountUserUpdated"
-    />
-
-    <SearchModal
-      v-if="modal === 'search'"
-      @close="modal = null"
-      @navigate="goTo"
     />
 
   </div>
@@ -744,7 +759,7 @@ function handleAiModalAuth(mode) {
 .site-shell {
   min-height: 100vh;
   font-family: var(--ff-serif);
-  font-size: 1rem;
+  font-size: var(--size-base);
   position: relative;
   overflow-x: clip;
 }

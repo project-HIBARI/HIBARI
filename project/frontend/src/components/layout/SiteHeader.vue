@@ -4,9 +4,9 @@
  * 用途: ロゴ・ナビ・検索・ログイン/ファンクラブ加入・文字サイズ（レスポンシブ・1段構成）
  */
 import { ref, onMounted, onUnmounted } from 'vue'
-import UiIco from '../ui/UiIco.vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
 import HeaderAccountMenu from './HeaderAccountMenu.vue'
+import HeaderSearch from './HeaderSearch.vue'
 
 defineProps({
   items: { type: Array, required: true },
@@ -16,7 +16,7 @@ defineProps({
   membership: { type: String, default: 'general' },
 })
 
-const emit = defineEmits(['logo', 'navigate', 'open-drawer', 'open-auth', 'open-search', 'open-account', 'logout', 'go-fanclub'])
+const emit = defineEmits(['logo', 'navigate', 'open-drawer', 'open-auth', 'open-account', 'logout', 'go-fanclub'])
 
 const logoSrc = '/images/misorahibari-logo-cropped.png'
 const scrolled = ref(false)
@@ -73,29 +73,20 @@ onUnmounted(() => {
       </nav>
 
       <div class="site-header__actions-bar">
-        <div class="site-header__actions-primary">
-          <button
-            type="button"
-            class="site-header__search"
-            aria-label="サイト内検索"
-            @click="emit('open-search')"
-          >
-            <UiIco name="search" :size="20" color="var(--site-text)" />
-          </button>
-
-          <HeaderAccountMenu
-            class="site-header__auth"
-            :is-logged-in="isLoggedIn"
-            :user-name="userName"
-            :membership="membership"
-            @open-auth="(mode) => emit('open-auth', mode)"
-            @open-account="emit('open-account')"
-            @logout="emit('logout')"
-            @go-fanclub="emit('go-fanclub')"
-          />
-        </div>
+        <HeaderSearch class="site-header__search-inline" @navigate="(page) => emit('navigate', page)" />
 
         <TextSizeControl tone="ink" variant="header" class="site-header__text-size" />
+
+        <HeaderAccountMenu
+          class="site-header__auth"
+          :is-logged-in="isLoggedIn"
+          :user-name="userName"
+          :membership="membership"
+          @open-auth="(mode) => emit('open-auth', mode)"
+          @open-account="emit('open-account')"
+          @logout="emit('logout')"
+          @go-fanclub="emit('go-fanclub')"
+        />
       </div>
 
       <button
@@ -171,21 +162,22 @@ onUnmounted(() => {
   margin-left: auto;
 }
 
-.site-header__text-size {
-  display: none;
-}
-
-.site-header__actions-primary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+.site-header__search-inline {
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .site-header__auth {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.site-header__text-size {
+  display: none;
+  flex-shrink: 0;
 }
 
 .site-header__menu {
@@ -387,14 +379,21 @@ onUnmounted(() => {
     justify-self: end;
     margin-left: 0;
     gap: 12px;
+    flex-wrap: nowrap;
   }
 
-  .site-header__actions-primary {
-    gap: 10px;
+  .site-header__auth {
+    order: 3;
+    margin-left: 0;
   }
 
   .site-header__text-size {
     display: block;
+    order: 2;
+  }
+
+  .site-header__search-inline {
+    order: 1;
   }
 
   .site-header__text-size :deep(.text-size-control__label) {

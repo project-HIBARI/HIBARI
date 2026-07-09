@@ -6,6 +6,7 @@ import { ref, readonly } from 'vue'
 const STORAGE_KEY = 'hibari-text-size'
 const VALID = ['s', 'm', 'l', 'xl']
 const SIZE_PX = { s: '14px', m: '16px', l: '19px', xl: '22px' }
+const TEXT_SCALE = { s: 0.875, m: 1, l: 1.1875, xl: 1.375 }
 
 function readStoredSize() {
   if (typeof window === 'undefined') return 'm'
@@ -21,8 +22,14 @@ function readStoredSize() {
 
 function applyTextSize(value) {
   if (typeof document === 'undefined') return
+  const scale = TEXT_SCALE[value] || TEXT_SCALE.m
   document.documentElement.setAttribute('data-text-size', value)
   document.documentElement.style.fontSize = SIZE_PX[value] || SIZE_PX.m
+  document.documentElement.style.setProperty('--text-scale', String(scale))
+  const shell = document.querySelector('.site-shell')
+  if (shell) {
+    shell.style.fontSize = SIZE_PX[value] || SIZE_PX.m
+  }
 }
 
 const size = ref(readStoredSize())

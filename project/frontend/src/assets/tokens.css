@@ -103,6 +103,11 @@ html[data-text-size='xl'] {
   font-size: 22px;
 }
 
+/* 文字サイズ — サイト全体のスケール（rem ベース要素向け） */
+.site-shell {
+  font-size: var(--size-base);
+}
+
 /* サイト全体背景 — 和紙風 */
 .site-bg {
   background-color: var(--site-bg);

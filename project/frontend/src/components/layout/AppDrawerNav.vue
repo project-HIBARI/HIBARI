@@ -5,6 +5,7 @@
  */
 import UiButton from '../ui/UiButton.vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
+import HeaderSearch from './HeaderSearch.vue'
 
 defineProps({
   open: { type: Boolean, default: false },
@@ -48,6 +49,12 @@ const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth', 'open-
       <div v-else class="drawer__auth">
         <UiButton variant="outline" size="md" @click="emit('open-auth', 'login')">ログイン</UiButton>
         <UiButton variant="primary" size="md" @click="emit('open-auth', 'register')">ファンクラブ加入</UiButton>
+      </div>
+
+      <div class="drawer__divider" />
+
+      <div class="drawer__search">
+        <HeaderSearch @navigate="(page) => { emit('navigate', page); emit('close') }" />
       </div>
 
       <div class="drawer__divider" />
@@ -150,6 +157,14 @@ const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth', 'open-
   font-family: var(--ff-mincho);
   font-size: 14px;
   color: var(--murasaki-700);
+}
+.drawer__search {
+  padding: 12px 20px;
+}
+.drawer__search :deep(.header-search) {
+  display: flex;
+  max-width: none;
+  width: 100%;
 }
 .drawer__text-size {
   padding: 12px 20px 4px;
