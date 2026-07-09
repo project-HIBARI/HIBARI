@@ -28,3 +28,10 @@ export const MUSIC_MEMORIES_ARTISTS = [
     status: 'soon',
   },
 ]
+
+/** Music Memories オープンチャットのアーティストフィルタ */
+export const PLATFORM_CHAT_ARTISTS = [
+  { id: 'all', label: 'すべて' },
+  { id: 'hibari', label: '美空ひばり' },
+  { id: 'lounge', label: '広場' },
+]

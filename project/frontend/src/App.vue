@@ -52,6 +52,11 @@ function applyPendingReturn() {
   pendingReturn.value = null
   if (!ret) return
 
+  if (ret.feature === 'open-chat') {
+    platformView.value = 'open-chat'
+    return
+  }
+
   if (ret.feature) {
     sitePendingFeature.value = ret.feature
     appView.value = 'hibari'
@@ -82,7 +87,7 @@ function onSiteNeedPlatformAuth(payload) {
     returnTo: {
       feature: payload.feature,
       page: payload.page,
-      site: 'hibari',
+      site: payload.feature === 'open-chat' ? 'platform' : 'hibari',
     },
   })
 }

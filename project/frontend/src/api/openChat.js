@@ -1,14 +1,22 @@
 /**
- * ファンクラブ オープンチャット API
+ * オープンチャット API
  */
 import { apiRequest } from './client.js'
 
-export function fetchOpenChatRooms() {
-  return apiRequest('/api/open-chats')
+function buildScopeQuery({ scope, artist } = {}) {
+  const params = new URLSearchParams()
+  if (scope) params.set('scope', scope)
+  if (artist) params.set('artist', artist)
+  const query = params.toString()
+  return query ? `?${query}` : ''
 }
 
-export function fetchOpenChatNotifications() {
-  return apiRequest('/api/open-chats/notifications')
+export function fetchOpenChatRooms({ scope, artist } = {}) {
+  return apiRequest(`/api/open-chats${buildScopeQuery({ scope, artist })}`)
+}
+
+export function fetchOpenChatNotifications({ scope } = {}) {
+  return apiRequest(`/api/open-chats/notifications${buildScopeQuery({ scope })}`)
 }
 
 export function fetchOpenChatRoom(roomId) {

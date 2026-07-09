@@ -32,20 +32,65 @@ DEFAULT_ROOMS = [
         "name": "美空ひばりファンクラブ・メイン",
         "description": "ファン同士が自由に語り合えるメインのオープンチャットです。",
         "icon_emoji": "✦",
+        "scope": "artist_site",
+        "artist_slug": "hibari",
     },
     {
         "slug": "fanclub-events",
         "name": "イベント・ライブ交流",
         "description": "コンサートやイベントの感想・同行募集などを共有しましょう。",
         "icon_emoji": "★",
+        "scope": "artist_site",
+        "artist_slug": "hibari",
     },
     {
         "slug": "fanclub-memories",
         "name": "思い出・エピソード",
         "description": "ひばりさんへの思い出や感動した曲のエピソードを交換する部屋です。",
         "icon_emoji": "♪",
+        "scope": "artist_site",
+        "artist_slug": "hibari",
     },
 ]
+
+PLATFORM_DEFAULT_ROOMS = [
+    {
+        "slug": "mm-hibari-main",
+        "name": "美空ひばりファン交流",
+        "description": "美空ひばりを愛するファン同士が語り合えるメインルームです。",
+        "icon_emoji": "✦",
+        "scope": "platform",
+        "artist_slug": "hibari",
+    },
+    {
+        "slug": "mm-hibari-music",
+        "name": "楽曲・作品トーク",
+        "description": "名曲の感想、おすすめ曲、ディスコグラフィの話題など。",
+        "icon_emoji": "♪",
+        "scope": "platform",
+        "artist_slug": "hibari",
+    },
+    {
+        "slug": "mm-hibari-events",
+        "name": "イベント・ライブ交流",
+        "description": "コンサートや記念イベントの感想・情報共有。",
+        "icon_emoji": "★",
+        "scope": "platform",
+        "artist_slug": "hibari",
+    },
+    {
+        "slug": "mm-lounge",
+        "name": "Music Memories 広場",
+        "description": "アーティストを超えて、音楽の思い出を語り合うオープンな広場です。",
+        "icon_emoji": "🎵",
+        "scope": "platform",
+        "artist_slug": None,
+    },
+]
+
+ARTIST_LABELS = {
+    "hibari": "美空ひばり",
+}
 
 
 def ensure_open_chat_schema(engine):
@@ -129,17 +174,44 @@ def ensure_open_chat_schema(engine):
             )
         )
 
+        conn.execute(
+            text(
+                """
+                ALTER TABLE open_chat_rooms
+                ADD COLUMN IF NOT EXISTS scope VARCHAR(32) NOT NULL DEFAULT 'artist_site'
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                ALTER TABLE open_chat_rooms
+                ADD COLUMN IF NOT EXISTS artist_slug VARCHAR(64) NULL
+                """
+            )
+        )
+
     seed_default_rooms(engine)
 
 
 def seed_default_rooms(engine):
     with engine.begin() as conn:
-        for room in DEFAULT_ROOMS:
+        conn.execute(
+            text(
+                """
+                UPDATE open_chat_rooms
+                SET scope = 'artist_site', artist_slug = 'hibari'
+                WHERE slug IN ('fanclub-main', 'fanclub-events', 'fanclub-memories')
+                  AND (scope IS NULL OR scope = '' OR artist_slug IS NULL)
+                """
+            )
+        )
+        for room in DEFAULT_ROOMS + PLATFORM_DEFAULT_ROOMS:
             conn.execute(
                 text(
                     """
-                    INSERT INTO open_chat_rooms (slug, name, description, icon_emoji)
-                    VALUES (:slug, :name, :description, :icon_emoji)
+                    INSERT INTO open_chat_rooms (slug, name, description, icon_emoji, scope, artist_slug)
+                    VALUES (:slug, :name, :description, :icon_emoji, :scope, :artist_slug)
                     ON CONFLICT (slug) DO NOTHING
                     """
                 ),
@@ -298,7 +370,7 @@ def register_open_chat_routes(
     def get_room_or_404(room_id):
         rows = fetch_all(
             """
-            SELECT room_id, slug, name, description, icon_emoji, is_active, created_at
+            SELECT room_id, slug, name, description, icon_emoji, scope, artist_slug, is_active, created_at
             FROM open_chat_rooms
             WHERE room_id = :room_id AND is_active = TRUE
             """,
@@ -319,6 +391,35 @@ def register_open_chat_routes(
         )
         return bool(rows)
 
+    def serialize_room_row(mapping, account_id):
+        artist_slug = mapping.get("artist_slug")
+        return {
+            "room_id": int(mapping["room_id"]),
+            "slug": mapping["slug"],
+            "name": mapping["name"],
+            "description": mapping["description"],
+            "icon_emoji": mapping["icon_emoji"],
+            "scope": mapping.get("scope") or "artist_site",
+            "artist_slug": artist_slug,
+            "artist_name": ARTIST_LABELS.get(artist_slug) if artist_slug else "Music Memories 広場",
+            "member_count": int(mapping.get("member_count") or 0),
+            "last_message_preview": _preview_message(
+                mapping.get("last_message_body"),
+                mapping.get("last_message_type"),
+            ),
+            "last_message_at": to_jst_str(mapping.get("last_message_at")),
+            "is_joined": bool(mapping["is_joined"]),
+            "unread_count": int(mapping.get("unread_count") or 0),
+            "created_at": to_jst_str(mapping["created_at"]),
+        }
+
+    def room_list_query_filters():
+        scope = (request.args.get("scope") or "artist_site").strip()
+        if scope not in {"artist_site", "platform"}:
+            scope = "artist_site"
+        artist = (request.args.get("artist") or "").strip() or None
+        return scope, artist
+
     @app.route("/api/open-chats", methods=["GET"])
     def list_open_chats():
         try:
@@ -331,14 +432,23 @@ def register_open_chat_routes(
             if denied:
                 return denied
 
+            scope, artist = room_list_query_filters()
+            params = {"account_id": account_id, "scope": scope}
+            artist_filter = ""
+            if artist:
+                artist_filter = "AND r.artist_slug = :artist"
+                params["artist"] = artist
+
             rows = fetch_all(
-                """
+                f"""
                 SELECT
                     r.room_id,
                     r.slug,
                     r.name,
                     r.description,
                     r.icon_emoji,
+                    r.scope,
+                    r.artist_slug,
                     r.created_at,
                     (
                         SELECT COUNT(*)::int
@@ -383,32 +493,16 @@ def register_open_chat_routes(
                     ) AS unread_count
                 FROM open_chat_rooms r
                 WHERE r.is_active = TRUE
-                ORDER BY r.room_id ASC
+                  AND r.scope = :scope
+                  {artist_filter}
+                ORDER BY r.artist_slug NULLS LAST, r.room_id ASC
                 """,
-                {"account_id": account_id},
+                params,
             )
 
-            rooms = []
-            for row in rows:
-                mapping = _row_mapping(row)
-                rooms.append({
-                    "room_id": int(mapping["room_id"]),
-                    "slug": mapping["slug"],
-                    "name": mapping["name"],
-                    "description": mapping["description"],
-                    "icon_emoji": mapping["icon_emoji"],
-                    "member_count": int(mapping["member_count"] or 0),
-                    "last_message_preview": _preview_message(
-                        mapping.get("last_message_body"),
-                        mapping.get("last_message_type"),
-                    ),
-                    "last_message_at": to_jst_str(mapping.get("last_message_at")),
-                    "is_joined": bool(mapping["is_joined"]),
-                    "unread_count": int(mapping["unread_count"] or 0),
-                    "created_at": to_jst_str(mapping["created_at"]),
-                })
+            rooms = [serialize_room_row(_row_mapping(row), account_id) for row in rows]
 
-            return jsonify({"rooms": rooms})
+            return jsonify({"rooms": rooms, "scope": scope})
         except Exception as e:
             print(e)
             return jsonify({"error": "ルーム一覧の取得に失敗しました"}), 500
@@ -424,6 +518,8 @@ def register_open_chat_routes(
             denied = require_fanclub_member(account_id)
             if denied:
                 return denied
+
+            scope, _artist = room_list_query_filters()
 
             rows = fetch_all(
                 """
@@ -442,9 +538,10 @@ def register_open_chat_routes(
                 FROM open_chat_members mem
                 JOIN open_chat_rooms r ON r.room_id = mem.room_id AND r.is_active = TRUE
                 WHERE mem.account_id = :account_id
+                  AND r.scope = :scope
                 ORDER BY r.room_id ASC
                 """,
-                {"account_id": account_id},
+                {"account_id": account_id, "scope": scope},
             )
 
             room_notifications = []

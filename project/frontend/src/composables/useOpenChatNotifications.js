@@ -5,22 +5,25 @@ import { ref } from 'vue'
 import { fetchOpenChatNotifications } from '../api/openChat.js'
 
 const POLL_MS = 8000
-const STORAGE_KEY = 'hibari_open_chat_notify'
 
-const totalUnread = ref(0)
-const roomUnreads = ref([])
-const notificationsEnabled = ref(
-  typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_KEY) === '1',
-)
-const notificationPermission = ref(
-  typeof Notification !== 'undefined' ? Notification.permission : 'denied',
-)
+const instances = new Map()
 
-let pollTimer = null
-let activeRoomId = null
-let lastNotifiedByRoom = {}
+function createNotificationState(scope) {
+  const storageKey = scope === 'platform' ? 'mm_open_chat_notify' : 'hibari_open_chat_notify'
 
-export function useOpenChatNotifications() {
+  const totalUnread = ref(0)
+  const roomUnreads = ref([])
+  const notificationsEnabled = ref(
+    typeof localStorage !== 'undefined' && localStorage.getItem(storageKey) === '1',
+  )
+  const notificationPermission = ref(
+    typeof Notification !== 'undefined' ? Notification.permission : 'denied',
+  )
+
+  let pollTimer = null
+  let activeRoomId = null
+  let lastNotifiedByRoom = {}
+
   function setActiveRoomId(roomId) {
     activeRoomId = roomId ?? null
   }
@@ -53,7 +56,7 @@ export function useOpenChatNotifications() {
       try {
         new Notification(room.room_name, {
           body,
-          tag: `open-chat-${room.room_id}-${latest.message_id}`,
+          tag: `open-chat-${scope}-${room.room_id}-${latest.message_id}`,
           icon: '/images/misorahibari-logo-cropped.png',
         })
       } catch {
@@ -65,7 +68,7 @@ export function useOpenChatNotifications() {
 
   async function refresh() {
     try {
-      const data = await fetchOpenChatNotifications()
+      const data = await fetchOpenChatNotifications({ scope })
       totalUnread.value = data?.total_unread || 0
       roomUnreads.value = data?.rooms || []
       pushBrowserNotifications(roomUnreads.value)
@@ -96,17 +99,17 @@ export function useOpenChatNotifications() {
     notificationPermission.value = permission
     if (permission === 'granted') {
       notificationsEnabled.value = true
-      localStorage.setItem(STORAGE_KEY, '1')
+      localStorage.setItem(storageKey, '1')
       return true
     }
     notificationsEnabled.value = false
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(storageKey)
     return false
   }
 
   function disableNotifications() {
     notificationsEnabled.value = false
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(storageKey)
   }
 
   function unreadForRoom(roomId) {
@@ -127,4 +130,11 @@ export function useOpenChatNotifications() {
     disableNotifications,
     unreadForRoom,
   }
+}
+
+export function useOpenChatNotifications(scope = 'artist_site') {
+  if (!instances.has(scope)) {
+    instances.set(scope, createNotificationState(scope))
+  }
+  return instances.get(scope)
 }

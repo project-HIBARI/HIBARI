@@ -11,7 +11,7 @@ defineProps({
   embedded: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['enter-site'])
+const emit = defineEmits(['enter-site', 'open-chat'])
 
 function onArtistClick(artist) {
   if (artist.status !== 'open') return
@@ -41,6 +41,22 @@ function onArtistClick(artist) {
           レジェンドたちの歌声と歩みを、ファンクラブを通じて紡ぐプラットフォームです。
           お好きなアーティストを選んで、思い出の世界へお進みください。
         </p>
+      </section>
+
+      <section class="music-memories__chat-section" aria-labelledby="mm-chat-title">
+        <div class="music-memories__chat-card">
+          <div class="music-memories__chat-copy">
+            <p class="music-memories__chat-eyebrow">Open Chat</p>
+            <h2 id="mm-chat-title" class="music-memories__chat-title">ファン同士の交流広場</h2>
+            <p class="music-memories__chat-desc">
+              美空ひばりをはじめ、複数アーティストのファンが集まるオープンチャット。
+              楽曲の話からイベントの感想まで、深い交流ができます。
+            </p>
+          </div>
+          <UiButton variant="gold" size="md" @click="emit('open-chat')">
+            オープンチャットへ
+          </UiButton>
+        </div>
       </section>
 
       <section class="music-memories__grid-section" aria-labelledby="mm-grid-title">
@@ -211,6 +227,47 @@ function onArtistClick(artist) {
 
 .music-memories__grid-head {
   margin-bottom: 28px;
+}
+
+.music-memories__chat-section {
+  margin-bottom: clamp(40px, 7vw, 64px);
+}
+
+.music-memories__chat-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 28px 30px;
+  border: 1px solid rgba(201, 169, 97, 0.35);
+  border-radius: var(--site-radius-lg);
+  background: linear-gradient(135deg, rgba(122, 80, 136, 0.22), rgba(26, 20, 24, 0.5));
+}
+
+.music-memories__chat-eyebrow {
+  margin: 0 0 8px;
+  font-family: var(--ff-latin);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--kin-400);
+}
+
+.music-memories__chat-title {
+  margin: 0 0 10px;
+  font-family: var(--ff-mincho);
+  font-size: 1.35rem;
+  letter-spacing: 0.08em;
+}
+
+.music-memories__chat-desc {
+  margin: 0;
+  max-width: 640px;
+  font-family: var(--ff-sans-jp);
+  font-size: 13px;
+  line-height: 1.8;
+  color: rgba(248, 244, 239, 0.68);
 }
 
 .music-memories__grid-title {

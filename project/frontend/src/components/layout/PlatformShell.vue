@@ -7,6 +7,7 @@ import { ref } from 'vue'
 import PageMusicMemories from '../pages/PageMusicMemories.vue'
 import PageLogin from '../pages/PageLogin.vue'
 import PageRegister from '../pages/PageRegister.vue'
+import PagePlatformOpenChat from '../pages/PagePlatformOpenChat.vue'
 import HeaderAccountMenu from './HeaderAccountMenu.vue'
 import AccountModal from '../modals/AccountModal.vue'
 import { MEMBERSHIP } from '../../constants/membership.js'
@@ -45,6 +46,10 @@ function onOpenAuth(mode) {
     setView('register')
     return
   }
+  if (mode === 'open-chat') {
+    setView('open-chat')
+    return
+  }
   emit('open-auth', { mode })
 }
 
@@ -80,6 +85,18 @@ function onUserUpdated(account) {
           Music Memories
         </button>
 
+        <nav class="platform-shell__nav" aria-label="プラットフォームナビ">
+          <button type="button" class="platform-shell__nav-btn" @click="setView('hub')">ホーム</button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'open-chat' }"
+            @click="setView('open-chat')"
+          >
+            オープンチャット
+          </button>
+        </nav>
+
         <HeaderAccountMenu
           class="platform-shell__account"
           :is-logged-in="isLoggedIn"
@@ -97,6 +114,12 @@ function onUserUpdated(account) {
       v-if="view === 'hub'"
       embedded
       @enter-site="(siteId) => emit('enter-site', siteId)"
+      @open-chat="setView('open-chat')"
+    />
+
+    <PagePlatformOpenChat
+      v-else-if="view === 'open-chat'"
+      @need-auth="(mode) => emit('open-auth', { mode, returnTo: { feature: 'open-chat' } })"
     />
 
     <div v-else-if="view === 'login'" class="platform-shell__auth">
@@ -150,10 +173,38 @@ function onUserUpdated(account) {
   max-width: 1200px;
   margin: 0 auto;
   padding: 16px 24px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.platform-shell__nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.platform-shell__nav-btn {
+  margin: 0;
+  padding: 7px 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(248, 244, 239, 0.72);
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.platform-shell__nav-btn:hover,
+.platform-shell__nav-btn--active {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f8f4ef;
 }
 
 .platform-shell__brand {

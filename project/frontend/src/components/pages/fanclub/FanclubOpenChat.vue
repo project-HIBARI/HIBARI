@@ -17,6 +17,7 @@ import {
 import { useMemberAccess } from '../../../composables/useMemberAccess.js'
 import { useOpenChatNotifications } from '../../../composables/useOpenChatNotifications.js'
 import { MEMBERSHIP_LABELS, PERMISSION } from '../../../constants/membership.js'
+import { PLATFORM_CHAT_ARTISTS } from '../../../data/musicMemoriesData.js'
 import {
   resolveOpenChatMediaUrl,
   isOpenChatImageMessage,
@@ -24,6 +25,12 @@ import {
 } from '../../../lib/openChatMedia.js'
 
 const emit = defineEmits(['need-auth'])
+
+const props = defineProps({
+  /** artist_site = ファンクラブサイト内 / platform = Music Memories */
+  chatScope: { type: String, default: 'artist_site' },
+  platformTheme: { type: Boolean, default: false },
+})
 
 const { isLoggedIn, canUse } = useMemberAccess()
 const {
@@ -34,13 +41,14 @@ const {
   refresh: refreshNotifications,
   enableNotifications,
   disableNotifications,
-} = useOpenChatNotifications()
+} = useOpenChatNotifications(props.chatScope)
 
 const POLL_MS = 4000
 
 const loading = ref(true)
 const error = ref('')
 const rooms = ref([])
+const selectedArtist = ref('all')
 const activeRoomId = ref(null)
 const messages = ref([])
 const members = ref([])
@@ -63,6 +71,20 @@ const SCROLL_THRESHOLD = 96
 const showJumpToBottom = computed(() => pendingNewCount.value > 0 && !isNearBottom.value)
 
 const activeRoom = computed(() => rooms.value.find((r) => r.room_id === activeRoomId.value) || null)
+
+const artistTabs = computed(() => (props.platformTheme ? PLATFORM_CHAT_ARTISTS : []))
+
+const displayedRooms = computed(() => {
+  if (!props.platformTheme || selectedArtist.value === 'all') {
+    return rooms.value
+  }
+  if (selectedArtist.value === 'lounge') {
+    return rooms.value.filter((r) => !r.artist_slug)
+  }
+  return rooms.value.filter((r) => r.artist_slug === selectedArtist.value)
+})
+
+const chatTitle = computed(() => (props.platformTheme ? 'Music Memories オープンチャット' : 'オープンチャット'))
 
 const canUseChat = computed(() => isLoggedIn.value && canUse(PERMISSION.OPEN_CHAT))
 
@@ -135,11 +157,16 @@ async function loadRooms() {
   loading.value = true
   error.value = ''
   try {
-    const data = await fetchOpenChatRooms()
+    const artist = props.platformTheme && selectedArtist.value === 'hibari'
+      ? 'hibari'
+      : undefined
+    const data = await fetchOpenChatRooms({ scope: props.chatScope, artist })
     rooms.value = data?.rooms || []
     if (!activeRoomId.value && rooms.value.length) {
       const joined = rooms.value.find((r) => r.is_joined)
       activeRoomId.value = (joined || rooms.value[0]).room_id
+    } else if (activeRoomId.value && !rooms.value.some((r) => r.room_id === activeRoomId.value)) {
+      activeRoomId.value = rooms.value[0]?.room_id || null
     }
   } catch (err) {
     error.value = err.message || 'ルーム一覧の取得に失敗しました'
@@ -147,6 +174,12 @@ async function loadRooms() {
   } finally {
     loading.value = false
   }
+}
+
+async function onArtistFilterChange(artistId) {
+  if (selectedArtist.value === artistId) return
+  selectedArtist.value = artistId
+  await loadRooms()
 }
 
 async function loadMessages(initial = false) {
@@ -416,23 +449,40 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="open-chat">
+  <div class="open-chat" :class="{ 'open-chat--platform': platformTheme }">
     <MemberGate
       v-if="!canUseChat"
       :permission="PERMISSION.OPEN_CHAT"
-      feature="オープンチャット"
+      :feature="platformTheme ? 'Music Memories オープンチャット' : 'オープンチャット'"
       @login="emit('need-auth', 'login')"
       @register="emit('need-auth', 'register')"
     />
 
     <template v-else>
+      <p v-if="platformTheme" class="open-chat__platform-lead">
+        複数アーティストのファンが交流できるプラットフォーム共通のオープンチャットです。
+      </p>
       <p v-if="error" class="open-chat__error" role="alert">{{ error }}</p>
 
       <div class="open-chat__layout">
         <aside class="open-chat__rooms">
           <div class="open-chat__rooms-head">
-            <h3 class="open-chat__rooms-title">オープンチャット</h3>
+            <h3 class="open-chat__rooms-title">{{ chatTitle }}</h3>
             <span v-if="totalUnread > 0" class="open-chat__rooms-badge">{{ totalUnread }}</span>
+          </div>
+          <div v-if="artistTabs.length" class="open-chat__artist-tabs" role="tablist" aria-label="アーティストで絞り込み">
+            <button
+              v-for="tab in artistTabs"
+              :key="tab.id"
+              type="button"
+              class="open-chat__artist-tab"
+              :class="{ 'open-chat__artist-tab--active': selectedArtist === tab.id }"
+              role="tab"
+              :aria-selected="selectedArtist === tab.id"
+              @click="onArtistFilterChange(tab.id)"
+            >
+              {{ tab.label }}
+            </button>
           </div>
           <button
             type="button"
@@ -447,7 +497,7 @@ onUnmounted(() => {
           </p>
           <p v-if="loading" class="open-chat__muted">読み込み中…</p>
           <ul v-else class="open-chat__room-list">
-            <li v-for="room in rooms" :key="room.room_id">
+            <li v-for="room in displayedRooms" :key="room.room_id">
               <button
                 type="button"
                 class="open-chat__room-btn"
@@ -456,6 +506,7 @@ onUnmounted(() => {
               >
                 <span class="open-chat__room-icon" aria-hidden="true">{{ room.icon_emoji }}</span>
                 <span class="open-chat__room-body">
+                  <span v-if="platformTheme && room.artist_name" class="open-chat__room-artist">{{ room.artist_name }}</span>
                   <span class="open-chat__room-name-row">
                     <span class="open-chat__room-name">{{ room.name }}</span>
                     <span v-if="roomUnreadCount(room) > 0" class="open-chat__room-unread">
@@ -1099,6 +1150,105 @@ onUnmounted(() => {
 .open-chat__empty {
   text-align: center;
   padding: 24px 12px;
+}
+
+.open-chat__platform-lead {
+  margin: 0 0 var(--sp-4);
+  font-family: var(--ff-sans-jp);
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(248, 244, 239, 0.72);
+}
+
+.open-chat__artist-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.open-chat__artist-tab {
+  padding: 5px 10px;
+  border: 1px solid var(--site-border);
+  border-radius: 999px;
+  background: #fff;
+  font-family: var(--ff-sans-jp);
+  font-size: 11px;
+  color: var(--site-text-muted);
+  cursor: pointer;
+}
+
+.open-chat__artist-tab--active {
+  background: var(--murasaki-700);
+  border-color: var(--murasaki-800);
+  color: #fff;
+}
+
+.open-chat__room-artist {
+  display: block;
+  font-size: 10px;
+  color: var(--kin-600);
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+
+.open-chat--platform .open-chat__layout {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.open-chat--platform .open-chat__rooms {
+  background: rgba(26, 20, 24, 0.55);
+  border-right-color: rgba(255, 255, 255, 0.1);
+}
+
+.open-chat--platform .open-chat__rooms-title,
+.open-chat--platform .open-chat__room-name,
+.open-chat--platform .open-chat__title {
+  color: #f8f4ef;
+}
+
+.open-chat--platform .open-chat__room-preview,
+.open-chat--platform .open-chat__room-meta,
+.open-chat--platform .open-chat__desc,
+.open-chat--platform .open-chat__muted {
+  color: rgba(248, 244, 239, 0.55);
+}
+
+.open-chat--platform .open-chat__room-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.open-chat--platform .open-chat__room-btn--active {
+  background: rgba(122, 80, 136, 0.35);
+  border-color: rgba(201, 169, 97, 0.4);
+}
+
+.open-chat--platform .open-chat__panel {
+  background: rgba(20, 16, 20, 0.35);
+}
+
+.open-chat--platform .open-chat__messages {
+  background: #ece5d8;
+}
+
+.open-chat--platform .open-chat__artist-tab {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(248, 244, 239, 0.72);
+}
+
+.open-chat--platform .open-chat__artist-tab--active {
+  background: var(--murasaki-600);
+  border-color: var(--murasaki-700);
+  color: #fff;
+}
+
+.open-chat--platform .open-chat__notify-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f8f4ef;
 }
 
 @media (max-width: 900px) {
