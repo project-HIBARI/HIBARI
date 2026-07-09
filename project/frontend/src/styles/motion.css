@@ -13,9 +13,9 @@
   --motion-stagger-step: 0.12s;
 }
 
-/* —— ページ切替 —— */
-.motion-page-enter,
-.site-page-enter {
+/* —— ページ切替（イントロ完了後に開始） —— */
+.site-shell--ready .motion-page-enter,
+.site-shell--ready .site-page-enter {
   animation: motionPageEnter 0.65s var(--motion-ease) both;
 }
 
@@ -31,7 +31,7 @@
 }
 
 /* —— ページタイトル —— */
-.motion-page-title {
+.site-shell--ready .motion-page-title {
   animation: motionPageTitle 0.8s var(--motion-ease) 0.12s both;
 }
 
@@ -47,8 +47,8 @@
 }
 
 /* —— スクロール reveal（単体セクション） —— */
-.motion-section:not(.motion-stagger):not(.site-reveal-stagger),
-.site-reveal:not(.motion-stagger):not(.site-reveal-stagger) {
+.site-shell--ready .motion-section:not(.motion-stagger):not(.site-reveal-stagger):not(.is-visible),
+.site-shell--ready .site-reveal:not(.motion-stagger):not(.site-reveal-stagger):not(.is-visible) {
   opacity: 0;
   transform: translateY(var(--motion-reveal-y));
   transition:
@@ -56,8 +56,8 @@
     transform var(--motion-duration) var(--motion-ease);
   will-change: opacity, transform;
 }
-.motion-section.is-visible,
-.site-reveal.is-visible {
+.site-shell--ready .motion-section.is-visible,
+.site-shell--ready .site-reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
@@ -75,9 +75,9 @@
 .site-reveal--delay-4 { transition-delay: 0.4s; }
 
 /* —— 順番表示（stagger） —— */
-.motion-stagger > *,
-.site-reveal-stagger > .stagger-item,
-.site-reveal-stagger > * {
+.site-shell--ready .motion-stagger:not(.is-visible) > *,
+.site-shell--ready .site-reveal-stagger:not(.is-visible) > .stagger-item,
+.site-shell--ready .site-reveal-stagger:not(.is-visible) > * {
   opacity: 0;
   transform: translateY(22px);
   transition:
@@ -86,22 +86,22 @@
   transition-delay: calc(var(--stagger-i, 0) * var(--motion-stagger-step));
   will-change: opacity, transform;
 }
-.motion-stagger.is-visible > *,
-.site-reveal-stagger.is-visible > .stagger-item,
-.site-reveal-stagger.is-visible > * {
+.site-shell--ready .motion-stagger.is-visible > *,
+.site-shell--ready .site-reveal-stagger.is-visible > .stagger-item,
+.site-shell--ready .site-reveal-stagger.is-visible > * {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* —— ヒーロー（ページ表示直後） —— */
-.motion-hero-block {
+/* —— ヒーロー（イントロ完了後に段階表示） —— */
+.site-shell--ready .motion-hero-block {
   opacity: 0;
   transform: translateY(28px);
   animation: motionHeroBlock 0.85s var(--motion-ease) both;
 }
-.motion-hero-block--1 { animation-delay: 0.25s; }
-.motion-hero-block--2 { animation-delay: 0.42s; }
-.motion-hero-block--3 { animation-delay: 0.58s; }
+.site-shell--ready .motion-hero-block--1 { animation-delay: 0.25s; }
+.site-shell--ready .motion-hero-block--2 { animation-delay: 0.42s; }
+.site-shell--ready .motion-hero-block--3 { animation-delay: 0.58s; }
 
 @keyframes motionHeroBlock {
   to {
@@ -194,8 +194,8 @@
 }
 
 /* —— スクロール誘導 —— */
-.motion-scroll-cue,
-.motion-scroll-hint {
+.site-shell--ready .motion-scroll-cue,
+.site-shell--ready .motion-scroll-hint {
   animation: motionScrollCue 2.2s var(--motion-ease) infinite;
 }
 @keyframes motionScrollCue {
@@ -204,7 +204,7 @@
 }
 
 /* —— ヒーロー背景ズーム —— */
-.motion-hero-video {
+.site-shell--ready .motion-hero-video {
   animation: motionHeroKenBurns 18s var(--motion-ease) infinite alternate;
 }
 @keyframes motionHeroKenBurns {
@@ -217,11 +217,7 @@ body.site-intro-active {
   overflow: hidden;
 }
 .site-shell--during-intro {
-  visibility: hidden;
   pointer-events: none;
-}
-.site-shell--ready {
-  animation: siteShellReady 0.8s var(--motion-ease) both;
 }
 @keyframes siteShellReady {
   from { opacity: 0; }
@@ -324,10 +320,10 @@ body.site-intro-active {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .motion-section:not(.motion-stagger):not(.site-reveal-stagger),
-  .site-reveal:not(.motion-stagger):not(.site-reveal-stagger),
-  .motion-stagger > *,
-  .site-reveal-stagger > * {
+  .site-shell--ready .motion-section:not(.motion-stagger):not(.site-reveal-stagger):not(.is-visible),
+  .site-shell--ready .site-reveal:not(.motion-stagger):not(.site-reveal-stagger):not(.is-visible),
+  .site-shell--ready .motion-stagger:not(.is-visible) > *,
+  .site-shell--ready .site-reveal-stagger:not(.is-visible) > * {
     opacity: 1;
     transform: none;
     transition: none;
