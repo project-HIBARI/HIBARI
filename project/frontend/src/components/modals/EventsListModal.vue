@@ -2,17 +2,20 @@
 /**
  * 放送・イベント一覧（会員向け・プレミアム割引表示）
  */
+import { ref } from 'vue'
 import ModalShell from './ModalShell.vue'
 import UiButton from '../ui/UiButton.vue'
+import EventApplyModal from './EventApplyModal.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
 import { useMemberAccess } from '../../composables/useMemberAccess.js'
 import { PERMISSION } from '../../constants/membership.js'
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'navigate'])
 
 const { canUse, isPremium } = useMemberAccess()
 
-/** ツアー系イベントの料金（デモ） */
+const selectedEvent = ref(null)
+
 const tourPricing = {
   b3: { regular: '¥8,800', member: '¥7,500', premium: '¥6,600' },
 }
@@ -26,6 +29,19 @@ function getFee(id) {
 
 function canPreorder(ev) {
   return ev.id === 'b3' && canUse(PERMISSION.TICKET_PREORDER)
+}
+
+function openApply(ev) {
+  selectedEvent.value = {
+    id: ev.id,
+    title: ev.title,
+    date: ev.date,
+    time: ev.time,
+    place: ev.note?.split('·')?.[0]?.trim() || '',
+    note: ev.note,
+    fee: getFee(ev.id)?.value || '',
+    type: ev.id === 'b3' ? 'tour' : 'nodojiman',
+  }
 }
 </script>
 
@@ -43,13 +59,27 @@ function canPreorder(ev) {
           {{ getFee(ev.id).label }}: <strong>{{ getFee(ev.id).value }}</strong>
           <span class="events-modal__fee-regular">（一般 {{ tourPricing[ev.id].regular }}）</span>
         </p>
-        <div v-if="canPreorder(ev)" class="events-modal__actions">
-          <UiButton variant="primary" size="sm">先行予約する</UiButton>
-          <span v-if="isPremium" class="events-modal__priority">優先枠あり</span>
+        <div class="events-modal__actions">
+          <UiButton
+            v-if="ev.id === 'b3' || ev.id === 'b4'"
+            variant="primary"
+            size="sm"
+            @click="openApply(ev)"
+          >
+            {{ canPreorder(ev) ? '先行予約する' : '申し込む' }}
+          </UiButton>
+          <span v-if="canPreorder(ev) && isPremium" class="events-modal__priority">優先枠あり</span>
         </div>
       </li>
     </ul>
   </ModalShell>
+
+  <EventApplyModal
+    v-if="selectedEvent"
+    :event="selectedEvent"
+    @close="selectedEvent = null"
+    @navigate="emit('navigate', $event); emit('close')"
+  />
 </template>
 
 <style scoped>

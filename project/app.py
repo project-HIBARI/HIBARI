@@ -24,6 +24,17 @@ from usage_limits import (
     ensure_usage_schema,
     get_usage_subject,
 )
+from account_settings import (
+    ensure_account_settings_schema,
+    fetch_account_settings,
+    upsert_payment_settings,
+    change_membership_plan,
+)
+from event_applications import (
+    ensure_event_applications_schema,
+    create_application,
+    fetch_applications_for_account,
+)
 from password_utils import (
     hash_password,
     normalize_email,
@@ -197,6 +208,30 @@ def save_post_media_file(file_storage):
 
 ensure_post_media_schema()
 ensure_usage_schema(engine)
+ensure_account_settings_schema(engine)
+ensure_event_applications_schema(engine)
+
+
+def ensure_contact_schema():
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS contact_inquiries (
+                    inquiry_id SERIAL PRIMARY KEY,
+                    name VARCHAR(128) NOT NULL,
+                    email VARCHAR(256) NOT NULL,
+                    category VARCHAR(64) NOT NULL,
+                    subject VARCHAR(256) NOT NULL,
+                    body TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+                """
+            )
+        )
+
+
+ensure_contact_schema()
     
     
 # HIBARI用プロンプト生成関数
@@ -700,6 +735,9 @@ def get_account():
 
     user = build_user_response(row["account_id"], row["name"], row["email"])
     user["address"] = row.get("address") or ""
+    settings = fetch_account_settings(engine, account_id)
+    user["payment_method"] = settings["payment_method"]
+    user["payment_details"] = settings["payment_details"]
 
     return jsonify({"account": user})
 
@@ -807,6 +845,144 @@ def update_account_password():
         "success": True,
         "message": "パスワードを変更しました",
     })
+
+
+@app.route("/api/account/payment", methods=["PATCH"])
+def update_account_payment():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    data = request.get_json() or {}
+    method = data.get("payment_method")
+    details = data.get("payment_details") or {}
+
+    if not method:
+        return jsonify({"error": "支払い方法を選択してください"}), 400
+
+    try:
+        saved = upsert_payment_settings(engine, account_id, method, details)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "支払い方法の更新に失敗しました"}), 500
+
+    return jsonify({
+        "success": True,
+        "message": "支払い方法を更新しました",
+        "payment_method": saved["payment_method"],
+        "payment_details": saved["payment_details"],
+    })
+
+
+@app.route("/api/account/membership", methods=["PATCH"])
+def update_account_membership():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    data = request.get_json() or {}
+    if "is_premium" not in data:
+        return jsonify({"error": "会員プランを指定してください"}), 400
+
+    is_premium = bool(data.get("is_premium"))
+    try:
+        membership = change_membership_plan(engine, account_id, is_premium)
+        session["membership"] = membership
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "会員プランの変更に失敗しました"}), 500
+
+    row = fetch_account_row(account_id)
+    user = build_user_response(row["account_id"], row["name"], row["email"])
+    return jsonify({
+        "success": True,
+        "message": "会員プランを変更しました",
+        "account": user,
+    })
+
+
+@app.route("/api/events/applications", methods=["GET"])
+def list_event_applications():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    try:
+        items = fetch_applications_for_account(engine, account_id)
+        return jsonify(items)
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "申込履歴の取得に失敗しました"}), 500
+
+
+@app.route("/api/events/<event_key>/apply", methods=["POST"])
+def apply_to_event(event_key):
+    data = request.get_json() or {}
+    name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").strip()
+    note = (data.get("note") or "").strip()
+
+    account_id = session.get("account_id")
+    if account_id and not name:
+        name = session.get("name") or ""
+    if account_id and not email:
+        email = session.get("email") or ""
+
+    if not name:
+        return jsonify({"error": "お名前を入力してください"}), 400
+
+    try:
+        result = create_application(engine, event_key, account_id, name, email, note)
+        return jsonify({
+            "success": True,
+            "message": "イベントへの申込を受け付けました",
+            **result,
+        }), 201
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "申込の登録に失敗しました"}), 500
+
+
+@app.route("/api/contact", methods=["POST"])
+def submit_contact():
+    data = request.get_json() or {}
+    name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").strip()
+    category = (data.get("category") or "").strip()
+    subject = (data.get("subject") or "").strip()
+    body = (data.get("body") or "").strip()
+
+    if not all([name, email, category, subject, body]):
+        return jsonify({"error": "必須項目を入力してください"}), 400
+
+    try:
+        inquiry_id = execute_insert(
+            """
+            INSERT INTO contact_inquiries (name, email, category, subject, body)
+            VALUES (:name, :email, :category, :subject, :body)
+            RETURNING inquiry_id
+            """,
+            {
+                "name": name,
+                "email": email,
+                "category": category,
+                "subject": subject,
+                "body": body,
+            },
+        )
+        return jsonify({
+            "success": True,
+            "message": "お問い合わせを受け付けました",
+            "inquiry_id": inquiry_id,
+        }), 201
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "送信に失敗しました"}), 500
 
     
 # ルーム一覧取得

@@ -10,7 +10,6 @@ import TabBar from '../ui/TabBar.vue'
 import FanclubAiChat from './fanclub/FanclubAiChat.vue'
 import FanclubBoard from './fanclub/FanclubBoard.vue'
 import FanclubBenefits from './fanclub/FanclubBenefits.vue'
-import FanclubAccountPanel from './fanclub/FanclubAccountPanel.vue'
 import { useMemberAccess } from '../../composables/useMemberAccess.js'
 import { MEMBERSHIP_LABELS } from '../../constants/membership.js'
 import { useScrollReveal } from '../../composables/useScrollReveal.js'
@@ -40,7 +39,6 @@ const sectionTabs = [
   { id: 'board', label: '会員掲示板', icon: 'chat' },
   { id: 'chat', label: 'AIチャット', icon: 'flower' },
   { id: 'benefits', label: '特典一覧', icon: 'heart' },
-  { id: 'account', label: 'アカウント' },
 ]
 
 const perks = [
@@ -59,10 +57,6 @@ function setSection(id) {
 
 function onNeedLogin() {
   emit('open-auth', 'login')
-}
-
-function onLogout() {
-  emit('navigate', 'fanclub')
 }
 
 function useFeature(feature) {
@@ -139,14 +133,6 @@ function useFeature(feature) {
     <section v-else-if="section === 'benefits'" class="page-fc-site__panel">
       <SectionTitle title="会員特典一覧" sub="Your Benefits" size="md" />
       <FanclubBenefits @use-feature="useFeature" />
-    </section>
-
-    <section v-else-if="section === 'account'" class="page-fc-site__panel">
-      <SectionTitle title="アカウント" sub="Account Settings" size="md" />
-      <p class="page-fc-site__account-lead">
-        登録済みのメールアドレス・パスワードでログイン中のアカウント情報を確認・変更できます。
-      </p>
-      <FanclubAccountPanel @need-login="onNeedLogin" @logout="onLogout" />
     </section>
   </div>
 </template>

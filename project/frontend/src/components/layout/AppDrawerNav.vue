@@ -10,9 +10,11 @@ defineProps({
   open: { type: Boolean, default: false },
   items: { type: Array, required: true },
   page: { type: String, required: true },
+  isLoggedIn: { type: Boolean, default: false },
+  userName: { type: String, default: '' },
 })
 
-const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth'])
+const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth', 'open-account', 'logout'])
 </script>
 
 <template>
@@ -38,7 +40,12 @@ const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth'])
 
       <div class="drawer__divider" />
 
-      <div class="drawer__auth">
+      <div v-if="isLoggedIn" class="drawer__user">
+        <p class="drawer__user-name">{{ userName || '会員' }} さん</p>
+        <UiButton variant="outline" size="md" @click="emit('open-account'); emit('close')">アカウント設定</UiButton>
+        <UiButton variant="ghost" size="md" @click="emit('logout'); emit('close')">ログアウト</UiButton>
+      </div>
+      <div v-else class="drawer__auth">
         <UiButton variant="outline" size="md" @click="emit('open-auth', 'login')">ログイン</UiButton>
         <UiButton variant="primary" size="md" @click="emit('open-auth', 'register')">ファンクラブ加入</UiButton>
       </div>
@@ -131,6 +138,18 @@ const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth'])
   flex-direction: column;
   gap: 10px;
   padding: 12px 20px;
+}
+.drawer__user {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 20px;
+}
+.drawer__user-name {
+  margin: 0;
+  font-family: var(--ff-mincho);
+  font-size: 14px;
+  color: var(--murasaki-700);
 }
 .drawer__text-size {
   padding: 12px 20px 4px;

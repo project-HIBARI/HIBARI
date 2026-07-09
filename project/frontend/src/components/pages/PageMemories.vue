@@ -15,7 +15,7 @@ import { useBoardPost } from '../../composables/useBoardPost.js'
 import { revokeMediaPreview } from '../../lib/boardMedia.js'
 import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
-const emit = defineEmits(['open-auth'])
+const emit = defineEmits(['open-auth', 'navigate'])
 
 const pageRoot = ref(null)
 useScrollReveal(pageRoot)
@@ -171,7 +171,7 @@ function like(id) {
       />
     </div>
 
-    <MemoriesEventsGrid v-else @need-auth="(m) => emit('open-auth', m)" />
+    <MemoriesEventsGrid v-else @need-auth="(m) => emit('open-auth', m)" @navigate="(p) => emit('navigate', p)" />
   </div>
 </template>
 

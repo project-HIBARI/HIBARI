@@ -23,7 +23,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:postData', 'submit', 'reset', 'need-auth'])
 
-const { canPostNow, canUse, isLoggedIn, isGuest, limitMessage, guestResetLabel, PERMISSION } = useBoardPost()
+const { canPostNow, canUse, isLoggedIn, isGuest, limitMessage, guestResetLabel, loading, usageStatus, PERMISSION } = useBoardPost()
 
 const mediaPreviewUrl = ref('')
 const mediaError = ref('')
@@ -102,6 +102,9 @@ function onSubmit() {
       @register="emit('need-auth', 'register')"
       @upgrade="emit('need-auth', 'register-premium')"
     />
+    <div v-else-if="loading && !usageStatus" class="board-form__loading">
+      利用状況を確認しています…
+    </div>
     <div v-else-if="!canPostNow" class="board-form__limit">
       <p class="board-form__limit-title">
         {{ isGuest ? '投稿上限に達しました' : '今月の投稿上限に達しました' }}
@@ -394,6 +397,12 @@ function onSubmit() {
   background: var(--site-surface-muted);
   border: 1px dashed var(--site-border-strong);
   border-radius: var(--site-radius-md);
+}
+.board-form__loading {
+  padding: 20px 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--site-text-muted);
 }
 .board-form__limit-title {
   margin: 0 0 8px;

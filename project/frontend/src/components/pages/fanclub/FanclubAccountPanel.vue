@@ -6,21 +6,48 @@
 import { ref, reactive, watch, onMounted } from 'vue'
 import UiButton from '../../ui/UiButton.vue'
 import RegisterField from '../register/RegisterField.vue'
-import { fetchAccount, updateAccount, changeAccountPassword } from '../../../api/account.js'
+import { fetchAccount, updateAccount, changeAccountPassword, updateAccountPayment, updateAccountMembership } from '../../../api/account.js'
 import { useMemberAccess } from '../../../composables/useMemberAccess.js'
 import { MEMBERSHIP_LABELS } from '../../../constants/membership.js'
+import RegisterOptionGroup from '../register/RegisterOptionGroup.vue'
+import PaymentCreditForm from '../register/payment/PaymentCreditForm.vue'
+import PaymentBankForm from '../register/payment/PaymentBankForm.vue'
+import PaymentConveniForm from '../register/payment/PaymentConveniForm.vue'
+import PaymentCarrierForm from '../register/payment/PaymentCarrierForm.vue'
 
-const emit = defineEmits(['need-login', 'logout'])
+const emit = defineEmits(['need-login', 'logout', 'user-updated'])
 
-const { isLoggedIn, membership, user, setUser, logout } = useMemberAccess()
+const { isLoggedIn, membership, isPremium, user, setUser, logout } = useMemberAccess()
 
 const loading = ref(true)
 const profileError = ref('')
 const profileSuccess = ref('')
 const passwordError = ref('')
 const passwordSuccess = ref('')
+const paymentError = ref('')
+const paymentSuccess = ref('')
+const membershipError = ref('')
+const membershipSuccess = ref('')
 const savingProfile = ref(false)
 const savingPassword = ref(false)
+const savingPayment = ref(false)
+const savingMembership = ref(false)
+const currentPaymentMethod = ref(null)
+const currentPaymentDetails = ref(null)
+
+const paymentOptions = [
+  { value: 'credit', label: 'クレジットカード', desc: 'VISA / Master / JCB / AMEX', icon: 'credit' },
+  { value: 'bank', label: '銀行振込', desc: '毎月末締め・翌月払い', icon: 'bank' },
+  { value: 'conveni', label: 'コンビニ払い', desc: '払込票でお支払い', icon: 'conveni' },
+  { value: 'carrier', label: 'キャリア決済', desc: '携帯電話料金と合算', icon: 'carrier' },
+]
+
+const paymentLabels = {
+  credit: 'クレジットカード',
+  bank: '銀行振込',
+  conveni: 'コンビニ払い',
+  carrier: 'キャリア決済',
+}
 
 const profile = reactive({
   name: '',
@@ -40,6 +67,43 @@ const passwordErrors = reactive({
   confirm: '',
 })
 
+const paymentForm = reactive({
+  payment: '',
+  cardNumber: '',
+  cardExpiry: '',
+  cardCvc: '',
+  cardName: '',
+  bankName: '',
+  bankBranch: '',
+  bankAccountType: '',
+  bankAccountNumber: '',
+  bankAccountHolder: '',
+  conveniStore: '',
+  carrierName: '',
+})
+
+const paymentErrors = reactive({ payment: '' })
+
+function currentPaymentSummary() {
+  if (!currentPaymentMethod.value) return '未設定'
+  const label = paymentLabels[currentPaymentMethod.value] || currentPaymentMethod.value
+  const d = currentPaymentDetails.value
+  if (!d) return label
+  if (currentPaymentMethod.value === 'credit' && d.card_masked) {
+    return `${label}（${d.card_masked}）`
+  }
+  if (currentPaymentMethod.value === 'bank' && d.bank_name) {
+    return `${label}（${d.bank_name}）`
+  }
+  if (currentPaymentMethod.value === 'conveni' && d.conveni_store) {
+    return `${label}（${d.conveni_store}）`
+  }
+  if (currentPaymentMethod.value === 'carrier' && d.carrier_name) {
+    return `${label}（${d.carrier_name}）`
+  }
+  return label
+}
+
 async function loadAccount() {
   if (!isLoggedIn.value) {
     loading.value = false
@@ -53,6 +117,9 @@ async function loadAccount() {
     profile.name = account.name || ''
     profile.email = account.email || ''
     profile.address = account.address || ''
+    currentPaymentMethod.value = account.payment_method || null
+    currentPaymentDetails.value = account.payment_details || null
+    paymentForm.payment = account.payment_method || ''
   } catch (err) {
     if (err.status === 401) {
       emit('need-login')
@@ -89,7 +156,10 @@ async function saveProfile() {
       address: profile.address.trim(),
     })
     const account = data.account || data.user
-    if (account) setUser(account)
+    if (account) {
+      setUser(account)
+      emit('user-updated', account)
+    }
     profileSuccess.value = 'アカウント情報を更新しました。'
   } catch (err) {
     profileError.value = err.message || '更新に失敗しました。'
@@ -139,6 +209,77 @@ async function savePassword() {
     passwordError.value = err.message || 'パスワードの変更に失敗しました。'
   } finally {
     savingPassword.value = false
+  }
+}
+
+function buildPaymentDetails() {
+  if (paymentForm.payment === 'credit') {
+    return {
+      card_number: paymentForm.cardNumber,
+      card_expiry: paymentForm.cardExpiry,
+      card_name: paymentForm.cardName,
+    }
+  }
+  if (paymentForm.payment === 'bank') {
+    return {
+      bank_name: paymentForm.bankName,
+      bank_branch: paymentForm.bankBranch,
+      bank_account_type: paymentForm.bankAccountType,
+      bank_account_number: paymentForm.bankAccountNumber,
+      bank_account_holder: paymentForm.bankAccountHolder,
+    }
+  }
+  if (paymentForm.payment === 'conveni') {
+    return { conveni_store: paymentForm.conveniStore }
+  }
+  if (paymentForm.payment === 'carrier') {
+    return { carrier_name: paymentForm.carrierName }
+  }
+  return {}
+}
+
+async function savePayment() {
+  paymentErrors.payment = ''
+  paymentError.value = ''
+  paymentSuccess.value = ''
+  if (!paymentForm.payment) {
+    paymentErrors.payment = '支払い方法を選択してください。'
+    return
+  }
+  savingPayment.value = true
+  try {
+    const data = await updateAccountPayment({
+      payment_method: paymentForm.payment,
+      payment_details: buildPaymentDetails(),
+    })
+    currentPaymentMethod.value = data.payment_method
+    currentPaymentDetails.value = data.payment_details
+    paymentSuccess.value = data.message || '支払い方法を更新しました。'
+    paymentForm.cardNumber = ''
+    paymentForm.cardCvc = ''
+  } catch (err) {
+    paymentError.value = err.message || '支払い方法の更新に失敗しました。'
+  } finally {
+    savingPayment.value = false
+  }
+}
+
+async function changePlan(toPremium) {
+  if (savingMembership.value) return
+  membershipError.value = ''
+  membershipSuccess.value = ''
+  savingMembership.value = true
+  try {
+    const data = await updateAccountMembership({ is_premium: toPremium })
+    if (data.account) {
+      setUser(data.account)
+      emit('user-updated', data.account)
+    }
+    membershipSuccess.value = data.message || '会員プランを変更しました。'
+  } catch (err) {
+    membershipError.value = err.message || 'プランの変更に失敗しました。'
+  } finally {
+    savingMembership.value = false
   }
 }
 
@@ -194,7 +335,66 @@ onMounted(() => {
             <dt>住所</dt>
             <dd>{{ profile.address || '—' }}</dd>
           </div>
+          <div class="fc-account__row">
+            <dt>支払い方法</dt>
+            <dd>{{ currentPaymentSummary() }}</dd>
+          </div>
         </dl>
+      </section>
+
+      <section class="fc-account__section">
+        <h3 class="fc-account__heading">会員プラン</h3>
+        <p class="fc-account__plan-text">
+          現在: <strong>{{ MEMBERSHIP_LABELS[membership] }}</strong>
+        </p>
+        <div class="fc-account__plan-actions">
+          <UiButton
+            v-if="!isPremium"
+            variant="primary"
+            size="md"
+            :disabled="savingMembership"
+            @click="changePlan(true)"
+          >
+            プレミアムに変更
+          </UiButton>
+          <UiButton
+            v-else
+            variant="outline"
+            size="md"
+            :disabled="savingMembership"
+            @click="changePlan(false)"
+          >
+            一般会員に変更
+          </UiButton>
+        </div>
+        <p v-if="membershipError" class="fc-account__error">{{ membershipError }}</p>
+        <p v-if="membershipSuccess" class="fc-account__success">{{ membershipSuccess }}</p>
+      </section>
+
+      <section class="fc-account__section">
+        <h3 class="fc-account__heading">支払い方法の変更</h3>
+        <form class="fc-account__form" @submit.prevent="savePayment">
+          <RegisterOptionGroup
+            v-model="paymentForm.payment"
+            name="acct-payment"
+            label="支払い方法"
+            :options="paymentOptions"
+            :columns="1"
+            :error="paymentErrors.payment"
+            required
+          />
+          <div v-if="paymentForm.payment" class="fc-account__payment-detail">
+            <PaymentCreditForm v-if="paymentForm.payment === 'credit'" :form="paymentForm" :errors="paymentErrors" />
+            <PaymentBankForm v-else-if="paymentForm.payment === 'bank'" :form="paymentForm" :errors="paymentErrors" />
+            <PaymentConveniForm v-else-if="paymentForm.payment === 'conveni'" :form="paymentForm" :errors="paymentErrors" />
+            <PaymentCarrierForm v-else-if="paymentForm.payment === 'carrier'" :form="paymentForm" :errors="paymentErrors" />
+          </div>
+          <p v-if="paymentError" class="fc-account__error">{{ paymentError }}</p>
+          <p v-if="paymentSuccess" class="fc-account__success">{{ paymentSuccess }}</p>
+          <UiButton variant="outline" size="md" type="submit" :disabled="savingPayment">
+            {{ savingPayment ? '更新中…' : '支払い方法を更新' }}
+          </UiButton>
+        </form>
       </section>
 
       <section class="fc-account__section">
@@ -355,5 +555,18 @@ onMounted(() => {
 .fc-account__section--logout {
   text-align: center;
   background: var(--site-surface-muted);
+}
+.fc-account__plan-text {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--site-text-muted);
+}
+.fc-account__plan-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.fc-account__payment-detail {
+  margin-top: 8px;
 }
 </style>

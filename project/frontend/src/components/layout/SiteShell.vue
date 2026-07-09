@@ -29,6 +29,8 @@ import EventsListModal from '../modals/EventsListModal.vue'
 import GalleryModal from '../modals/GalleryModal.vue'
 
 import AuthNoticeModal from '../modals/AuthNoticeModal.vue'
+import AccountModal from '../modals/AccountModal.vue'
+import SearchModal from '../modals/SearchModal.vue'
 
 import PageTop from '../pages/PageTop.vue'
 
@@ -119,7 +121,7 @@ const siteReady = ref(false)
 
 const auth = useAuth()
 
-const { membership, isLoggedIn, user, setUser, refreshUser } = auth
+const { membership, isLoggedIn, user, setUser, refreshUser, logout } = auth
 
 
 
@@ -336,9 +338,61 @@ function openAuth(mode) {
 
   }
 
+  if (mode === 'search') {
+
+    modal.value = 'search'
+
+    drawerOpen.value = false
+
+    return
+
+  }
+
   openMemberFeature(mode)
 
   drawerOpen.value = false
+
+}
+
+
+
+async function handleLogout() {
+
+  await logout()
+
+  modal.value = null
+
+  if (page.value === 'fanclub-site') {
+
+    goTo('fanclub')
+
+  }
+
+}
+
+
+
+function openAccountModal() {
+
+  if (!isLoggedIn.value) {
+
+    openAuth('login')
+
+    return
+
+  }
+
+  modal.value = 'account'
+
+  drawerOpen.value = false
+
+}
+
+
+
+function handleAccountUserUpdated(account) {
+
+  if (account) setUser(account)
 
 }
 
@@ -448,6 +502,12 @@ function handleAiModalAuth(mode) {
 
       :page="page"
 
+      :is-logged-in="isLoggedIn"
+
+      :user-name="user?.name || ''"
+
+      :membership="membership"
+
       @logo="goTo('top')"
 
       @navigate="handleNav"
@@ -457,6 +517,12 @@ function handleAiModalAuth(mode) {
       @open-auth="openAuth"
 
       @open-search="openAuth('search')"
+
+      @open-account="openAccountModal"
+
+      @logout="handleLogout"
+
+      @go-fanclub="goTo(isLoggedIn ? 'fanclub-site' : 'fanclub')"
 
     />
 
@@ -470,6 +536,10 @@ function handleAiModalAuth(mode) {
 
       :page="page"
 
+      :is-logged-in="isLoggedIn"
+
+      :user-name="user?.name || ''"
+
       @close="drawerOpen = false"
 
       @navigate="handleNav"
@@ -477,6 +547,10 @@ function handleAiModalAuth(mode) {
       @open-modal="openModal"
 
       @open-auth="openAuth"
+
+      @open-account="openAccountModal"
+
+      @logout="handleLogout"
 
     />
 
@@ -557,6 +631,7 @@ function handleAiModalAuth(mode) {
       <PageMemories
         v-else-if="page === 'memories'"
         @open-auth="openAuth"
+        @navigate="goTo"
       />
 
       <PageMessage v-else-if="page === 'message'" />
@@ -638,11 +713,25 @@ function handleAiModalAuth(mode) {
 
     <NewsListModal v-if="modal === 'news'" @close="modal = null" />
 
-    <EventsListModal v-if="modal === 'events'" @close="modal = null" />
+    <EventsListModal v-if="modal === 'events'" @close="modal = null" @navigate="goTo" />
 
     <GalleryModal v-if="modal === 'gallery'" @close="modal = null" />
 
     <AuthNoticeModal v-if="authMode" :mode="authMode" @close="closeAuth" />
+
+    <AccountModal
+      v-if="modal === 'account'"
+      @close="modal = null"
+      @need-login="modal = null; openAuth('login')"
+      @logout="handleLogout"
+      @user-updated="handleAccountUserUpdated"
+    />
+
+    <SearchModal
+      v-if="modal === 'search'"
+      @close="modal = null"
+      @navigate="goTo"
+    />
 
   </div>
 
