@@ -35,6 +35,7 @@ from event_applications import (
     create_application,
     fetch_applications_for_account,
 )
+from open_chat import ensure_open_chat_schema, register_open_chat_routes
 from password_utils import (
     hash_password,
     normalize_email,
@@ -210,6 +211,7 @@ ensure_post_media_schema()
 ensure_usage_schema(engine)
 ensure_account_settings_schema(engine)
 ensure_event_applications_schema(engine)
+ensure_open_chat_schema(engine)
 
 
 def ensure_contact_schema():
@@ -1901,8 +1903,22 @@ def create_fanclub():
     except Exception as e:
         print(e)
         return jsonify({"error": "ファンクラブ登録エラー", "detail": str(e)}), 500
- 
 
+
+register_open_chat_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+ 
 ############################################################################
 ### 実行制御
 ############################################################################

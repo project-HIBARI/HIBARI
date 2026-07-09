@@ -14,6 +14,7 @@ import BenefitNewsletterPanel from './fanclub/benefits/BenefitNewsletterPanel.vu
 import BenefitEventsPanel from './fanclub/benefits/BenefitEventsPanel.vue'
 import BenefitExclusivePanel from './fanclub/benefits/BenefitExclusivePanel.vue'
 import BenefitPremiumVideoPanel from './fanclub/benefits/BenefitPremiumVideoPanel.vue'
+import FanclubOpenChat from './fanclub/FanclubOpenChat.vue'
 import { useMemberAccess } from '../../composables/useMemberAccess.js'
 import { MEMBERSHIP_LABELS, PERMISSION } from '../../constants/membership.js'
 import { benefitToSection } from '../../lib/fanclubBenefits.js'
@@ -37,6 +38,7 @@ const BENEFIT_PERMISSIONS = {
   ai: { permission: PERMISSION.AI_CHAT },
   disco: { permission: PERMISSION.PREMIUM_VIDEO, premium: true },
   gallery: { permission: PERMISSION.EXCLUSIVE_CONTENT, premium: true },
+  'open-chat': { permission: PERMISSION.OPEN_CHAT },
 }
 
 watch(
@@ -49,6 +51,7 @@ watch(
 const sectionTabs = [
   { id: 'overview', label: 'トップ' },
   { id: 'board', label: '会員掲示板', icon: 'chat' },
+  { id: 'open-chat', label: 'オープンチャット', icon: 'heart' },
   { id: 'chat', label: 'AIチャット', icon: 'flower' },
   { id: 'benefits', label: '特典一覧', icon: 'heart' },
 ]
@@ -70,6 +73,7 @@ const perks = [
   { feature: 'news', icon: '✦', label: '会員誌', desc: 'デジタル版を毎月配信' },
   { feature: 'events', icon: '★', label: '先行予約', desc: 'イベント・コンサート優先申込' },
   { feature: 'board', icon: '💬', label: '会員掲示板', desc: '月10回まで投稿（プレミアム無制限）' },
+  { feature: 'open-chat', icon: '👥', label: 'オープンチャット', desc: 'ファン同士で交流できるグループチャット' },
   { feature: 'ai', icon: '♪', label: 'AIひばり対話', desc: '月10回（プレミアム無制限）' },
   { feature: 'disco', icon: '▶', label: '限定動画', desc: '未公開映像をいつでも視聴', premium: true },
   { feature: 'gallery', icon: '✧', label: '限定コンテンツ', desc: 'ハイレゾ音源・会員ギャラリー', premium: true },
@@ -177,6 +181,14 @@ watch(section, () => {
         ファンクラブ会員専用の掲示板です。思い出やメッセージを投稿して、仲間と交流できます。
       </p>
       <FanclubBoard @need-auth="(m) => emit('open-auth', m)" />
+    </section>
+
+    <section v-else-if="section === 'open-chat'" class="page-fc-site__panel">
+      <SectionTitle title="オープンチャット" sub="Open Chat · ファン同士の交流" size="md" />
+      <p class="page-fc-site__board-lead">
+        LINEのオープンチャットのように、参加したいルームを選んでファン同士で会話できます。
+      </p>
+      <FanclubOpenChat @need-auth="(m) => emit('open-auth', m)" />
     </section>
 
     <section v-else-if="section === 'chat'" class="page-fc-site__panel">

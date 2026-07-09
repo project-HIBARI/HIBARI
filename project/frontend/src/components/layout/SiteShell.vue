@@ -245,6 +245,8 @@ function openMemberFeature(mode) {
 
     board: { permission: PERMISSION.BOARD_POST, memberPage: 'fanclub-site', section: 'board', guestPage: 'fanclub' },
 
+    'open-chat': { permission: PERMISSION.OPEN_CHAT, memberPage: 'fanclub-site', section: 'open-chat', guestPage: 'fanclub' },
+
     fanclub: { memberPage: 'fanclub-site', guestPage: 'fanclub' },
 
     disco: { permission: PERMISSION.PREMIUM_VIDEO, memberPage: 'fanclub-site', section: 'premium-video', premium: true, guestPage: 'fanclub' },

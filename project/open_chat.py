@@ -1,0 +1,624 @@
+"""
+ファンクラブ オープンチャット（会員同士のグループチャット）
+
+LINE オープンチャット風: ルーム一覧 → 参加 → メッセージ送受信（ポーリング）
+"""
+from __future__ import annotations
+
+from datetime import datetime, timezone
+
+from flask import jsonify, request
+from sqlalchemy import text
+
+MAX_MESSAGE_LENGTH = 2000
+MESSAGES_PAGE_SIZE = 50
+POLL_MAX_MESSAGES = 100
+
+DEFAULT_ROOMS = [
+    {
+        "slug": "fanclub-main",
+        "name": "美空ひばりファンクラブ・メイン",
+        "description": "ファン同士が自由に語り合えるメインのオープンチャットです。",
+        "icon_emoji": "✦",
+    },
+    {
+        "slug": "fanclub-events",
+        "name": "イベント・ライブ交流",
+        "description": "コンサートやイベントの感想・同行募集などを共有しましょう。",
+        "icon_emoji": "★",
+    },
+    {
+        "slug": "fanclub-memories",
+        "name": "思い出・エピソード",
+        "description": "ひばりさんへの思い出や感動した曲のエピソードを交換する部屋です。",
+        "icon_emoji": "♪",
+    },
+]
+
+
+def ensure_open_chat_schema(engine):
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS open_chat_rooms (
+                    room_id SERIAL PRIMARY KEY,
+                    slug VARCHAR(64) UNIQUE NOT NULL,
+                    name VARCHAR(128) NOT NULL,
+                    description TEXT,
+                    icon_emoji VARCHAR(16) NOT NULL DEFAULT '💬',
+                    max_members INTEGER NULL,
+                    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS open_chat_members (
+                    member_id SERIAL PRIMARY KEY,
+                    room_id INTEGER NOT NULL REFERENCES open_chat_rooms(room_id) ON DELETE CASCADE,
+                    account_id INTEGER NOT NULL,
+                    display_name VARCHAR(64) NOT NULL,
+                    joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    last_read_message_id INTEGER NULL,
+                    UNIQUE (room_id, account_id)
+                )
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS open_chat_messages (
+                    message_id SERIAL PRIMARY KEY,
+                    room_id INTEGER NOT NULL REFERENCES open_chat_rooms(room_id) ON DELETE CASCADE,
+                    account_id INTEGER NOT NULL,
+                    body TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    deleted_at TIMESTAMPTZ NULL
+                )
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                CREATE INDEX IF NOT EXISTS idx_open_chat_messages_room_id
+                ON open_chat_messages (room_id, message_id)
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                CREATE INDEX IF NOT EXISTS idx_open_chat_members_room_id
+                ON open_chat_members (room_id)
+                """
+            )
+        )
+
+    seed_default_rooms(engine)
+
+
+def seed_default_rooms(engine):
+    with engine.begin() as conn:
+        for room in DEFAULT_ROOMS:
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO open_chat_rooms (slug, name, description, icon_emoji)
+                    VALUES (:slug, :name, :description, :icon_emoji)
+                    ON CONFLICT (slug) DO NOTHING
+                    """
+                ),
+                room,
+            )
+
+
+def _row_mapping(row):
+    return row._mapping if hasattr(row, "_mapping") else row
+
+
+def is_fanclub_member(fetch_all, account_id):
+    rows = fetch_all(
+        """
+        SELECT 1
+        FROM fanclub_join_historys
+        WHERE account_id = :account_id
+        LIMIT 1
+        """,
+        {"account_id": account_id},
+    )
+    return bool(rows)
+
+
+def get_account_display_name(fetch_account_row, account_id):
+    account = fetch_account_row(account_id)
+    if not account:
+        return "会員"
+    name = (account.get("name") or "").strip()
+    return name or "会員"
+
+
+def get_membership_label(get_membership_for_account, account_id):
+    return get_membership_for_account(account_id)
+
+
+def serialize_message(row, account_id, to_jst_str):
+    mapping = _row_mapping(row)
+    author_id = int(mapping["account_id"])
+    return {
+        "message_id": int(mapping["message_id"]),
+        "room_id": int(mapping["room_id"]),
+        "account_id": author_id,
+        "author_name": mapping["author_name"],
+        "membership": mapping["membership"],
+        "body": mapping["body"],
+        "created_at": to_jst_str(mapping["created_at"]),
+        "is_own": author_id == account_id,
+    }
+
+
+def register_open_chat_routes(
+    app,
+    engine,
+    *,
+    fetch_all,
+    execute,
+    execute_insert,
+    row_to_dict,
+    get_session_account_id,
+    get_membership_for_account,
+    fetch_account_row,
+    to_jst_str,
+):
+    def require_fanclub_member(account_id):
+        if not is_fanclub_member(fetch_all, account_id):
+            return jsonify({"error": "ファンクラブ会員のみご利用いただけます"}), 403
+        return None
+
+    def get_room_or_404(room_id):
+        rows = fetch_all(
+            """
+            SELECT room_id, slug, name, description, icon_emoji, is_active, created_at
+            FROM open_chat_rooms
+            WHERE room_id = :room_id AND is_active = TRUE
+            """,
+            {"room_id": room_id},
+        )
+        if not rows:
+            return None, (jsonify({"error": "チャットルームが見つかりません"}), 404)
+        return row_to_dict(rows[0]), None
+
+    def is_room_member(room_id, account_id):
+        rows = fetch_all(
+            """
+            SELECT member_id
+            FROM open_chat_members
+            WHERE room_id = :room_id AND account_id = :account_id
+            """,
+            {"room_id": room_id, "account_id": account_id},
+        )
+        return bool(rows)
+
+    @app.route("/api/open-chats", methods=["GET"])
+    def list_open_chats():
+        try:
+            try:
+                account_id = get_session_account_id()
+            except ValueError:
+                return jsonify({"error": "ログインが必要です"}), 401
+
+            denied = require_fanclub_member(account_id)
+            if denied:
+                return denied
+
+            rows = fetch_all(
+                """
+                SELECT
+                    r.room_id,
+                    r.slug,
+                    r.name,
+                    r.description,
+                    r.icon_emoji,
+                    r.created_at,
+                    (
+                        SELECT COUNT(*)::int
+                        FROM open_chat_members m
+                        WHERE m.room_id = r.room_id
+                    ) AS member_count,
+                    (
+                        SELECT body
+                        FROM open_chat_messages msg
+                        WHERE msg.room_id = r.room_id AND msg.deleted_at IS NULL
+                        ORDER BY msg.message_id DESC
+                        LIMIT 1
+                    ) AS last_message_body,
+                    (
+                        SELECT msg.created_at
+                        FROM open_chat_messages msg
+                        WHERE msg.room_id = r.room_id AND msg.deleted_at IS NULL
+                        ORDER BY msg.message_id DESC
+                        LIMIT 1
+                    ) AS last_message_at,
+                    EXISTS (
+                        SELECT 1
+                        FROM open_chat_members m2
+                        WHERE m2.room_id = r.room_id AND m2.account_id = :account_id
+                    ) AS is_joined
+                FROM open_chat_rooms r
+                WHERE r.is_active = TRUE
+                ORDER BY r.room_id ASC
+                """,
+                {"account_id": account_id},
+            )
+
+            rooms = []
+            for row in rows:
+                mapping = _row_mapping(row)
+                rooms.append({
+                    "room_id": int(mapping["room_id"]),
+                    "slug": mapping["slug"],
+                    "name": mapping["name"],
+                    "description": mapping["description"],
+                    "icon_emoji": mapping["icon_emoji"],
+                    "member_count": int(mapping["member_count"] or 0),
+                    "last_message_preview": _preview_text(mapping.get("last_message_body")),
+                    "last_message_at": to_jst_str(mapping.get("last_message_at")),
+                    "is_joined": bool(mapping["is_joined"]),
+                    "created_at": to_jst_str(mapping["created_at"]),
+                })
+
+            return jsonify({"rooms": rooms})
+        except Exception as e:
+            print(e)
+            return jsonify({"error": "ルーム一覧の取得に失敗しました"}), 500
+
+    @app.route("/api/open-chats/<int:room_id>", methods=["GET"])
+    def get_open_chat_room(room_id):
+        try:
+            try:
+                account_id = get_session_account_id()
+            except ValueError:
+                return jsonify({"error": "ログインが必要です"}), 401
+
+            denied = require_fanclub_member(account_id)
+            if denied:
+                return denied
+
+            room, err = get_room_or_404(room_id)
+            if err:
+                return err
+
+            stats = fetch_all(
+                """
+                SELECT
+                    (
+                        SELECT COUNT(*)::int
+                        FROM open_chat_members m
+                        WHERE m.room_id = :room_id
+                    ) AS member_count,
+                    EXISTS (
+                        SELECT 1
+                        FROM open_chat_members m2
+                        WHERE m2.room_id = :room_id AND m2.account_id = :account_id
+                    ) AS is_joined
+                """,
+                {"room_id": room_id, "account_id": account_id},
+            )
+            stat = _row_mapping(stats[0]) if stats else {}
+
+            return jsonify({
+                **room,
+                "member_count": int(stat.get("member_count") or 0),
+                "is_joined": bool(stat.get("is_joined")),
+            })
+        except Exception as e:
+            print(e)
+            return jsonify({"error": "ルーム情報の取得に失敗しました"}), 500
+
+    @app.route("/api/open-chats/<int:room_id>/join", methods=["POST"])
+    def join_open_chat(room_id):
+        try:
+            try:
+                account_id = get_session_account_id()
+            except ValueError:
+                return jsonify({"error": "ログインが必要です"}), 401
+
+            denied = require_fanclub_member(account_id)
+            if denied:
+                return denied
+
+            room, err = get_room_or_404(room_id)
+            if err:
+                return err
+
+            if is_room_member(room_id, account_id):
+                return jsonify({"success": True, "already_joined": True, "room_id": room_id})
+
+            display_name = get_account_display_name(fetch_account_row, account_id)
+            execute(
+                """
+                INSERT INTO open_chat_members (room_id, account_id, display_name)
+                VALUES (:room_id, :account_id, :display_name)
+                ON CONFLICT (room_id, account_id) DO NOTHING
+                """,
+                {
+                    "room_id": room_id,
+                    "account_id": account_id,
+                    "display_name": display_name[:64],
+                },
+            )
+
+            return jsonify({"success": True, "room_id": room_id, "display_name": display_name}), 201
+        except Exception as e:
+            print(e)
+            return jsonify({"error": "ルームへの参加に失敗しました"}), 500
+
+    @app.route("/api/open-chats/<int:room_id>/leave", methods=["POST"])
+    def leave_open_chat(room_id):
+        try:
+            try:
+                account_id = get_session_account_id()
+            except ValueError:
+                return jsonify({"error": "ログインが必要です"}), 401
+
+            execute(
+                """
+                DELETE FROM open_chat_members
+                WHERE room_id = :room_id AND account_id = :account_id
+                """,
+                {"room_id": room_id, "account_id": account_id},
+            )
+            return jsonify({"success": True})
+        except Exception as e:
+            print(e)
+            return jsonify({"error": "ルームからの退出に失敗しました"}), 500
+
+    @app.route("/api/open-chats/<int:room_id>/members", methods=["GET"])
+    def list_open_chat_members(room_id):
+        try:
+            try:
+                account_id = get_session_account_id()
+            except ValueError:
+                return jsonify({"error": "ログインが必要です"}), 401
+
+            denied = require_fanclub_member(account_id)
+            if denied:
+                return denied
+
+            if not is_room_member(room_id, account_id):
+                return jsonify({"error": "ルームに参加してからメンバー一覧をご覧ください"}), 403
+
+            rows = fetch_all(
+                """
+                SELECT
+                    m.account_id,
+                    m.display_name,
+                    m.joined_at
+                FROM open_chat_members m
+                WHERE m.room_id = :room_id
+                ORDER BY m.joined_at ASC
+                LIMIT 200
+                """,
+                {"room_id": room_id},
+            )
+
+            members = []
+            for row in rows:
+                mapping = _row_mapping(row)
+                member_id = int(mapping["account_id"])
+                members.append({
+                    "account_id": member_id,
+                    "display_name": mapping["display_name"],
+                    "membership": get_membership_label(get_membership_for_account, member_id),
+                    "joined_at": to_jst_str(mapping["joined_at"]),
+                    "is_own": member_id == account_id,
+                })
+
+            return jsonify({"members": members})
+        except Exception as e:
+            print(e)
+            return jsonify({"error": "メンバー一覧の取得に失敗しました"}), 500
+
+    @app.route("/api/open-chats/<int:room_id>/messages", methods=["GET"])
+    def list_open_chat_messages(room_id):
+        try:
+            try:
+                account_id = get_session_account_id()
+            except ValueError:
+                return jsonify({"error": "ログインが必要です"}), 401
+
+            denied = require_fanclub_member(account_id)
+            if denied:
+                return denied
+
+            if not is_room_member(room_id, account_id):
+                return jsonify({"error": "ルームに参加してからメッセージをご覧ください"}), 403
+
+            after_id = request.args.get("after_id", type=int)
+            limit = min(request.args.get("limit", MESSAGES_PAGE_SIZE, type=int), MESSAGES_PAGE_SIZE)
+
+            if after_id:
+                rows = fetch_all(
+                    """
+                    SELECT
+                        msg.message_id,
+                        msg.room_id,
+                        msg.account_id,
+                        msg.body,
+                        msg.created_at,
+                        COALESCE(m.display_name, a.name, '会員') AS author_name,
+                        CASE
+                            WHEN EXISTS (
+                                SELECT 1 FROM fanclub_join_historys fj
+                                WHERE fj.account_id = msg.account_id AND fj.is_premium = TRUE
+                            ) THEN 'premium'
+                            ELSE 'general'
+                        END AS membership
+                    FROM open_chat_messages msg
+                    LEFT JOIN open_chat_members m
+                        ON m.room_id = msg.room_id AND m.account_id = msg.account_id
+                    LEFT JOIN accounts a ON a.account_id = msg.account_id
+                    WHERE msg.room_id = :room_id
+                      AND msg.deleted_at IS NULL
+                      AND msg.message_id > :after_id
+                    ORDER BY msg.message_id ASC
+                    LIMIT :limit
+                    """,
+                    {
+                        "room_id": room_id,
+                        "after_id": after_id,
+                        "limit": min(limit, POLL_MAX_MESSAGES),
+                    },
+                )
+            else:
+                rows = fetch_all(
+                    """
+                    SELECT *
+                    FROM (
+                        SELECT
+                            msg.message_id,
+                            msg.room_id,
+                            msg.account_id,
+                            msg.body,
+                            msg.created_at,
+                            COALESCE(m.display_name, a.name, '会員') AS author_name,
+                            CASE
+                                WHEN EXISTS (
+                                    SELECT 1 FROM fanclub_join_historys fj
+                                    WHERE fj.account_id = msg.account_id AND fj.is_premium = TRUE
+                                ) THEN 'premium'
+                                ELSE 'general'
+                            END AS membership
+                        FROM open_chat_messages msg
+                        LEFT JOIN open_chat_members m
+                            ON m.room_id = msg.room_id AND m.account_id = msg.account_id
+                        LEFT JOIN accounts a ON a.account_id = msg.account_id
+                        WHERE msg.room_id = :room_id AND msg.deleted_at IS NULL
+                        ORDER BY msg.message_id DESC
+                        LIMIT :limit
+                    ) recent
+                    ORDER BY message_id ASC
+                    """,
+                    {"room_id": room_id, "limit": limit},
+                )
+
+            messages = [serialize_message(row, account_id, to_jst_str) for row in rows]
+            latest_id = messages[-1]["message_id"] if messages else after_id
+
+            if messages:
+                execute(
+                    """
+                    UPDATE open_chat_members
+                    SET last_read_message_id = :message_id
+                    WHERE room_id = :room_id AND account_id = :account_id
+                    """,
+                    {
+                        "message_id": latest_id,
+                        "room_id": room_id,
+                        "account_id": account_id,
+                    },
+                )
+
+            return jsonify({
+                "messages": messages,
+                "latest_id": latest_id,
+            })
+        except Exception as e:
+            print(e)
+            return jsonify({"error": "メッセージの取得に失敗しました"}), 500
+
+    @app.route("/api/open-chats/<int:room_id>/messages", methods=["POST"])
+    def post_open_chat_message(room_id):
+        try:
+            try:
+                account_id = get_session_account_id()
+            except ValueError:
+                return jsonify({"error": "ログインが必要です"}), 401
+
+            denied = require_fanclub_member(account_id)
+            if denied:
+                return denied
+
+            data = request.get_json() or {}
+            body = (data.get("body") or "").strip()
+            if not body:
+                return jsonify({"error": "メッセージを入力してください"}), 400
+            if len(body) > MAX_MESSAGE_LENGTH:
+                return jsonify({"error": f"メッセージは{MAX_MESSAGE_LENGTH}文字以内にしてください"}), 400
+
+            room, err = get_room_or_404(room_id)
+            if err:
+                return err
+
+            if not is_room_member(room_id, account_id):
+                display_name = get_account_display_name(fetch_account_row, account_id)
+                execute(
+                    """
+                    INSERT INTO open_chat_members (room_id, account_id, display_name)
+                    VALUES (:room_id, :account_id, :display_name)
+                    ON CONFLICT (room_id, account_id) DO NOTHING
+                    """,
+                    {
+                        "room_id": room_id,
+                        "account_id": account_id,
+                        "display_name": display_name[:64],
+                    },
+                )
+
+            message_id = execute_insert(
+                """
+                INSERT INTO open_chat_messages (room_id, account_id, body)
+                VALUES (:room_id, :account_id, :body)
+                RETURNING message_id
+                """,
+                {
+                    "room_id": room_id,
+                    "account_id": account_id,
+                    "body": body,
+                },
+            )
+
+            rows = fetch_all(
+                """
+                SELECT
+                    msg.message_id,
+                    msg.room_id,
+                    msg.account_id,
+                    msg.body,
+                    msg.created_at,
+                    COALESCE(m.display_name, a.name, '会員') AS author_name,
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1 FROM fanclub_join_historys fj
+                            WHERE fj.account_id = msg.account_id AND fj.is_premium = TRUE
+                        ) THEN 'premium'
+                        ELSE 'general'
+                    END AS membership
+                FROM open_chat_messages msg
+                LEFT JOIN open_chat_members m
+                    ON m.room_id = msg.room_id AND m.account_id = msg.account_id
+                LEFT JOIN accounts a ON a.account_id = msg.account_id
+                WHERE msg.message_id = :message_id
+                """,
+                {"message_id": message_id},
+            )
+
+            message = serialize_message(rows[0], account_id, to_jst_str)
+            return jsonify({"success": True, "message": message}), 201
+        except Exception as e:
+            print(e)
+            return jsonify({"error": "メッセージの送信に失敗しました"}), 500
+
+
+def _preview_text(body):
+    if not body:
+        return ""
+    text_value = str(body).replace("\n", " ").strip()
+    if len(text_value) > 60:
+        return text_value[:60] + "…"
+    return text_value

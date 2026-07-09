@@ -10,6 +10,7 @@ export const BENEFIT_SECTIONS = {
   disco: 'premium-video',
   pv: 'premium-video',
   gallery: 'exclusive-content',
+  'open-chat': 'open-chat',
 }
 
 export function benefitToSection(feature) {
