@@ -14,7 +14,7 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
 <template>
   <section class="home-hero" aria-label="メインビジュアル">
     <video
-      class="home-hero__video"
+      class="home-hero__video motion-hero-video"
       autoplay
       muted
       loop
@@ -47,6 +47,15 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
         </div>
       </div>
     </div>
+
+    <button
+      type="button"
+      class="home-hero__scroll motion-scroll-hint"
+      aria-label="下へスクロール"
+      @click="emit('scroll-enjoy')"
+    >
+      <span class="home-hero__scroll-icon" aria-hidden="true">⌄</span>
+    </button>
   </section>
 </template>
 
@@ -167,6 +176,24 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
   flex-wrap: wrap;
   gap: 14px;
   margin-top: var(--sp-7);
+}
+.home-hero__scroll {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--murasaki-600);
+}
+.home-hero__scroll-icon {
+  display: block;
+  font-size: 22px;
+  line-height: 1;
+  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.8);
 }
 
 @media (max-width: 1100px) {

@@ -1,9 +1,10 @@
 /**
- * サイト全体 — 上品な動的演出（フェード・リveal・ホバー）
+ * サイト全体 — 上品な動的演出（フェード・reveal・ホバー）
  */
 
 :root {
-  --motion-duration: 0.6s;
+  --motion-duration: 0.65s;
+  --motion-duration-slow: 0.85s;
   --motion-duration-fast: 0.45s;
   --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-lift: translateY(-4px);
@@ -17,7 +18,7 @@
 @keyframes sitePageEnter {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -37,9 +38,68 @@
   opacity: 1;
   transform: translateY(0);
 }
+.site-reveal--slow {
+  transition-duration: var(--motion-duration-slow);
+}
 .site-reveal--delay-1 { transition-delay: 0.08s; }
 .site-reveal--delay-2 { transition-delay: 0.16s; }
 .site-reveal--delay-3 { transition-delay: 0.24s; }
+.site-reveal--delay-4 { transition-delay: 0.32s; }
+
+/* —— 順番表示（stagger） —— */
+.site-reveal-stagger > .stagger-item {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity var(--motion-duration) var(--motion-ease),
+    transform var(--motion-duration) var(--motion-ease);
+  transition-delay: calc(var(--stagger-i, 0) * 0.07s);
+}
+.site-reveal-stagger.is-visible > .stagger-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* —— 汎用カード・画像 —— */
+.motion-card {
+  transition:
+    transform var(--motion-duration-fast) var(--motion-ease),
+    box-shadow var(--motion-duration-fast) var(--motion-ease),
+    border-color var(--motion-duration-fast) ease;
+}
+.motion-card:hover {
+  transform: var(--motion-lift);
+  box-shadow: var(--site-shadow-md);
+}
+.motion-image {
+  overflow: hidden;
+}
+.motion-image img,
+.motion-image video {
+  transition: transform 0.9s var(--motion-ease);
+}
+.motion-image:hover img,
+.motion-image:hover video {
+  transform: scale(1.04);
+}
+
+/* —— ヒーロー背景のゆっくりしたズーム —— */
+.motion-hero-video {
+  animation: heroKenBurns 22s var(--motion-ease) infinite alternate;
+}
+@keyframes heroKenBurns {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+
+/* —— スクロール誘導 —— */
+.motion-scroll-hint {
+  animation: scrollHint 2.4s var(--motion-ease) infinite;
+}
+@keyframes scrollHint {
+  0%, 100% { opacity: 0.45; transform: translateY(0); }
+  50% { opacity: 0.9; transform: translateY(6px); }
+}
 
 /* イントロ中は背面コンテンツを隠す */
 body.site-intro-active {
@@ -89,15 +149,15 @@ body.site-intro-active {
     opacity var(--motion-duration-fast) ease;
 }
 .ui-btn--primary:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(93, 58, 107, 0.28);
 }
 .ui-btn--outline:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: 0 4px 14px rgba(93, 58, 107, 0.12);
 }
 .ui-btn--gold:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(168, 135, 63, 0.28);
 }
 
@@ -109,9 +169,35 @@ body.site-intro-active {
   border-bottom-color: rgba(90, 60, 40, 0.1);
 }
 
+/* —— ナビ active / hover 下線 —— */
+.site-header__nav-link {
+  position: relative;
+}
+.site-header__nav-link::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--kin-400), var(--kin-500));
+  transition:
+    width 0.45s var(--motion-ease),
+    left 0.45s var(--motion-ease);
+}
+.site-header__nav-link:hover::after,
+.site-header__nav-link--active::after {
+  width: 100%;
+  left: 0;
+}
+.site-header__nav-link--active {
+  color: var(--murasaki-700);
+}
+
 /* —— ファンクラブ CTA 控えめ強調 —— */
 .site-cta-accent {
   position: relative;
+  overflow: visible;
 }
 .site-cta-accent::after {
   content: '';
@@ -123,39 +209,62 @@ body.site-intro-active {
   animation: ctaGlow 3.2s var(--motion-ease) infinite;
   pointer-events: none;
 }
+.site-cta-accent::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: ctaSheen 4.5s var(--motion-ease) infinite;
+  pointer-events: none;
+}
 @keyframes ctaGlow {
   0%, 100% { opacity: 0; transform: scale(1); }
   50% { opacity: 0.55; transform: scale(1.02); }
 }
-
-/* —— ページ遷移 —— */
-.page-fade-enter-active,
-.page-fade-leave-active {
-  transition: opacity 0.45s var(--motion-ease);
+@keyframes ctaSheen {
+  0%, 100% { background-position: 200% 0; opacity: 0; }
+  40%, 60% { background-position: -100% 0; opacity: 1; }
 }
-.page-fade-enter-from,
-.page-fade-leave-to {
-  opacity: 0;
+
+/* —— ディスコ / ゆかりの地カード —— */
+.disco-song-card.motion-card:hover,
+.places-spot-card.motion-card:hover,
+.fc-benefits__item.motion-card:hover {
+  transform: var(--motion-lift);
+  box-shadow: var(--site-shadow-md);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .site-reveal {
+  .site-reveal,
+  .site-reveal-stagger > .stagger-item {
     opacity: 1;
     transform: none;
     transition: none;
   }
   .site-page-enter,
-  .site-shell--ready {
+  .site-shell--ready,
+  .motion-hero-video,
+  .motion-scroll-hint,
+  .site-cta-accent::after,
+  .site-cta-accent::before {
     animation: none;
   }
   .ui-card--interactive:hover,
   .page-image-card--interactive:hover,
+  .motion-card:hover,
   .ui-btn--primary:hover:not(:disabled),
   .ui-btn--outline:hover:not(:disabled),
   .ui-btn--gold:hover:not(:disabled) {
     transform: none;
   }
-  .site-cta-accent::after {
-    animation: none;
+  .site-header__nav-link::after {
+    transition: none;
   }
 }

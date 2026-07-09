@@ -3,14 +3,19 @@
  * ページ: ファンクラブ特典紹介
  * 構成: 見出し / 特典ハイライト / プラン・料金 / 加入CTA
  */
+import { ref } from 'vue'
 import PageHead from '../ui/PageHead.vue'
 import SectionTitle from '../ui/SectionTitle.vue'
 import FanclubBenefits from './fanclub/FanclubBenefits.vue'
 import FanclubPlanCard from './fanclub/FanclubPlanCard.vue'
 import FanclubJoinCta from './fanclub/FanclubJoinCta.vue'
 import { MEMBERSHIP_PLANS } from '../../constants/membership.js'
+import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
 const emit = defineEmits(['navigate', 'register'])
+
+const pageRoot = ref(null)
+useScrollReveal(pageRoot)
 
 const plans = MEMBERSHIP_PLANS
 
@@ -20,20 +25,20 @@ function goRegister(plan) {
 </script>
 
 <template>
-  <div class="page-fanclub">
+  <div ref="pageRoot" class="page-fanclub">
     <PageHead kanji="會" title="ファンクラブ" sub="Fan Club · 会員特典とプランのご案内" />
 
-    <p class="page-fanclub__intro">
+    <p class="page-fanclub__intro site-reveal">
       美空ひばりファンクラブは、限定コンテンツやイベント先行予約など、ファンのための特典をご用意しています。
       一般会員・プレミアム会員からお選びいただき、ひばりの世界をより深くお楽しみください。
     </p>
 
-    <section class="page-fanclub__section">
+    <section class="page-fanclub__section site-reveal site-reveal--delay-1">
       <SectionTitle title="会員特典" sub="Member Benefits" size="md" />
       <FanclubBenefits />
     </section>
 
-    <section class="page-fanclub__section">
+    <section class="page-fanclub__section site-reveal site-reveal--delay-2">
       <SectionTitle title="プラン・料金" sub="Plans &amp; Pricing" size="md" />
       <div class="page-fanclub__plans">
         <FanclubPlanCard
@@ -45,7 +50,7 @@ function goRegister(plan) {
       </div>
     </section>
 
-    <FanclubJoinCta class="page-fanclub__cta" @join="() => goRegister(plans[0])" />
+    <FanclubJoinCta class="page-fanclub__cta site-reveal site-reveal--delay-3" @join="() => goRegister(plans[0])" />
   </div>
 </template>
 

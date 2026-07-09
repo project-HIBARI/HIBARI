@@ -13,8 +13,12 @@ import { HIBARU_DATA } from '../../data/hibaruData.js'
 import { createPostWithMedia } from '../../api/posts.js'
 import { useBoardPost } from '../../composables/useBoardPost.js'
 import { revokeMediaPreview } from '../../lib/boardMedia.js'
+import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
 const emit = defineEmits(['open-auth'])
+
+const pageRoot = ref(null)
+useScrollReveal(pageRoot)
 
 const { recordPost, canPostNow } = useBoardPost()
 
@@ -117,8 +121,8 @@ function like(id) {
 </script>
 
 <template>
-  <div class="page-memories">
-    <PageHead kanji="憶" title="思い出" sub="Memories · 証言と愛唱 · ファンの集い" />
+  <div ref="pageRoot" class="page-memories">
+    <PageHead kanji="憶" title="思い出" sub="Memories · 証言と愛唱 · ファンの集い" class="site-reveal is-visible" />
 
     <TabBar
       :dark="false"

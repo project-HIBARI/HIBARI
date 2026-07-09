@@ -13,6 +13,7 @@ import FanclubBenefits from './fanclub/FanclubBenefits.vue'
 import FanclubAccountPanel from './fanclub/FanclubAccountPanel.vue'
 import { useMemberAccess } from '../../composables/useMemberAccess.js'
 import { MEMBERSHIP_LABELS } from '../../constants/membership.js'
+import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
 const props = defineProps({
   activeSection: { type: String, default: 'overview' },
@@ -23,6 +24,9 @@ const emit = defineEmits(['navigate', 'open-modal', 'open-auth', 'section-change
 const { isLoggedIn, membership } = useMemberAccess()
 
 const section = ref(props.activeSection)
+const pageRoot = ref(null)
+
+useScrollReveal(pageRoot)
 
 watch(
   () => props.activeSection,
@@ -62,6 +66,10 @@ function onLogout() {
 }
 
 function useFeature(feature) {
+  if (feature === 'news') {
+    emit('navigate', 'news')
+    return
+  }
   if (feature === 'board' || feature === 'memories') {
     setSection('board')
     return
@@ -75,7 +83,7 @@ function useFeature(feature) {
 </script>
 
 <template>
-  <div class="page-fc-site">
+  <div ref="pageRoot" class="page-fc-site">
     <PageHead kanji="會" title="ファンクラブサイト" sub="Member Site · 会員限定コンテンツ" />
 
     <TabBar
@@ -94,9 +102,14 @@ function useFeature(feature) {
         <button type="button" class="page-fc-site__login-link" @click="emit('open-auth', 'login')">ログイン</button>
       </p>
 
-      <section class="page-fc-site__perks">
-        <ul class="page-fc-site__perk-grid">
-          <li v-for="p in perks" :key="p.label" class="page-fc-site__perk">
+      <section class="page-fc-site__perks site-reveal site-reveal--delay-1">
+        <ul class="page-fc-site__perk-grid site-reveal site-reveal-stagger">
+          <li
+            v-for="(p, i) in perks"
+            :key="p.label"
+            class="page-fc-site__perk stagger-item motion-card"
+            :style="{ '--stagger-i': i }"
+          >
             <button type="button" class="page-fc-site__perk-btn" @click="useFeature(p.feature)">
               <span class="page-fc-site__perk-icon">{{ p.icon }}</span>
               <div>

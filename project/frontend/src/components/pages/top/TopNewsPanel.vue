@@ -9,7 +9,7 @@ import MemberGate from '../../common/MemberGate.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 import { useMemberAccess } from '../../../composables/useMemberAccess.js'
 
-const emit = defineEmits(['open-all', 'need-auth'])
+const emit = defineEmits(['navigate', 'need-auth'])
 
 const { canUse, PERMISSION } = useMemberAccess()
 
@@ -18,11 +18,7 @@ const allItems = computed(() => HIBARU_DATA.news.slice(0, 5))
 const visibleItems = computed(() => (canView.value ? allItems.value : allItems.value.slice(0, 2)))
 
 function onOpenAll() {
-  if (canView.value) {
-    emit('open-all')
-  } else {
-    emit('need-auth', 'news')
-  }
+  emit('navigate', 'news')
 }
 </script>
 

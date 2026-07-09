@@ -32,6 +32,8 @@ import AuthNoticeModal from '../modals/AuthNoticeModal.vue'
 
 import PageTop from '../pages/PageTop.vue'
 
+import PageNews from '../pages/PageNews.vue'
+
 import PageDisco from '../pages/PageDisco.vue'
 
 import PageProfile from '../pages/PageProfile.vue'
@@ -161,22 +163,6 @@ function goTo(id) {
 
 function handleNav(id) {
 
-  if (id === 'news') {
-
-    if (isLoggedIn.value && auth.can(PERMISSION.NEWSLETTER)) {
-
-      openModal('news')
-
-    } else {
-
-      openAuth('news')
-
-    }
-
-    return
-
-  }
-
   if (id === 'fanclub') {
 
     fanclubSection.value = 'overview'
@@ -217,7 +203,7 @@ function openMemberFeature(mode) {
 
   const features = {
 
-    news: { permission: PERMISSION.NEWSLETTER, modal: 'news' },
+    news: { page: 'news' },
 
     events: { permission: PERMISSION.TICKET_PREORDER, modal: 'events' },
 
@@ -515,6 +501,14 @@ function handleAiModalAuth(mode) {
         @open-auth="openAuth"
 
         @open-modal="openModal"
+
+      />
+
+      <PageNews
+
+        v-else-if="page === 'news'"
+
+        @open-auth="openAuth"
 
       />
 

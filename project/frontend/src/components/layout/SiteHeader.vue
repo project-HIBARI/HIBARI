@@ -363,7 +363,7 @@ onUnmounted(() => {
     padding: 6px 0;
     margin: 0;
     border: 0;
-    border-bottom: 2px solid transparent;
+    border-bottom: none;
     background: transparent;
     cursor: pointer;
     font-family: var(--ff-sans-jp);
@@ -377,13 +377,11 @@ onUnmounted(() => {
 
   .site-header__nav-link:hover {
     color: var(--ink-700);
-    border-bottom-color: var(--kin-400);
   }
 
   .site-header__nav-link--active {
-    color: var(--site-text);
+    color: var(--murasaki-700);
     font-weight: 700;
-    border-bottom-color: var(--kin-500);
   }
 
   .site-header__actions-bar {

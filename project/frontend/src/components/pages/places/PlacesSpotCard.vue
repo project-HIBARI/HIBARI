@@ -35,7 +35,7 @@ function onFavoriteClick(e) {
 </script>
 
 <template>
-  <article class="places-spot-card">
+  <article class="places-spot-card motion-card">
     <div class="places-spot-card__photo">
       <Photo :w="320" :h="160" :caption="spot.name" variant="sepia" class="places-spot-card__ph" />
       <span class="places-spot-card__cat">{{ categoryLabel }}</span>

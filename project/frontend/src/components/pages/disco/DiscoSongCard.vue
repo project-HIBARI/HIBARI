@@ -36,7 +36,7 @@ function onPlayClick(e) {
 </script>
 
 <template>
-  <article class="disco-song-card">
+  <article class="disco-song-card motion-card">
     <div class="disco-song-card__main">
       <button
         type="button"

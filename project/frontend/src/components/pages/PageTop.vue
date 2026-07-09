@@ -47,7 +47,7 @@ function onComingSoon(target) {
           @use-feature="(f) => emit('open-auth', f)"
         />
         <TopNewsPanel
-          @open-all="emit('open-modal', 'news')"
+          @navigate="(id) => emit('navigate', id)"
           @need-auth="(m) => emit('open-auth', m)"
         />
         <TopEventsPanel
@@ -57,7 +57,6 @@ function onComingSoon(target) {
       </section>
 
       <TopCategoryCards
-        class="site-reveal site-reveal--delay-2"
         @navigate="(id) => emit('navigate', id)"
         @coming-soon="onComingSoon"
       />

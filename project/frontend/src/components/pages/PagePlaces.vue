@@ -17,6 +17,7 @@ import PlacesRelatedSongs from './places/PlacesRelatedSongs.vue'
 import PlacesAiCard from './places/PlacesAiCard.vue'
 import PlacesCtaSection from './places/PlacesCtaSection.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
+import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
 const FAV_KEY = 'hbr-places-favorites'
 
@@ -30,6 +31,9 @@ const appliedKeyword = ref('')
 
 const selected = ref(HIBARU_DATA.places[0])
 const favorites = ref(new Set())
+const pageRoot = ref(null)
+
+useScrollReveal(pageRoot)
 
 onMounted(() => {
   try {
@@ -106,10 +110,10 @@ function selectSpot(spot) {
 </script>
 
 <template>
-  <div class="page-places">
-    <PlacesHeroSection @open-ai="emit('open-modal', 'ai')" />
+  <div ref="pageRoot" class="page-places">
+    <PlacesHeroSection class="site-reveal is-visible" @open-ai="emit('open-modal', 'ai')" />
 
-    <div class="page-places__map-layout">
+    <div class="page-places__map-layout site-reveal site-reveal--delay-1">
       <PlacesMapPanel
         :places="filteredPlaces"
         :selected="selected"

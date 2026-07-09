@@ -13,6 +13,7 @@ import DiscoAiCard from './disco/DiscoAiCard.vue'
 import DiscoRelatedCards from './disco/DiscoRelatedCards.vue'
 import DiscoDetailDialog from './disco/DiscoDetailDialog.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
+import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
 const FAV_KEY = 'hbr-disco-favorites'
 const PAGE_SIZE = 8
@@ -28,6 +29,9 @@ const yearEnd = ref(HIBARU_DATA.discographyStats.yearEnd)
 const currentPage = ref(1)
 const detail = ref(null)
 const favorites = ref(new Set())
+const pageRoot = ref(null)
+
+useScrollReveal(pageRoot)
 
 onMounted(() => {
   try {
@@ -110,18 +114,21 @@ function openDetail(song) {
 </script>
 
 <template>
-  <div class="page-disco">
+  <div ref="pageRoot" class="page-disco">
     <DiscoHeroSection
+      class="site-reveal is-visible"
       @open-detail="openDetail"
       @open-ai="emit('open-modal', 'ai')"
     />
 
     <DiscoPvSection
+      class="site-reveal site-reveal--delay-1"
       @coming-soon="emit('open-auth', 'pv')"
       @need-auth="(m) => emit('open-auth', m)"
     />
 
     <DiscoFilterPanel
+      class="site-reveal site-reveal--delay-2"
       :query="query"
       :type-filter="typeFilter"
       :genre="genre"
@@ -139,6 +146,7 @@ function openDetail(song) {
     />
 
     <DiscoSongGrid
+      class="site-reveal site-reveal--delay-3"
       :items="paginatedItems"
       :favorites="favorites"
       :empty-type="emptyType"
