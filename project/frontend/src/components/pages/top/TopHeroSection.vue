@@ -9,7 +9,7 @@ import { HIBARU_DATA } from '../../../data/hibaruData.js'
 import { useHeroParallax } from '../../../composables/useHeroParallax.js'
 import { whenSiteReady, prefersReducedMotion } from '../../../composables/useSiteReady.js'
 
-const emit = defineEmits(['open-auth', 'scroll-enjoy'])
+const emit = defineEmits(['open-auth', 'open-ai', 'scroll-enjoy'])
 
 const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVideo.src
 
@@ -106,9 +106,9 @@ onBeforeUnmount(() => {
             variant="outline"
             size="lg"
             class="home-cta-btn home-cta-btn--outline"
-            @click="emit('scroll-enjoy')"
+            @click="emit('open-ai')"
           >
-            サイトの楽しみ方
+            AIひばり
           </UiButton>
         </div>
       </div>

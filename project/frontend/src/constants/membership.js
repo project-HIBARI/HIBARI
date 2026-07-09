@@ -80,6 +80,10 @@ export const MEMBERSHIP_PLANS = [
 
 export const GENERAL_AI_CHAT_MONTHLY_LIMIT = 10
 export const GENERAL_BOARD_POST_MONTHLY_LIMIT = 10
+/** 非会員: 上限到達から解除までの日数 */
+export const GUEST_USAGE_RESET_DAYS = 7
+export const GUEST_AI_CHAT_LIMIT = 10
+export const GUEST_BOARD_POST_LIMIT = 10
 
 export function normalizeMembership(value) {
   return value === MEMBERSHIP.PREMIUM ? MEMBERSHIP.PREMIUM : MEMBERSHIP.GENERAL

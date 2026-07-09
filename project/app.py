@@ -14,6 +14,16 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import create_engine
 from sqlalchemy import text
 
+from usage_limits import (
+    FEATURE_AI_CHAT,
+    FEATURE_BOARD_POST,
+    UsageLimitError,
+    build_usage_status,
+    consume_usage,
+    ensure_guest_id,
+    ensure_usage_schema,
+    get_usage_subject,
+)
 from password_utils import (
     hash_password,
     normalize_email,
@@ -28,6 +38,7 @@ load_dotenv(APP_DIR / ".env")
 load_dotenv(APP_DIR / "env")
 app = Flask(__name__)
 app.secret_key = "qawsedrftgyhujikolp"
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=365)
 
 # DB接続設定
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -185,6 +196,7 @@ def save_post_media_file(file_storage):
 
 
 ensure_post_media_schema()
+ensure_usage_schema(engine)
     
     
 # HIBARI用プロンプト生成関数
@@ -1085,6 +1097,52 @@ def chat():
         }), 500
 
 
+USAGE_FEATURE_SLUGS = {
+    "ai-chat": FEATURE_AI_CHAT,
+    "board-post": FEATURE_BOARD_POST,
+}
+
+
+def _resolve_usage_feature(slug):
+    feature = USAGE_FEATURE_SLUGS.get(slug)
+    if not feature:
+        return None, jsonify({"error": "不明な機能です"}), 400
+    return feature, None, None
+
+
+@app.route("/api/usage/<feature_slug>", methods=["GET"])
+def get_feature_usage(feature_slug):
+    feature, err_resp, err_code = _resolve_usage_feature(feature_slug)
+    if err_resp is not None:
+        return err_resp, err_code
+    try:
+        subject = get_usage_subject(session, get_membership_for_account)
+        status = build_usage_status(subject, feature, engine)
+        return jsonify(status)
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "利用状況の取得に失敗しました"}), 500
+
+
+@app.route("/api/usage/<feature_slug>/consume", methods=["POST"])
+def consume_feature_usage(feature_slug):
+    feature, err_resp, err_code = _resolve_usage_feature(feature_slug)
+    if err_resp is not None:
+        return err_resp, err_code
+    try:
+        subject = get_usage_subject(session, get_membership_for_account)
+        status = consume_usage(subject, feature, engine)
+        return jsonify(status)
+    except UsageLimitError as e:
+        return jsonify({
+            "error": e.message,
+            **(e.status or {}),
+        }), 429
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "利用回数の更新に失敗しました"}), 500
+
+
 # 投稿一覧取得
 @app.route("/api/posts")
 def get_posts():
@@ -1182,8 +1240,18 @@ def get_songs():
 # 掲示板メディアアップロード
 @app.route("/api/posts/upload", methods=["POST"])
 def upload_post_media():
-    if "account_id" not in session:
-        return jsonify({"error": "ログインが必要です"}), 401
+    ensure_guest_id(session)
+    subject = get_usage_subject(session, get_membership_for_account)
+    try:
+        usage = build_usage_status(subject, FEATURE_BOARD_POST, engine)
+        if not usage["can_use"]:
+            return jsonify({
+                "error": "投稿上限に達しています。",
+                **usage,
+            }), 429
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "利用状況の確認に失敗しました"}), 500
 
     file = request.files.get("file")
     if not file:
@@ -1212,6 +1280,15 @@ def serve_post_upload(filename):
 @app.route("/api/posts", methods=["POST"])
 def create_post():
     try:
+        subject = get_usage_subject(session, get_membership_for_account)
+        try:
+            consume_usage(subject, FEATURE_BOARD_POST, engine)
+        except UsageLimitError as e:
+            return jsonify({
+                "error": e.message,
+                **(e.status or {}),
+            }), 429
+
         data = request.get_json()
         post_id = execute_insert(
             """

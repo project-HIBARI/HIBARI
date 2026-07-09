@@ -1,56 +1,87 @@
 /**
- * 掲示板投稿 — 利用回数・権限チェック
+ * 掲示板投稿 — 利用回数・権限チェック（API 連携）
  */
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useMemberAccess } from './useMemberAccess.js'
 import { GENERAL_BOARD_POST_MONTHLY_LIMIT, PERMISSION } from '../constants/membership.js'
-import { getBoardUsageCount, incrementBoardUsage } from '../lib/boardUsage.js'
+import { bindBoardUsageRef, refreshBoardUsageStatus } from '../lib/boardUsage.js'
 
 export function useBoardPost() {
-  const { canUse, isLoggedIn, isPremium, user } = useMemberAccess()
-  const usageTick = ref(0)
+  const { canUse, isLoggedIn, isPremium } = useMemberAccess()
+  const usageStatus = ref(null)
+  const loading = ref(false)
 
-  const usageCount = computed(() => {
-    usageTick.value
-    return getBoardUsageCount(user.value?.account_id)
-  })
+  bindBoardUsageRef(usageStatus)
 
-  const isUnlimited = computed(() => isPremium.value && canUse(PERMISSION.BOARD_POST_UNLIMITED))
+  const isGuest = computed(() => usageStatus.value?.is_guest ?? !isLoggedIn.value)
+
+  const isUnlimited = computed(
+    () => usageStatus.value?.limit == null && isLoggedIn.value && isPremium.value,
+  )
+
+  const postLimit = computed(() => usageStatus.value?.limit ?? GENERAL_BOARD_POST_MONTHLY_LIMIT)
 
   const remainingPosts = computed(() => {
-    if (!isLoggedIn.value) return 0
+    if (usageStatus.value?.remaining != null) return usageStatus.value.remaining
     if (isUnlimited.value) return null
-    return Math.max(GENERAL_BOARD_POST_MONTHLY_LIMIT - usageCount.value, 0)
+    return postLimit.value
   })
 
   const canPostNow = computed(() => {
-    if (!isLoggedIn.value || !canUse(PERMISSION.BOARD_POST)) return false
-    if (isUnlimited.value) return true
-    return usageCount.value < GENERAL_BOARD_POST_MONTHLY_LIMIT
+    if (usageStatus.value != null) return Boolean(usageStatus.value.can_use)
+    if (isLoggedIn.value && !canUse(PERMISSION.BOARD_POST)) return false
+    return false
   })
+
+  const guestResetLabel = computed(() => usageStatus.value?.reset_label ?? '')
 
   const limitMessage = computed(() => {
-    if (!isLoggedIn.value) return '掲示板投稿は会員登録・ログイン後にご利用いただけます。'
-    if (isUnlimited.value) return 'プレミアム会員: 掲示板投稿 無制限'
-    return `一般会員: 今月あと ${remainingPosts.value} 回（月${GENERAL_BOARD_POST_MONTHLY_LIMIT}回まで）`
+    if (usageStatus.value?.is_guest) {
+      if (canPostNow.value) {
+        return `非会員: あと ${remainingPosts.value} 回投稿できます（10回まで・上限到達後1週間で解除）`
+      }
+      return `非会員: 投稿上限に達しました。${guestResetLabel.value} に解除されます。`
+    }
+    if (isLoggedIn.value && !canUse(PERMISSION.BOARD_POST)) {
+      return '掲示板投稿は会員登録・ログイン後にご利用いただけます。'
+    }
+    if (usageStatus.value?.limit == null) return 'プレミアム会員: 掲示板投稿 無制限'
+    if (canPostNow.value) {
+      return `一般会員: 今月あと ${remainingPosts.value} 回（月${GENERAL_BOARD_POST_MONTHLY_LIMIT}回まで）`
+    }
+    return `一般会員: 今月の投稿上限（${GENERAL_BOARD_POST_MONTHLY_LIMIT}回）に達しました。`
   })
 
-  function recordPost() {
-    if (!isUnlimited.value && user.value?.account_id) {
-      incrementBoardUsage(user.value.account_id)
-      usageTick.value += 1
+  async function refreshUsage() {
+    loading.value = true
+    try {
+      await refreshBoardUsageStatus()
+    } finally {
+      loading.value = false
     }
   }
+
+  async function recordPost() {
+    await refreshUsage()
+  }
+
+  onMounted(() => {
+    refreshUsage()
+  })
 
   return {
     canUse,
     isLoggedIn,
+    isGuest,
     isPremium,
     isUnlimited,
     remainingPosts,
     canPostNow,
     limitMessage,
-    usageCount,
+    guestResetLabel,
+    usageStatus,
+    loading,
+    refreshUsage,
     recordPost,
     PERMISSION,
   }

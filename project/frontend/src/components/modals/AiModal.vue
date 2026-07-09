@@ -3,17 +3,16 @@
  * 部品名: AI 美空ひばりモーダル（デモ応答）
  * 用途: チャット UI。会員区分に応じた利用制限を適用
  */
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import ModalShell from './ModalShell.vue'
 import TabBar from '../ui/TabBar.vue'
 import UiButton from '../ui/UiButton.vue'
 import {
-  GENERAL_AI_CHAT_MONTHLY_LIMIT,
   isPremiumMember,
   PERMISSION,
   hasPermission,
 } from '../../constants/membership.js'
-import { getAiUsageCount, incrementAiUsage } from '../../lib/aiUsage.js'
+import { bindAiUsageRef, refreshAiUsageStatus, consumeAiUsage } from '../../lib/aiUsage.js'
 import { HIBARI_AVATAR_SRC, HIBARI_AVATAR_ALT } from '../../lib/hibariAvatar.js'
 
 const props = defineProps({
@@ -31,23 +30,30 @@ const messages = ref([
 const input = ref('')
 const loading = ref(false)
 const chatError = ref('')
-const usageTick = ref(0)
+const usageStatus = ref(null)
 const lyricForm = ref({ theme: '', mood: '', scene: '' })
 const lyricResult = ref('')
 const lyricLoading = ref(false)
 
-const isPremium = computed(() => isPremiumMember(props.membership))
-const usageCount = computed(() => {
-  usageTick.value
-  return getAiUsageCount(props.accountId)
+bindAiUsageRef(usageStatus)
+
+const isPremium = computed(
+  () => props.isLoggedIn && isPremiumMember(props.membership),
+)
+const remainingChats = computed(() => usageStatus.value?.remaining ?? null)
+const canSendChat = computed(() => {
+  if (usageStatus.value != null) return Boolean(usageStatus.value.can_use)
+  return false
 })
-const chatLimit = computed(() => (isPremium.value ? null : GENERAL_AI_CHAT_MONTHLY_LIMIT))
-const remainingChats = computed(() => {
-  if (!props.isLoggedIn) return 0
-  if (chatLimit.value == null) return null
-  return Math.max(chatLimit.value - usageCount.value, 0)
-})
+const guestResetLabel = computed(() => usageStatus.value?.reset_label ?? '')
+const isGuestUsage = computed(() => usageStatus.value?.is_guest ?? !props.isLoggedIn)
 const canUseLyric = computed(() => props.isLoggedIn && hasPermission(props.membership, PERMISSION.EXCLUSIVE_CONTENT))
+
+onMounted(() => {
+  refreshAiUsageStatus().catch(() => {
+    chatError.value = '利用状況を取得できません。バックエンドの起動を確認してください。'
+  })
+})
 
 function getDemoReply(userMsg) {
   const text = userMsg.trim()
@@ -71,27 +77,32 @@ function getDemoReply(userMsg) {
   return `「${text}」ですね。ありがとうございます。デモ版のため簡単なお返事になりますが、いつもひばりを想ってくださる心がとてもうれしいです。`
 }
 
-function send() {
+async function send() {
   if (!input.value.trim() || loading.value) return
   chatError.value = ''
 
-  if (!props.isLoggedIn) {
-    chatError.value = 'AIひばり対話は会員登録・ログイン後にご利用いただけます。'
-    return
-  }
-
-  if (!isPremium.value && usageCount.value >= GENERAL_AI_CHAT_MONTHLY_LIMIT) {
-    chatError.value = '一般会員の今月の利用上限（10回）に達しました。プレミアム会員は無制限でご利用いただけます。'
+  if (!canSendChat.value) {
+    chatError.value = props.isLoggedIn
+      ? '一般会員の今月の利用上限（10回）に達しました。プレミアム会員は無制限でご利用いただけます。'
+      : `非会員の利用上限（10回）に達しました。${guestResetLabel.value} に解除されます。会員登録後は月10回までご利用いただけます（プレミアムは無制限）。`
     return
   }
 
   const userMsg = input.value.trim()
   input.value = ''
   messages.value.push({ role: 'user', text: userMsg })
-  if (!isPremium.value) {
-    incrementAiUsage(props.accountId)
-    usageTick.value += 1
+
+  try {
+    if (!isPremium.value) {
+      await consumeAiUsage()
+    }
+  } catch (err) {
+    messages.value.pop()
+    input.value = userMsg
+    chatError.value = err.message || '送信に失敗しました。'
+    return
   }
+
   loading.value = true
   window.setTimeout(() => {
     messages.value.push({
@@ -133,10 +144,12 @@ function generateLyric() {
 
     <div v-if="aiTab === 'chat'" class="ai-modal__chat">
       <p v-if="!isLoggedIn" class="ai-modal__gate">
-        ログイン後に AIひばり対話をご利用いただけます。
+        非会員の方も AIひばりと10回までお話しいただけます（あと {{ remainingChats ?? '—' }} 回）。
+        上限到達後は1週間で解除されます。
         <button type="button" class="ai-modal__gate-link" @click="emit('open-auth', 'login')">ログイン</button>
         /
-        <button type="button" class="ai-modal__gate-link" @click="emit('open-auth', 'register')">新規登録</button>
+        <button type="button" class="ai-modal__gate-link" @click="emit('open-auth', 'register')">会員登録</button>
+        で特典をご確認ください。
       </p>
       <div class="ai-modal__messages">
         <div
@@ -180,13 +193,13 @@ function generateLyric() {
           class="ai-modal__input"
           placeholder="ひばりさんに話しかける…"
           aria-label="メッセージを入力"
-          :disabled="!isLoggedIn || (!isPremium && remainingChats === 0)"
+          :disabled="!canSendChat"
           @keydown.enter.prevent="send"
         />
         <UiButton
           variant="primary"
           size="md"
-          :disabled="loading || !isLoggedIn || (!isPremium && remainingChats === 0)"
+          :disabled="loading || !canSendChat"
           @click="send"
         >
           送信
@@ -195,8 +208,9 @@ function generateLyric() {
       <p v-if="chatError" class="ai-modal__error" role="alert">{{ chatError }}</p>
       <p class="ai-modal__hint">
         <template v-if="isPremium">プレミアム会員: AIひばり対話 無制限</template>
-        <template v-else-if="isLoggedIn">一般会員: 今月あと {{ remainingChats }} 回（月10回まで）</template>
-        <template v-else>一般会員: 月10回まで · プレミアム: 無制限</template>
+        <template v-else-if="isLoggedIn">一般会員: 今月あと {{ remainingChats ?? '—' }} 回（月10回まで）</template>
+        <template v-else-if="!canSendChat && isGuestUsage">非会員: 上限到達。{{ guestResetLabel }} に解除されます</template>
+        <template v-else>非会員: あと {{ remainingChats ?? '—' }} 回（10回まで・上限到達後1週間で解除）</template>
       </p>
     </div>
 

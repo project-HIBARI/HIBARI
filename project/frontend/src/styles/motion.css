@@ -633,27 +633,3 @@ body.site-intro-active {
   78%, 88% { transform: translateX(120%); opacity: 1; }
 }
 
-/* AIカード（ホーム） */
-.page-top__ai-card.top-ai-card {
-  transition:
-    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.site-shell--ready .home-motion-section.is-visible .page-top__ai-card.top-ai-card {
-  animation: homeAiCardIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.page-top__ai-card.top-ai-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 36px rgba(93, 58, 107, 0.14);
-}
-@keyframes homeAiCardIn {
-  from {
-    opacity: 0;
-    transform: translateY(24px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-

@@ -17,11 +17,7 @@ const items = HIBARU_DATA.homeSchedule.slice(0, 4)
 const canPreorder = computed(() => canUse(PERMISSION.TICKET_PREORDER))
 
 function onOpenAll() {
-  if (canPreorder.value) {
-    emit('open-all')
-  } else {
-    emit('need-auth', 'events')
-  }
+  emit('open-all')
 }
 
 function isTour(ev) {

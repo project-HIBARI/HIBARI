@@ -61,10 +61,7 @@ function validate() {
 }
 
 async function handleSubmit() {
-  if (!canPostNow.value) {
-    emit('open-auth', 'login')
-    return
-  }
+  if (!canPostNow.value) return
 
   const e = validate()
   if (Object.keys(e).length) {
@@ -88,7 +85,10 @@ async function handleSubmit() {
     recordPost()
     submitted.value = true
   } catch (err) {
-    if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+    if (err.status === 429) {
+      submitError.value = err.message || '投稿上限に達しています。'
+      await recordPost()
+    } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
       submitError.value = 'サーバーに接続できません。バックエンド（Flask）が起動しているか確認してください。'
     } else {
       submitError.value = err.message || '投稿に失敗しました。'
