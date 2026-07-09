@@ -30,6 +30,11 @@ const state = computed(() => getAccessState(props.permission))
           新規登録
         </button>
       </template>
+      <template v-else-if="state.reason === 'fanclub'">
+        <button type="button" class="member-gate__btn member-gate__btn--primary" @click="emit('register')">
+          ファンクラブに加入
+        </button>
+      </template>
       <button
         v-else-if="state.reason === 'upgrade'"
         type="button"

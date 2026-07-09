@@ -1,7 +1,7 @@
 <script setup>
 /**
  * 部品名: ホーム — サブスクリプションサービス紹介カード
- * 用途: ヒーロー下の会員向け特典・サブスク案内を表示する（プラン別ロック表示）
+ * 用途: 非会員（体験）・有料会員・プレミアムの区別を明示する
  */
 import { computed } from 'vue'
 import PageImageCard from '../../common/PageImageCard.vue'
@@ -13,12 +13,35 @@ import { PERMISSION } from '../../../constants/membership.js'
 
 const emit = defineEmits(['open-detail', 'use-feature'])
 
-const { canUse, isLoggedIn } = useMemberAccess()
+const { isFanclubMember, getPerkState } = useMemberAccess()
 
 const perkGroups = [
   {
+    id: 'guest',
+    title: '非会員（体験版）',
+    note: '登録なしでお試し可能 · 回数制限あり',
+    hideWhenMember: true,
+    perks: [
+      {
+        icon: '💬',
+        label: '掲示板投稿',
+        permission: PERMISSION.BOARD_POST,
+        feature: 'board',
+        guestTrial: true,
+      },
+      {
+        icon: '♪',
+        label: 'AIひばり対話',
+        permission: PERMISSION.AI_CHAT,
+        feature: 'ai',
+        guestTrial: true,
+      },
+    ],
+  },
+  {
     id: 'core',
-    title: '会員基本特典',
+    title: '有料会員（一般会員）',
+    note: '月額 ¥500 · ファンクラブ加入で利用可能',
     perks: [
       { icon: '✦', label: '会員誌デジタル版', permission: PERMISSION.NEWSLETTER, feature: 'news' },
       { icon: '★', label: 'チケット先行予約', permission: PERMISSION.TICKET_PREORDER, feature: 'events' },
@@ -29,7 +52,8 @@ const perkGroups = [
   },
   {
     id: 'premium',
-    title: 'プレミアム限定',
+    title: 'プレミアム会員限定',
+    note: '月額 ¥1,500 · 一般会員特典に加えて',
     perks: [
       { icon: '▶', label: '限定動画', permission: PERMISSION.PREMIUM_VIDEO, feature: 'disco', premium: true },
       { icon: '✧', label: 'ハイレゾ音源', permission: PERMISSION.EXCLUSIVE_CONTENT, feature: 'gallery', premium: true },
@@ -39,22 +63,16 @@ const perkGroups = [
 ]
 
 const groups = computed(() =>
-  perkGroups.map((group) => ({
-    ...group,
-    perks: group.perks.map((p) => ({
-      ...p,
-      unlocked: canUse(p.permission),
-      lockLabel: perkLockLabel(p),
+  perkGroups
+    .filter((group) => !(group.hideWhenMember && isFanclubMember.value))
+    .map((group) => ({
+      ...group,
+      perks: group.perks.map((p) => ({
+        ...p,
+        ...getPerkState(p),
+      })),
     })),
-  })),
 )
-
-function perkLockLabel(perk) {
-  if (canUse(perk.permission)) return ''
-  if (!isLoggedIn.value) return '会員限定'
-  if (perk.premium) return 'プレミアム'
-  return '会員限定'
-}
 </script>
 
 <template>
@@ -74,7 +92,7 @@ function perkLockLabel(perk) {
     <p class="top-subscription__lead">特別な体験を、あなたに。</p>
     <h2 class="top-subscription__title">サブスクリプションサービス</h2>
     <p class="top-subscription__desc">
-      月額制で、限定コンテンツのほか掲示板・オープンチャット・AI対話など、会員だけの体験をお楽しみいただけます。
+      非会員の方は掲示板・AI対話を回数制限付きで体験できます。オープンチャットをはじめとする本格特典は、有料会員（ファンクラブ）へのご加入後にご利用いただけます。
     </p>
 
     <div class="top-subscription__groups">
@@ -84,13 +102,20 @@ function perkLockLabel(perk) {
         class="top-subscription__group"
         :class="`top-subscription__group--${group.id}`"
       >
-        <h3 class="top-subscription__group-title">{{ group.title }}</h3>
+        <div class="top-subscription__group-head">
+          <h3 class="top-subscription__group-title">{{ group.title }}</h3>
+          <p v-if="group.note" class="top-subscription__group-note">{{ group.note }}</p>
+        </div>
         <ul class="top-subscription__perks">
           <li
             v-for="p in group.perks"
-            :key="p.feature"
+            :key="`${group.id}-${p.feature}`"
             class="top-subscription__perk"
-            :class="{ 'top-subscription__perk--locked': !p.unlocked, 'top-subscription__perk--premium': p.premium }"
+            :class="{
+              'top-subscription__perk--locked': !p.unlocked && !p.trial,
+              'top-subscription__perk--trial': p.trial,
+              'top-subscription__perk--premium': p.premium,
+            }"
           >
             <button type="button" class="top-subscription__perk-btn" @click="emit('use-feature', p.feature)">
               <span class="top-subscription__perk-icon" aria-hidden="true">{{ p.icon }}</span>
@@ -166,12 +191,12 @@ function perkLockLabel(perk) {
   font-size: 13px;
   line-height: 1.85;
   color: rgba(255, 255, 255, 0.88);
-  max-width: 36em;
+  max-width: 38em;
 }
 .top-subscription__groups {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   margin-bottom: auto;
 }
 .top-subscription__group {
@@ -180,20 +205,39 @@ function perkLockLabel(perk) {
   background: rgba(0, 0, 0, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+.top-subscription__group--guest {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.top-subscription__group--core {
+  border-color: rgba(255, 255, 255, 0.16);
+}
 .top-subscription__group--premium {
   background: rgba(0, 0, 0, 0.22);
   border-color: rgba(201, 169, 97, 0.28);
 }
+.top-subscription__group-head {
+  margin-bottom: 12px;
+}
 .top-subscription__group-title {
-  margin: 0 0 12px;
+  margin: 0 0 4px;
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.88);
+}
+.top-subscription__group--guest .top-subscription__group-title {
   color: rgba(255, 255, 255, 0.72);
 }
 .top-subscription__group--premium .top-subscription__group-title {
   color: var(--kin-400);
+}
+.top-subscription__group-note {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.58);
 }
 .top-subscription__perks {
   list-style: none;
@@ -202,6 +246,9 @@ function perkLockLabel(perk) {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
+}
+.top-subscription__group--guest .top-subscription__perks {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .top-subscription__group--premium .top-subscription__perks {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -242,7 +289,15 @@ function perkLockLabel(perk) {
   transform: translateY(-2px);
 }
 .top-subscription__perk--locked {
-  opacity: 0.62;
+  opacity: 0.58;
+}
+.top-subscription__perk--trial .top-subscription__perk-icon {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.1);
+}
+.top-subscription__perk--trial .top-subscription__perk-lock {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.14);
 }
 .top-subscription__perk--premium .top-subscription__perk-icon {
   border-color: rgba(201, 169, 97, 0.75);
@@ -286,10 +341,7 @@ function perkLockLabel(perk) {
 }
 
 @media (max-width: 1100px) {
-  .top-subscription__perks {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .top-subscription__group--premium .top-subscription__perks {
+  .top-subscription__group--core .top-subscription__perks {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
@@ -297,8 +349,9 @@ function perkLockLabel(perk) {
   .top-subscription {
     min-height: auto;
   }
-  .top-subscription__perks,
-  .top-subscription__group--premium .top-subscription__perks {
+  .top-subscription__group--core .top-subscription__perks,
+  .top-subscription__group--premium .top-subscription__perks,
+  .top-subscription__group--guest .top-subscription__perks {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }

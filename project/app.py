@@ -371,8 +371,12 @@ def get_membership_for_account(account_id):
         {"account_id": account_id}
     )
     if not rows:
-        return "general"
+        return None
     return "premium" if rows[0].is_premium else "general"
+
+
+def is_fanclub_member_account(account_id):
+    return get_membership_for_account(account_id) is not None
 
 
 def build_user_response(account_id, name, email):
@@ -382,6 +386,7 @@ def build_user_response(account_id, name, email):
         "name": name,
         "email": email,
         "membership": membership,
+        "is_fanclub_member": membership is not None,
         "is_premium": membership == "premium",
     }
 
@@ -586,13 +591,7 @@ def create_account():
             "success": True,
             "message": "登録できました",
             "account_id": account_id,
-            "user": {
-                "account_id": account_id,
-                "name": name_val,
-                "email": email_val,
-                "membership": membership,
-                "is_premium": is_premium_val,
-            }
+            "user": build_user_response(account_id, name_val, email_val),
         }), 201
 
     except Exception as e:

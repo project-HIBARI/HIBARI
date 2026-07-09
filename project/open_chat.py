@@ -173,7 +173,8 @@ def get_account_display_name(fetch_account_row, account_id):
 
 
 def get_membership_label(get_membership_for_account, account_id):
-    return get_membership_for_account(account_id)
+    membership = get_membership_for_account(account_id)
+    return membership or "general"
 
 
 def get_chat_media_type(filename):

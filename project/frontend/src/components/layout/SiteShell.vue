@@ -257,6 +257,11 @@ function openMemberFeature(mode) {
     return
   }
 
+  if (mode === 'board' && !auth.isFanclubMember.value) {
+    goTo('memories')
+    return
+  }
+
   const features = {
 
     news: { permission: PERMISSION.NEWSLETTER, memberPage: 'fanclub-site', section: 'newsletter', guestPage: 'fanclub' },
