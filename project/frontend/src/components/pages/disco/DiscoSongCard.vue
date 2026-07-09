@@ -36,11 +36,11 @@ function onPlayClick(e) {
 </script>
 
 <template>
-  <article class="disco-song-card">
+  <article class="disco-song-card motion-card">
     <div class="disco-song-card__main">
       <button
         type="button"
-        class="disco-song-card__chip"
+        class="disco-song-card__chip motion-button"
         :aria-label="song.title + 'の詳細を見る'"
         @click="onOpenDetail"
       >
@@ -61,7 +61,7 @@ function onPlayClick(e) {
       <div class="disco-song-card__actions">
         <button
           type="button"
-          class="disco-song-card__play"
+          class="disco-song-card__play motion-button"
           :aria-label="song.title + 'を再生'"
           :disabled="!song.audioUrl"
           @click="onPlayClick"
@@ -73,7 +73,7 @@ function onPlayClick(e) {
     </div>
     <button
       type="button"
-      class="disco-song-card__fav"
+      class="disco-song-card__fav motion-button"
       :class="{ 'disco-song-card__fav--on': isFavorite }"
       :aria-label="isFavorite ? 'お気に入りから外す' : 'お気に入りに追加'"
       :aria-pressed="isFavorite"
@@ -91,11 +91,18 @@ function onPlayClick(e) {
   border-radius: var(--site-radius-lg);
   background: var(--site-surface);
   box-shadow: var(--site-shadow);
-  transition: box-shadow 0.2s, border-color 0.2s;
 }
-.disco-song-card:hover {
-  border-color: rgba(122, 80, 136, 0.25);
-  box-shadow: var(--site-shadow-md);
+.disco-song-card__chip,
+.disco-song-card__play,
+.disco-song-card__fav {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), color 0.4s ease, background 0.4s ease;
+}
+.disco-song-card__meta,
+.disco-song-card__title {
+  transition: color 0.45s ease;
+}
+.disco-song-card:hover .disco-song-card__title {
+  color: var(--murasaki-700);
 }
 .disco-song-card__main {
   display: grid;

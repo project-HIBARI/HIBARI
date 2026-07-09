@@ -1,7 +1,6 @@
 <script setup>
 /**
  * 部品名: ホーム — 下部カテゴリ導線カード
- * 用途: 各ページや準備中機能への誘導カード5枚を横並びで表示する
  */
 import PageImageCard from '../../common/PageImageCard.vue'
 import { PAGE_IMAGES } from '../../../lib/pageImages.js'
@@ -66,12 +65,15 @@ function onClick(card) {
 </script>
 
 <template>
-  <section class="top-categories" aria-label="コンテンツ一覧">
+  <section
+    class="top-categories home-motion-stagger"
+    aria-label="コンテンツ一覧"
+  >
     <button
-      v-for="c in cards"
+      v-for="(c, i) in cards"
       :key="c.id"
       type="button"
-      class="top-categories__card"
+      class="top-categories__card home-category-card home-motion-stagger__item"
       :aria-label="c.title"
       @click="onClick(c)"
     >
@@ -80,7 +82,7 @@ function onClick(card) {
         <p class="top-categories__desc">{{ c.desc }}</p>
         <span class="top-categories__arrow">›</span>
       </div>
-      <div class="top-categories__visual">
+      <div class="top-categories__visual home-category-card__visual">
         <PageImageCard
           :image="c.image"
           :alt="c.alt"
@@ -113,11 +115,6 @@ function onClick(card) {
   text-align: left;
   padding: 0;
   min-height: 118px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.top-categories__card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--site-shadow-md);
 }
 .top-categories__body {
   flex: 1;
@@ -136,6 +133,14 @@ function onClick(card) {
   align-items: stretch;
   background: var(--site-surface-muted);
   overflow: hidden;
+}
+.home-category-card:hover .top-categories__visual :deep(.page-image-card__img),
+.home-category-card:hover .top-categories__visual :deep(img) {
+  transform: scale(1.05);
+}
+.top-categories__visual :deep(.page-image-card__img),
+.top-categories__visual :deep(img) {
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .top-categories__title {
   margin: 0 0 6px;
@@ -159,6 +164,7 @@ function onClick(card) {
   font-size: 18px;
   color: var(--murasaki-500);
   line-height: 1;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), color 0.35s ease;
 }
 
 @media (max-width: 1200px) {

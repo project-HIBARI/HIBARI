@@ -23,7 +23,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:postData', 'submit', 'reset', 'need-auth'])
 
-const { canPostNow, canUse, isLoggedIn, limitMessage, PERMISSION } = useBoardPost()
+const { canPostNow, canUse, isLoggedIn, isGuest, limitMessage, guestResetLabel, loading, usageStatus, PERMISSION } = useBoardPost()
 
 const mediaPreviewUrl = ref('')
 const mediaError = ref('')
@@ -85,10 +85,7 @@ function clearMedia() {
 }
 
 function onSubmit() {
-  if (!canPostNow.value) {
-    emit('need-auth', 'login')
-    return
-  }
+  if (!canPostNow.value) return
   if (mediaError.value) return
   emit('submit')
 }
@@ -97,7 +94,7 @@ function onSubmit() {
 <template>
   <div class="board-form" :class="{ 'board-form--compact': compact }">
     <MemberGate
-      v-if="!isLoggedIn || !canUse(PERMISSION.BOARD_POST)"
+      v-if="isLoggedIn && !canUse(PERMISSION.BOARD_POST)"
       :permission="PERMISSION.BOARD_POST"
       feature="掲示板投稿"
       :compact="compact"
@@ -105,13 +102,37 @@ function onSubmit() {
       @register="emit('need-auth', 'register')"
       @upgrade="emit('need-auth', 'register-premium')"
     />
+    <div v-else-if="loading && !usageStatus" class="board-form__loading">
+      利用状況を確認しています…
+    </div>
     <div v-else-if="!canPostNow" class="board-form__limit">
-      <p class="board-form__limit-title">今月の投稿上限に達しました</p>
-      <p class="board-form__limit-text">
-        一般会員は月10回まで投稿できます。プレミアム会員は無制限でご利用いただけます。
+      <p class="board-form__limit-title">
+        {{ isGuest ? '投稿上限に達しました' : '今月の投稿上限に達しました' }}
       </p>
-      <button type="button" class="board-form__limit-btn" @click="emit('need-auth', 'register-premium')">
+      <p class="board-form__limit-text">
+        <template v-if="isGuest">
+          非会員は10回まで投稿できます。{{ guestResetLabel }} に解除されます。
+          会員登録後は月10回までご利用いただけます（プレミアムは無制限）。
+        </template>
+        <template v-else>
+          一般会員は月10回まで投稿できます。プレミアム会員は無制限でご利用いただけます。
+        </template>
+      </p>
+      <button
+        v-if="!isGuest"
+        type="button"
+        class="board-form__limit-btn"
+        @click="emit('need-auth', 'register-premium')"
+      >
         プレミアムに登録 ›
+      </button>
+      <button
+        v-else
+        type="button"
+        class="board-form__limit-btn"
+        @click="emit('need-auth', 'register')"
+      >
+        会員登録 ›
       </button>
     </div>
     <template v-else>
@@ -376,6 +397,12 @@ function onSubmit() {
   background: var(--site-surface-muted);
   border: 1px dashed var(--site-border-strong);
   border-radius: var(--site-radius-md);
+}
+.board-form__loading {
+  padding: 20px 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--site-text-muted);
 }
 .board-form__limit-title {
   margin: 0 0 8px;

@@ -23,10 +23,12 @@ const emit = defineEmits(['toggle-favorite', 'select'])
       条件に一致するスポットが見つかりませんでした。フィルタを変更してお試しください。
     </p>
 
-    <div v-else class="places-grid__list">
+    <div v-else class="places-grid__list motion-stagger site-reveal-stagger">
       <PlacesSpotCard
-        v-for="spot in spots"
+        v-for="(spot, i) in spots"
         :key="spot.id"
+        class="stagger-item"
+        :style="{ '--stagger-i': i }"
         :spot="spot"
         :is-favorite="favorites.has(spot.id)"
         @toggle-favorite="emit('toggle-favorite', $event)"

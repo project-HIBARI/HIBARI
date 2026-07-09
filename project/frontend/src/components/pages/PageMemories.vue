@@ -13,8 +13,12 @@ import { HIBARU_DATA } from '../../data/hibaruData.js'
 import { createPostWithMedia } from '../../api/posts.js'
 import { useBoardPost } from '../../composables/useBoardPost.js'
 import { revokeMediaPreview } from '../../lib/boardMedia.js'
+import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
-const emit = defineEmits(['open-auth'])
+const emit = defineEmits(['open-auth', 'navigate'])
+
+const pageRoot = ref(null)
+useScrollReveal(pageRoot)
 
 const { recordPost, canPostNow } = useBoardPost()
 
@@ -57,10 +61,7 @@ function validate() {
 }
 
 async function handleSubmit() {
-  if (!canPostNow.value) {
-    emit('open-auth', 'login')
-    return
-  }
+  if (!canPostNow.value) return
 
   const e = validate()
   if (Object.keys(e).length) {
@@ -84,7 +85,10 @@ async function handleSubmit() {
     recordPost()
     submitted.value = true
   } catch (err) {
-    if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+    if (err.status === 429) {
+      submitError.value = err.message || '投稿上限に達しています。'
+      await recordPost()
+    } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
       submitError.value = 'サーバーに接続できません。バックエンド（Flask）が起動しているか確認してください。'
     } else {
       submitError.value = err.message || '投稿に失敗しました。'
@@ -117,7 +121,7 @@ function like(id) {
 </script>
 
 <template>
-  <div class="page-memories">
+  <div ref="pageRoot" class="page-memories">
     <PageHead kanji="憶" title="思い出" sub="Memories · 証言と愛唱 · ファンの集い" />
 
     <TabBar
@@ -167,7 +171,7 @@ function like(id) {
       />
     </div>
 
-    <MemoriesEventsGrid v-else @need-auth="(m) => emit('open-auth', m)" />
+    <MemoriesEventsGrid v-else @need-auth="(m) => emit('open-auth', m)" @navigate="(p) => emit('navigate', p)" />
   </div>
 </template>
 

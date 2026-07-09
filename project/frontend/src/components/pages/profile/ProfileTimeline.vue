@@ -45,7 +45,7 @@ const timeline = HIBARU_DATA.timeline
             variant="ghost"
             size="sm"
             class="profile-timeline__photo-btn"
-            aria-label="写真を見る（準備中）"
+            aria-label="写真を見る"
             @click="emit('open-gallery')"
           >
             <UiIco name="search" :size="13" color="var(--murasaki-600)" />

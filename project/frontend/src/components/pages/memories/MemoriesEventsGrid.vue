@@ -1,16 +1,20 @@
 <script setup>
 /**
  * 部品名: 思い出ページ — 交流イベントカード群
- * 用途: 思い出ページのイベントタブで交流イベント一覧を表示する（会員先行・プレミアム割引）
+ * 用途: 交流イベント一覧・詳細申込
  */
+import { ref } from 'vue'
 import UiButton from '../../ui/UiButton.vue'
 import MemberGate from '../../common/MemberGate.vue'
+import EventApplyModal from '../../modals/EventApplyModal.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 import { useMemberAccess } from '../../../composables/useMemberAccess.js'
 
-const emit = defineEmits(['need-auth'])
+const emit = defineEmits(['need-auth', 'navigate'])
 
 const { canUse, isLoggedIn, isPremium, PERMISSION } = useMemberAccess()
+
+const selectedEvent = ref(null)
 
 const eventTypes = {
   nodojiman: { label: 'のど自慢', color: 'var(--murasaki-700)' },
@@ -19,7 +23,6 @@ const eventTypes = {
   photo: { label: 'フォトコンテスト', color: '#7a5a9a' },
 }
 
-/** ツアー系の料金デモ（id: 1 = みだれ髪ゆかりの地ツアー） */
 const tourPricing = {
   1: { regular: '¥8,800', member: '¥7,500', premium: '¥6,600' },
 }
@@ -41,8 +44,12 @@ function displayFee(ev) {
   return ev.fee
 }
 
-function canApply(ev) {
-  return isTourWithPreorder(ev) && canUse(PERMISSION.TICKET_PREORDER)
+function openApply(ev) {
+  selectedEvent.value = ev
+}
+
+function closeApply() {
+  selectedEvent.value = null
 }
 </script>
 
@@ -59,7 +66,9 @@ function canApply(ev) {
         <span v-if="ev.partner" class="mem-events__partner">{{ ev.partner }}</span>
         <span v-if="isTourWithPreorder(ev)" class="mem-events__preorder">先行予約対象</span>
       </div>
-      <h3 class="mem-events__title">{{ ev.title }}</h3>
+      <h3 class="mem-events__title">
+        <button type="button" class="mem-events__title-btn" @click="openApply(ev)">{{ ev.title }}</button>
+      </h3>
       <dl class="mem-events__dl">
         <dt>日時</dt><dd>{{ ev.date }}</dd>
         <dt>会場</dt><dd>{{ ev.place }}</dd>
@@ -74,10 +83,8 @@ function canApply(ev) {
         </dd>
       </dl>
       <div class="mem-events__actions">
-        <template v-if="isTourWithPreorder(ev)">
-          <UiButton v-if="canApply(ev)" variant="primary" size="sm">申し込む</UiButton>
+        <template v-if="isTourWithPreorder(ev) && !canUse(PERMISSION.TICKET_PREORDER)">
           <MemberGate
-            v-else
             :permission="PERMISSION.TICKET_PREORDER"
             feature="チケット先行予約"
             compact
@@ -85,11 +92,22 @@ function canApply(ev) {
             @register="emit('need-auth', 'register')"
             @upgrade="emit('need-auth', 'register')"
           />
+          <UiButton variant="outline" size="sm" @click="openApply(ev)">一般申込</UiButton>
         </template>
-        <UiButton v-else variant="primary" size="sm">申し込む</UiButton>
-        <UiButton variant="outline" size="sm">縁ページへ ›</UiButton>
+        <template v-else>
+          <UiButton variant="primary" size="sm" @click="openApply(ev)">申し込む</UiButton>
+        </template>
+        <UiButton variant="outline" size="sm" @click="emit('navigate', 'map')">ゆかりの地へ ›</UiButton>
       </div>
     </article>
+
+    <EventApplyModal
+      v-if="selectedEvent"
+      :event="selectedEvent"
+      @close="closeApply"
+      @need-auth="emit('need-auth', $event)"
+      @navigate="emit('navigate', $event)"
+    />
   </div>
 </template>
 
@@ -141,11 +159,21 @@ function canApply(ev) {
   letter-spacing: 0.08em;
 }
 .mem-events__title {
+  margin: 0 0 12px;
+}
+.mem-events__title-btn {
+  padding: 0;
+  border: 0;
+  background: transparent;
   font-family: var(--ff-mincho);
   font-size: 18px;
   font-weight: 700;
-  margin: 0 0 12px;
   color: var(--site-text);
+  cursor: pointer;
+  text-align: left;
+}
+.mem-events__title-btn:hover {
+  color: var(--murasaki-700);
 }
 .mem-events__dl {
   display: grid;

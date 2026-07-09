@@ -14,6 +14,27 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import create_engine
 from sqlalchemy import text
 
+from usage_limits import (
+    FEATURE_AI_CHAT,
+    FEATURE_BOARD_POST,
+    UsageLimitError,
+    build_usage_status,
+    consume_usage,
+    ensure_guest_id,
+    ensure_usage_schema,
+    get_usage_subject,
+)
+from account_settings import (
+    ensure_account_settings_schema,
+    fetch_account_settings,
+    upsert_payment_settings,
+    change_membership_plan,
+)
+from event_applications import (
+    ensure_event_applications_schema,
+    create_application,
+    fetch_applications_for_account,
+)
 from password_utils import (
     hash_password,
     normalize_email,
@@ -22,24 +43,13 @@ from password_utils import (
 )
 
 
-def get_genai_client():
-    """AIチャット利用時のみ google-genai を読み込む（認証APIは未インストールでも起動可能）"""
-    try:
-        from google import genai
-    except ModuleNotFoundError as exc:
-        raise RuntimeError(
-            "AIチャットには google-genai パッケージが必要です。"
-            " pip install google-genai を実行してください。"
-        ) from exc
-    return genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-
-
 # 初期設定（app.py と同じディレクトリの .env / env を読み込む）
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR / ".env")
 load_dotenv(APP_DIR / "env")
 app = Flask(__name__)
 app.secret_key = "qawsedrftgyhujikolp"
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=365)
 
 # DB接続設定
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -53,7 +63,26 @@ engine = create_engine(
     pool_pre_ping=True
 )
 
-# Gemini API（遅延初期化・ログイン等は未インストールでも動作）
+# Gemini API設定（AIチャット用）
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+
+def get_genai_client():
+    """AIチャット利用時のみ google-genai を読み込む（認証APIは未インストールでも起動可能）"""
+    if not GEMINI_API_KEY:
+        raise RuntimeError(
+            "GEMINI_API_KEY が未設定です。"
+            " project/.env または project/env に GEMINI_API_KEY=... を追加してください。"
+        )
+    try:
+        from google import genai
+    except ModuleNotFoundError as exc:
+        raise RuntimeError(
+            "AIチャットには google-genai パッケージが必要です。"
+            " pip install google-genai を実行してください。"
+        ) from exc
+    return genai.Client(api_key=GEMINI_API_KEY)
+
 from zoneinfo import ZoneInfo
 
 # 掲示板メディアアップロード
@@ -178,6 +207,31 @@ def save_post_media_file(file_storage):
 
 
 ensure_post_media_schema()
+ensure_usage_schema(engine)
+ensure_account_settings_schema(engine)
+ensure_event_applications_schema(engine)
+
+
+def ensure_contact_schema():
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS contact_inquiries (
+                    inquiry_id SERIAL PRIMARY KEY,
+                    name VARCHAR(128) NOT NULL,
+                    email VARCHAR(256) NOT NULL,
+                    category VARCHAR(64) NOT NULL,
+                    subject VARCHAR(256) NOT NULL,
+                    body TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+                """
+            )
+        )
+
+
+ensure_contact_schema()
     
     
 # HIBARI用プロンプト生成関数
@@ -681,6 +735,9 @@ def get_account():
 
     user = build_user_response(row["account_id"], row["name"], row["email"])
     user["address"] = row.get("address") or ""
+    settings = fetch_account_settings(engine, account_id)
+    user["payment_method"] = settings["payment_method"]
+    user["payment_details"] = settings["payment_details"]
 
     return jsonify({"account": user})
 
@@ -788,6 +845,144 @@ def update_account_password():
         "success": True,
         "message": "パスワードを変更しました",
     })
+
+
+@app.route("/api/account/payment", methods=["PATCH"])
+def update_account_payment():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    data = request.get_json() or {}
+    method = data.get("payment_method")
+    details = data.get("payment_details") or {}
+
+    if not method:
+        return jsonify({"error": "支払い方法を選択してください"}), 400
+
+    try:
+        saved = upsert_payment_settings(engine, account_id, method, details)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "支払い方法の更新に失敗しました"}), 500
+
+    return jsonify({
+        "success": True,
+        "message": "支払い方法を更新しました",
+        "payment_method": saved["payment_method"],
+        "payment_details": saved["payment_details"],
+    })
+
+
+@app.route("/api/account/membership", methods=["PATCH"])
+def update_account_membership():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    data = request.get_json() or {}
+    if "is_premium" not in data:
+        return jsonify({"error": "会員プランを指定してください"}), 400
+
+    is_premium = bool(data.get("is_premium"))
+    try:
+        membership = change_membership_plan(engine, account_id, is_premium)
+        session["membership"] = membership
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "会員プランの変更に失敗しました"}), 500
+
+    row = fetch_account_row(account_id)
+    user = build_user_response(row["account_id"], row["name"], row["email"])
+    return jsonify({
+        "success": True,
+        "message": "会員プランを変更しました",
+        "account": user,
+    })
+
+
+@app.route("/api/events/applications", methods=["GET"])
+def list_event_applications():
+    try:
+        account_id = get_session_account_id()
+    except ValueError:
+        return jsonify({"error": "ログインが必要です"}), 401
+
+    try:
+        items = fetch_applications_for_account(engine, account_id)
+        return jsonify(items)
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "申込履歴の取得に失敗しました"}), 500
+
+
+@app.route("/api/events/<event_key>/apply", methods=["POST"])
+def apply_to_event(event_key):
+    data = request.get_json() or {}
+    name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").strip()
+    note = (data.get("note") or "").strip()
+
+    account_id = session.get("account_id")
+    if account_id and not name:
+        name = session.get("name") or ""
+    if account_id and not email:
+        email = session.get("email") or ""
+
+    if not name:
+        return jsonify({"error": "お名前を入力してください"}), 400
+
+    try:
+        result = create_application(engine, event_key, account_id, name, email, note)
+        return jsonify({
+            "success": True,
+            "message": "イベントへの申込を受け付けました",
+            **result,
+        }), 201
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "申込の登録に失敗しました"}), 500
+
+
+@app.route("/api/contact", methods=["POST"])
+def submit_contact():
+    data = request.get_json() or {}
+    name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").strip()
+    category = (data.get("category") or "").strip()
+    subject = (data.get("subject") or "").strip()
+    body = (data.get("body") or "").strip()
+
+    if not all([name, email, category, subject, body]):
+        return jsonify({"error": "必須項目を入力してください"}), 400
+
+    try:
+        inquiry_id = execute_insert(
+            """
+            INSERT INTO contact_inquiries (name, email, category, subject, body)
+            VALUES (:name, :email, :category, :subject, :body)
+            RETURNING inquiry_id
+            """,
+            {
+                "name": name,
+                "email": email,
+                "category": category,
+                "subject": subject,
+                "body": body,
+            },
+        )
+        return jsonify({
+            "success": True,
+            "message": "お問い合わせを受け付けました",
+            "inquiry_id": inquiry_id,
+        }), 201
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "送信に失敗しました"}), 500
 
     
 # ルーム一覧取得
@@ -1078,6 +1273,52 @@ def chat():
         }), 500
 
 
+USAGE_FEATURE_SLUGS = {
+    "ai-chat": FEATURE_AI_CHAT,
+    "board-post": FEATURE_BOARD_POST,
+}
+
+
+def _resolve_usage_feature(slug):
+    feature = USAGE_FEATURE_SLUGS.get(slug)
+    if not feature:
+        return None, jsonify({"error": "不明な機能です"}), 400
+    return feature, None, None
+
+
+@app.route("/api/usage/<feature_slug>", methods=["GET"])
+def get_feature_usage(feature_slug):
+    feature, err_resp, err_code = _resolve_usage_feature(feature_slug)
+    if err_resp is not None:
+        return err_resp, err_code
+    try:
+        subject = get_usage_subject(session, get_membership_for_account)
+        status = build_usage_status(subject, feature, engine)
+        return jsonify(status)
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "利用状況の取得に失敗しました"}), 500
+
+
+@app.route("/api/usage/<feature_slug>/consume", methods=["POST"])
+def consume_feature_usage(feature_slug):
+    feature, err_resp, err_code = _resolve_usage_feature(feature_slug)
+    if err_resp is not None:
+        return err_resp, err_code
+    try:
+        subject = get_usage_subject(session, get_membership_for_account)
+        status = consume_usage(subject, feature, engine)
+        return jsonify(status)
+    except UsageLimitError as e:
+        return jsonify({
+            "error": e.message,
+            **(e.status or {}),
+        }), 429
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "利用回数の更新に失敗しました"}), 500
+
+
 # 投稿一覧取得
 @app.route("/api/posts")
 def get_posts():
@@ -1175,8 +1416,18 @@ def get_songs():
 # 掲示板メディアアップロード
 @app.route("/api/posts/upload", methods=["POST"])
 def upload_post_media():
-    if "account_id" not in session:
-        return jsonify({"error": "ログインが必要です"}), 401
+    ensure_guest_id(session)
+    subject = get_usage_subject(session, get_membership_for_account)
+    try:
+        usage = build_usage_status(subject, FEATURE_BOARD_POST, engine)
+        if not usage["can_use"]:
+            return jsonify({
+                "error": "投稿上限に達しています。",
+                **usage,
+            }), 429
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "利用状況の確認に失敗しました"}), 500
 
     file = request.files.get("file")
     if not file:
@@ -1205,6 +1456,15 @@ def serve_post_upload(filename):
 @app.route("/api/posts", methods=["POST"])
 def create_post():
     try:
+        subject = get_usage_subject(session, get_membership_for_account)
+        try:
+            consume_usage(subject, FEATURE_BOARD_POST, engine)
+        except UsageLimitError as e:
+            return jsonify({
+                "error": e.message,
+                **(e.status or {}),
+            }), 429
+
         data = request.get_json()
         post_id = execute_insert(
             """

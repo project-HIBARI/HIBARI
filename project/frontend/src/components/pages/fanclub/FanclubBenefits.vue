@@ -33,11 +33,12 @@ function onUse(b) {
 </script>
 
 <template>
-  <ul class="fc-benefits">
+  <ul class="fc-benefits motion-stagger site-reveal-stagger">
     <li
       v-for="(b, i) in benefits"
       :key="`${b.feature}-${i}`"
-      class="fc-benefits__item"
+      class="fc-benefits__item stagger-item motion-card"
+      :style="{ '--stagger-i': i }"
       :class="{
         'fc-benefits__item--premium': b.premium,
         'fc-benefits__item--ready': isLoggedIn && canUse(b.permission),

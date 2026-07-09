@@ -12,11 +12,9 @@ import { ref, onMounted } from 'vue'
 
 import SiteHeader from './SiteHeader.vue'
 
+import SiteIntroVideo from './SiteIntroVideo.vue'
+
 import AppDrawerNav from './AppDrawerNav.vue'
-
-import PremiumMemberBar from './PremiumMemberBar.vue'
-
-import LoginCtaBanner from '../pages/login/LoginCtaBanner.vue'
 
 import AppFooterBar from './AppFooterBar.vue'
 
@@ -31,8 +29,12 @@ import EventsListModal from '../modals/EventsListModal.vue'
 import GalleryModal from '../modals/GalleryModal.vue'
 
 import AuthNoticeModal from '../modals/AuthNoticeModal.vue'
+import AccountModal from '../modals/AccountModal.vue'
+import SearchModal from '../modals/SearchModal.vue'
 
 import PageTop from '../pages/PageTop.vue'
+
+import PageNews from '../pages/PageNews.vue'
 
 import PageDisco from '../pages/PageDisco.vue'
 
@@ -44,6 +46,14 @@ import PageMemories from '../pages/PageMemories.vue'
 
 import PageMessage from '../pages/PageMessage.vue'
 
+import PageFaq from '../pages/PageFaq.vue'
+
+import PageContact from '../pages/PageContact.vue'
+
+import PageTerms from '../pages/PageTerms.vue'
+
+import PagePrivacyPolicy from '../pages/PagePrivacyPolicy.vue'
+
 import PageLogin from '../pages/PageLogin.vue'
 
 import PageRegister from '../pages/PageRegister.vue'
@@ -52,9 +62,9 @@ import PageFanclub from '../pages/PageFanclub.vue'
 
 import PageFanclubSite from '../pages/PageFanclubSite.vue'
 
-import PageEventPreorder from '../pages/PageEventPreorder.vue'
-
 import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
+
+import { useSiteIntro } from '../../composables/useSiteIntro.js'
 
 import { useAuth } from '../../composables/useAuth.js'
 
@@ -102,12 +112,16 @@ const postLoginRedirect = ref(null)
 /** ファンクラブ会員サイト内の表示セクション */
 const fanclubSection = ref('overview')
 
-/** 先行予約ページで対象にしているイベント ID */
-const preorderEventId = ref(null)
+/** ページ切替時のアニメーション用 */
+const pageEnterKey = ref(0)
+
+/** イントロビデオ表示 */
+const { introVisible, introLeaving, completeIntro } = useSiteIntro()
+const siteReady = ref(false)
 
 const auth = useAuth()
 
-const { membership, isLoggedIn, user, setUser, refreshUser } = auth
+const { membership, isLoggedIn, user, setUser, refreshUser, logout } = auth
 
 
 
@@ -117,7 +131,15 @@ useBodyScrollLock(drawerOpen)
 
 onMounted(() => {
   refreshUser()
+  if (!introVisible.value) {
+    siteReady.value = true
+  }
 })
+
+function onIntroComplete() {
+  completeIntro()
+  siteReady.value = true
+}
 
 
 
@@ -133,6 +155,8 @@ function goTo(id) {
 
   drawerOpen.value = false
 
+  pageEnterKey.value += 1
+
   window.scrollTo({ top: 0, behavior: 'smooth' })
 
 }
@@ -140,22 +164,6 @@ function goTo(id) {
 
 
 function handleNav(id) {
-
-  if (id === 'news') {
-
-    if (isLoggedIn.value && auth.can(PERMISSION.NEWSLETTER)) {
-
-      openModal('news')
-
-    } else {
-
-      openAuth('news')
-
-    }
-
-    return
-
-  }
 
   if (id === 'fanclub') {
 
@@ -193,18 +201,16 @@ function openModal(kind) {
 
 
 
-/** イベント一覧から先行予約ページへ遷移 */
-function goPreorder(eventId) {
-  preorderEventId.value = eventId
-  modal.value = null
-  goTo('event-preorder')
-}
-
 function openMemberFeature(mode) {
+
+  if (mode === 'ai') {
+    openModal('ai')
+    return
+  }
 
   const features = {
 
-    news: { permission: PERMISSION.NEWSLETTER, modal: 'news' },
+    news: { page: 'news' },
 
     events: { permission: PERMISSION.TICKET_PREORDER, modal: 'events' },
 
@@ -332,9 +338,61 @@ function openAuth(mode) {
 
   }
 
+  if (mode === 'search') {
+
+    modal.value = 'search'
+
+    drawerOpen.value = false
+
+    return
+
+  }
+
   openMemberFeature(mode)
 
   drawerOpen.value = false
+
+}
+
+
+
+async function handleLogout() {
+
+  await logout()
+
+  modal.value = null
+
+  if (page.value === 'fanclub-site') {
+
+    goTo('fanclub')
+
+  }
+
+}
+
+
+
+function openAccountModal() {
+
+  if (!isLoggedIn.value) {
+
+    openAuth('login')
+
+    return
+
+  }
+
+  modal.value = 'account'
+
+  drawerOpen.value = false
+
+}
+
+
+
+function handleAccountUserUpdated(account) {
+
+  if (account) setUser(account)
 
 }
 
@@ -424,13 +482,31 @@ function handleAiModalAuth(mode) {
 
 <template>
 
-  <div class="site-shell site-bg">
+  <SiteIntroVideo
+    v-if="introVisible"
+    :leaving="introLeaving"
+    @complete="onIntroComplete"
+  />
+
+  <div
+    class="site-shell site-bg"
+    :class="{
+      'site-shell--during-intro': introVisible && !introLeaving,
+      'site-shell--ready': siteReady && !introVisible,
+    }"
+  >
 
     <SiteHeader
 
       :items="navItems"
 
       :page="page"
+
+      :is-logged-in="isLoggedIn"
+
+      :user-name="user?.name || ''"
+
+      :membership="membership"
 
       @logo="goTo('top')"
 
@@ -441,6 +517,12 @@ function handleAiModalAuth(mode) {
       @open-auth="openAuth"
 
       @open-search="openAuth('search')"
+
+      @open-account="openAccountModal"
+
+      @logout="handleLogout"
+
+      @go-fanclub="goTo(isLoggedIn ? 'fanclub-site' : 'fanclub')"
 
     />
 
@@ -454,6 +536,10 @@ function handleAiModalAuth(mode) {
 
       :page="page"
 
+      :is-logged-in="isLoggedIn"
+
+      :user-name="user?.name || ''"
+
       @close="drawerOpen = false"
 
       @navigate="handleNav"
@@ -462,15 +548,22 @@ function handleAiModalAuth(mode) {
 
       @open-auth="openAuth"
 
+      @open-account="openAccountModal"
+
+      @logout="handleLogout"
+
     />
 
 
 
     <main
       id="main-content"
+      :key="pageEnterKey"
       :class="[
         'main-pad',
         'site-main',
+        'motion-page-enter',
+        'site-page-enter',
         {
           'main-pad--flush': page === 'login' || page === 'register',
           'main-pad--top': page === 'top',
@@ -488,6 +581,14 @@ function handleAiModalAuth(mode) {
         @open-auth="openAuth"
 
         @open-modal="openModal"
+
+      />
+
+      <PageNews
+
+        v-else-if="page === 'news'"
+
+        @open-auth="openAuth"
 
       />
 
@@ -530,9 +631,18 @@ function handleAiModalAuth(mode) {
       <PageMemories
         v-else-if="page === 'memories'"
         @open-auth="openAuth"
+        @navigate="goTo"
       />
 
       <PageMessage v-else-if="page === 'message'" />
+
+      <PageFaq v-else-if="page === 'faq'" />
+
+      <PageContact v-else-if="page === 'contact'" />
+
+      <PageTerms v-else-if="page === 'terms'" />
+
+      <PagePrivacyPolicy v-else-if="page === 'privacy-policy'" />
 
       <PageLogin
 
@@ -584,24 +694,9 @@ function handleAiModalAuth(mode) {
 
       />
 
-      <PageEventPreorder
-        v-else-if="page === 'event-preorder'"
-        :event-id="preorderEventId"
-        @back="goTo(isLoggedIn ? 'fanclub-site' : 'fanclub')"
-      />
-
     </main>
 
-
-
-    <LoginCtaBanner v-if="page !== 'top'" />
-
-    <PremiumMemberBar
-      v-if="page !== 'top' && page !== 'login' && page !== 'register'"
-      @open-fanclub="openAuth('fanclub')"
-    />
-
-    <AppFooterBar />
+    <AppFooterBar @navigate="goTo" />
 
 
 
@@ -618,11 +713,25 @@ function handleAiModalAuth(mode) {
 
     <NewsListModal v-if="modal === 'news'" @close="modal = null" />
 
-    <EventsListModal v-if="modal === 'events'" @close="modal = null" @preorder="goPreorder" />
+    <EventsListModal v-if="modal === 'events'" @close="modal = null" @navigate="goTo" />
 
     <GalleryModal v-if="modal === 'gallery'" @close="modal = null" />
 
     <AuthNoticeModal v-if="authMode" :mode="authMode" @close="closeAuth" />
+
+    <AccountModal
+      v-if="modal === 'account'"
+      @close="modal = null"
+      @need-login="modal = null; openAuth('login')"
+      @logout="handleLogout"
+      @user-updated="handleAccountUserUpdated"
+    />
+
+    <SearchModal
+      v-if="modal === 'search'"
+      @close="modal = null"
+      @navigate="goTo"
+    />
 
   </div>
 

@@ -1,19 +1,64 @@
 <script setup>
 /**
  * 部品名: ホーム — ヒーローエリア
- * 用途: 全幅背景動画・コピー・CTA
+ * 用途: 全幅背景動画・コピー・CTA（script 連動パララックス）
  */
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import UiButton from '../../ui/UiButton.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
+import { useHeroParallax } from '../../../composables/useHeroParallax.js'
+import { whenSiteReady, prefersReducedMotion } from '../../../composables/useSiteReady.js'
 
-const emit = defineEmits(['open-auth', 'scroll-enjoy'])
+const emit = defineEmits(['open-auth', 'open-ai', 'scroll-enjoy'])
 
 const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVideo.src
+
+const heroRef = ref(null)
+const videoFailed = ref(false)
+const { heroStyle, heroActive } = useHeroParallax(heroRef)
+
+const revealTitle = ref(false)
+const revealSub = ref(false)
+const revealCta = ref(false)
+
+let revealTimers = []
+let cleanupReady = null
+
+function startHeroReveal() {
+  if (prefersReducedMotion()) {
+    revealTitle.value = true
+    revealSub.value = true
+    revealCta.value = true
+    return
+  }
+  revealTimers.push(window.setTimeout(() => { revealTitle.value = true }, 280))
+  revealTimers.push(window.setTimeout(() => { revealSub.value = true }, 520))
+  revealTimers.push(window.setTimeout(() => { revealCta.value = true }, 780))
+}
+
+onMounted(() => {
+  cleanupReady = whenSiteReady(startHeroReveal)
+})
+
+onBeforeUnmount(() => {
+  cleanupReady?.()
+  revealTimers.forEach(clearTimeout)
+  revealTimers = []
+})
 </script>
 
 <template>
-  <section class="home-hero" aria-label="メインビジュアル">
+  <section
+    ref="heroRef"
+    class="home-hero"
+    :class="{ 'home-hero--active': heroActive }"
+    :style="heroStyle"
+    aria-label="メインビジュアル"
+  >
+    <div v-if="videoFailed" class="home-hero__fallback" aria-hidden="true" />
+
     <video
+      v-show="!videoFailed"
       class="home-hero__video"
       autoplay
       muted
@@ -21,32 +66,62 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
       playsinline
       preload="auto"
       aria-hidden="true"
+      @error="videoFailed = true"
     >
       <source :src="heroVideoSrc" type="video/mp4" />
     </video>
 
     <div class="home-hero__overlay" aria-hidden="true" />
+    <div class="home-hero__light" aria-hidden="true" />
 
     <div class="home-hero__inner">
       <div class="home-hero__copy">
-        <h1 class="home-hero__title">
+        <h1
+          class="home-hero__title home-hero-reveal"
+          :class="{ 'is-revealed': revealTitle }"
+        >
           永遠の歌声、<br />
           美空ひばりとともに。
         </h1>
-        <p class="home-hero__sub">
+        <p
+          class="home-hero__sub home-hero-reveal"
+          :class="{ 'is-revealed': revealSub }"
+        >
           美空ひばりの魅力を、もっと深く、もっと身近に。<br />
           ここだけの体験を、あなたに。
         </p>
-        <div class="home-hero__cta">
-          <UiButton variant="primary" size="lg" @click="emit('open-auth', 'register')">
-            新規登録（無料）
+        <div
+          class="home-hero__cta home-hero-reveal home-hero-reveal--cta"
+          :class="{ 'is-revealed': revealCta }"
+        >
+          <UiButton
+            variant="primary"
+            size="lg"
+            class="home-cta-btn motion-cta-shine"
+            @click="emit('open-auth', 'register')"
+          >
+            ファンクラブ加入
           </UiButton>
-          <UiButton variant="outline" size="lg" @click="emit('scroll-enjoy')">
-            サイトの楽しみ方
+          <UiButton
+            variant="outline"
+            size="lg"
+            class="home-cta-btn home-cta-btn--outline"
+            @click="emit('open-ai')"
+          >
+            AIひばり
           </UiButton>
         </div>
       </div>
     </div>
+
+    <button
+      type="button"
+      class="home-hero__scroll home-hero__scroll-cue"
+      aria-label="下へスクロール"
+      @click="emit('scroll-enjoy')"
+    >
+      <span class="home-hero__scroll-icon" aria-hidden="true">⌄</span>
+    </button>
   </section>
 </template>
 
@@ -80,17 +155,20 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
   filter: contrast(1.05);
 }
 
+.home-hero__fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(118deg, rgba(255, 249, 246, 0.95) 0%, rgba(248, 236, 228, 0.88) 42%, rgba(93, 58, 107, 0.22) 100%),
+    radial-gradient(ellipse 80% 60% at 70% 30%, rgba(201, 169, 97, 0.18), transparent 70%);
+}
+
 .home-hero__overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.02) 22%,
-    transparent 38%
-  );
 }
 
 .home-hero__inner {
@@ -157,6 +235,25 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
   margin-top: var(--sp-7);
 }
 
+.home-hero__scroll {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 24px;
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--murasaki-600);
+}
+
+.home-hero__scroll-icon {
+  display: block;
+  font-size: 22px;
+  line-height: 1;
+  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.8);
+}
+
 @media (max-width: 1100px) {
   .home-hero__inner {
     padding-top: var(--sp-7);
@@ -205,6 +302,10 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
   }
   .home-hero__overlay {
     background: linear-gradient(118deg, #fff9f6 0%, var(--site-bg-pink) 38%, #f8f0ea 100%);
+    opacity: 1 !important;
+  }
+  .home-hero__light {
+    display: none;
   }
 }
 </style>

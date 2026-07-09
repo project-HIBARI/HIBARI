@@ -10,9 +10,9 @@ import TabBar from '../ui/TabBar.vue'
 import FanclubAiChat from './fanclub/FanclubAiChat.vue'
 import FanclubBoard from './fanclub/FanclubBoard.vue'
 import FanclubBenefits from './fanclub/FanclubBenefits.vue'
-import FanclubAccountPanel from './fanclub/FanclubAccountPanel.vue'
 import { useMemberAccess } from '../../composables/useMemberAccess.js'
 import { MEMBERSHIP_LABELS } from '../../constants/membership.js'
+import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
 const props = defineProps({
   activeSection: { type: String, default: 'overview' },
@@ -23,6 +23,9 @@ const emit = defineEmits(['navigate', 'open-modal', 'open-auth', 'section-change
 const { isLoggedIn, membership } = useMemberAccess()
 
 const section = ref(props.activeSection)
+const pageRoot = ref(null)
+
+useScrollReveal(pageRoot)
 
 watch(
   () => props.activeSection,
@@ -36,7 +39,6 @@ const sectionTabs = [
   { id: 'board', label: '会員掲示板', icon: 'chat' },
   { id: 'chat', label: 'AIチャット', icon: 'flower' },
   { id: 'benefits', label: '特典一覧', icon: 'heart' },
-  { id: 'account', label: 'アカウント' },
 ]
 
 const perks = [
@@ -57,11 +59,11 @@ function onNeedLogin() {
   emit('open-auth', 'login')
 }
 
-function onLogout() {
-  emit('navigate', 'fanclub')
-}
-
 function useFeature(feature) {
+  if (feature === 'news') {
+    emit('navigate', 'news')
+    return
+  }
   if (feature === 'board' || feature === 'memories') {
     setSection('board')
     return
@@ -75,7 +77,7 @@ function useFeature(feature) {
 </script>
 
 <template>
-  <div class="page-fc-site">
+  <div ref="pageRoot" class="page-fc-site">
     <PageHead kanji="會" title="ファンクラブサイト" sub="Member Site · 会員限定コンテンツ" />
 
     <TabBar
@@ -95,8 +97,14 @@ function useFeature(feature) {
       </p>
 
       <section class="page-fc-site__perks">
-        <ul class="page-fc-site__perk-grid">
-          <li v-for="p in perks" :key="p.label" class="page-fc-site__perk">
+        <ul class="page-fc-site__perk-grid motion-stagger site-reveal-stagger">
+          <li
+            v-for="(p, i) in perks"
+            :key="p.label"
+            class="page-fc-site__perk stagger-item motion-card"
+            :class="{ 'page-fc-site__perk--highlight': p.feature === 'ai' || p.feature === 'board' }"
+            :style="{ '--stagger-i': i }"
+          >
             <button type="button" class="page-fc-site__perk-btn" @click="useFeature(p.feature)">
               <span class="page-fc-site__perk-icon">{{ p.icon }}</span>
               <div>
@@ -125,14 +133,6 @@ function useFeature(feature) {
     <section v-else-if="section === 'benefits'" class="page-fc-site__panel">
       <SectionTitle title="会員特典一覧" sub="Your Benefits" size="md" />
       <FanclubBenefits @use-feature="useFeature" />
-    </section>
-
-    <section v-else-if="section === 'account'" class="page-fc-site__panel">
-      <SectionTitle title="アカウント" sub="Account Settings" size="md" />
-      <p class="page-fc-site__account-lead">
-        登録済みのメールアドレス・パスワードでログイン中のアカウント情報を確認・変更できます。
-      </p>
-      <FanclubAccountPanel @need-login="onNeedLogin" @logout="onLogout" />
     </section>
   </div>
 </template>

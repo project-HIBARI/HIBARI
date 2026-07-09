@@ -1,0 +1,635 @@
+/**
+ * サイト全体 — 動的演出（上品・目に分かる程度）
+ * 新class: motion-* / 旧class: site-reveal 等（後方互換）
+ */
+
+:root {
+  --motion-duration: 0.75s;
+  --motion-duration-slow: 0.9s;
+  --motion-duration-fast: 0.5s;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-lift: translateY(-7px);
+  --motion-reveal-y: 26px;
+  --motion-stagger-step: 0.12s;
+}
+
+/* —— ページ切替（イントロ完了後に開始） —— */
+.site-shell--ready .motion-page-enter,
+.site-shell--ready .site-page-enter {
+  animation: motionPageEnter 0.65s var(--motion-ease) both;
+}
+
+@keyframes motionPageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* —— ページタイトル —— */
+.site-shell--ready .motion-page-title {
+  animation: motionPageTitle 0.8s var(--motion-ease) 0.12s both;
+}
+
+@keyframes motionPageTitle {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* —— スクロール reveal（単体セクション） —— */
+.site-shell--ready .motion-section:not(.motion-stagger):not(.site-reveal-stagger):not(.is-visible),
+.site-shell--ready .site-reveal:not(.motion-stagger):not(.site-reveal-stagger):not(.is-visible) {
+  opacity: 0;
+  transform: translateY(var(--motion-reveal-y));
+  transition:
+    opacity var(--motion-duration) var(--motion-ease),
+    transform var(--motion-duration) var(--motion-ease);
+  will-change: opacity, transform;
+}
+.site-shell--ready .motion-section.is-visible,
+.site-shell--ready .site-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.motion-section--slow,
+.site-reveal--slow {
+  transition-duration: var(--motion-duration-slow);
+}
+.motion-section--delay-1,
+.site-reveal--delay-1 { transition-delay: 0.1s; }
+.motion-section--delay-2,
+.site-reveal--delay-2 { transition-delay: 0.2s; }
+.motion-section--delay-3,
+.site-reveal--delay-3 { transition-delay: 0.3s; }
+.motion-section--delay-4,
+.site-reveal--delay-4 { transition-delay: 0.4s; }
+
+/* —— 順番表示（stagger） —— */
+.site-shell--ready .motion-stagger:not(.is-visible) > *,
+.site-shell--ready .site-reveal-stagger:not(.is-visible) > .stagger-item,
+.site-shell--ready .site-reveal-stagger:not(.is-visible) > * {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity var(--motion-duration) var(--motion-ease),
+    transform var(--motion-duration) var(--motion-ease);
+  transition-delay: calc(var(--stagger-i, 0) * var(--motion-stagger-step));
+  will-change: opacity, transform;
+}
+.site-shell--ready .motion-stagger.is-visible > *,
+.site-shell--ready .site-reveal-stagger.is-visible > .stagger-item,
+.site-shell--ready .site-reveal-stagger.is-visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* —— ヒーロー（イントロ完了後に段階表示） —— */
+.site-shell--ready .motion-hero-block {
+  opacity: 0;
+  transform: translateY(28px);
+  animation: motionHeroBlock 0.85s var(--motion-ease) both;
+}
+.site-shell--ready .motion-hero-block--1 { animation-delay: 0.25s; }
+.site-shell--ready .motion-hero-block--2 { animation-delay: 0.42s; }
+.site-shell--ready .motion-hero-block--3 { animation-delay: 0.58s; }
+
+@keyframes motionHeroBlock {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* —— カード hover —— */
+.motion-card {
+  transition:
+    transform var(--motion-duration-fast) var(--motion-ease),
+    box-shadow var(--motion-duration-fast) var(--motion-ease),
+    border-color var(--motion-duration-fast) ease;
+}
+.motion-card:hover {
+  transform: var(--motion-lift);
+  box-shadow: 0 12px 32px rgba(60, 40, 30, 0.12);
+}
+
+/* —— 画像 hover —— */
+.motion-image {
+  overflow: hidden;
+}
+.motion-image img,
+.motion-image video,
+.motion-image .photo {
+  transition: transform 0.85s var(--motion-ease);
+}
+.motion-image:hover img,
+.motion-image:hover video,
+.motion-image:hover .photo {
+  transform: scale(1.05);
+}
+
+/* —— ボタン —— */
+.motion-button {
+  transition:
+    transform var(--motion-duration-fast) var(--motion-ease),
+    box-shadow var(--motion-duration-fast) var(--motion-ease),
+    filter var(--motion-duration-fast) ease;
+}
+.motion-button:hover:not(:disabled) {
+  transform: translateY(-3px);
+}
+.motion-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* —— CTA 光沢 —— */
+.motion-cta-shine,
+.site-cta-accent {
+  position: relative;
+  overflow: hidden;
+}
+.motion-cta-shine::before,
+.site-cta-accent::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 65%
+  );
+  background-size: 220% 100%;
+  animation: motionCtaShine 3.8s var(--motion-ease) infinite;
+  pointer-events: none;
+}
+.motion-cta-shine::after,
+.site-cta-accent::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 1px solid rgba(201, 169, 97, 0.55);
+  opacity: 0;
+  animation: motionCtaGlow 3s var(--motion-ease) infinite;
+  pointer-events: none;
+}
+@keyframes motionCtaShine {
+  0%, 100% { background-position: 180% 0; opacity: 0; }
+  45%, 55% { background-position: -80% 0; opacity: 1; }
+}
+@keyframes motionCtaGlow {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.03); }
+}
+
+/* —— スクロール誘導 —— */
+.site-shell--ready .motion-scroll-cue,
+.site-shell--ready .motion-scroll-hint {
+  animation: motionScrollCue 2.2s var(--motion-ease) infinite;
+}
+@keyframes motionScrollCue {
+  0%, 100% { opacity: 0.5; transform: translateX(-50%) translateY(0); }
+  50% { opacity: 1; transform: translateX(-50%) translateY(10px); }
+}
+
+/* —— ヒーロー背景ズーム —— */
+.site-shell--ready .motion-hero-video {
+  animation: motionHeroKenBurns 18s var(--motion-ease) infinite alternate;
+}
+@keyframes motionHeroKenBurns {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+
+/* イントロ */
+body.site-intro-active {
+  overflow: hidden;
+}
+.site-shell--during-intro {
+  pointer-events: none;
+}
+@keyframes siteShellReady {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* —— 既存 UI 連携 —— */
+.ui-card--interactive,
+.page-image-card--interactive {
+  transition:
+    transform var(--motion-duration-fast) var(--motion-ease),
+    box-shadow var(--motion-duration-fast) var(--motion-ease),
+    border-color var(--motion-duration-fast) ease;
+}
+.ui-card--interactive:hover,
+.page-image-card--interactive:hover {
+  transform: var(--motion-lift);
+  box-shadow: 0 12px 32px rgba(60, 40, 30, 0.12);
+}
+.page-image-card--interactive .page-image-card__img {
+  transition: transform 0.85s var(--motion-ease);
+}
+.page-image-card--interactive:hover .page-image-card__img {
+  transform: scale(1.05);
+}
+
+.ui-btn {
+  transition:
+    background var(--motion-duration-fast) ease,
+    border-color var(--motion-duration-fast) ease,
+    color var(--motion-duration-fast) ease,
+    box-shadow var(--motion-duration-fast) var(--motion-ease),
+    transform var(--motion-duration-fast) var(--motion-ease),
+    opacity var(--motion-duration-fast) ease;
+}
+.ui-btn--primary:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(93, 58, 107, 0.32);
+}
+.ui-btn--outline:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(93, 58, 107, 0.14);
+}
+.ui-btn--gold:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(168, 135, 63, 0.32);
+}
+
+.site-header--scrolled {
+  background: rgba(255, 254, 251, 0.94);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 24px rgba(60, 40, 30, 0.1);
+  border-bottom-color: rgba(90, 60, 40, 0.12);
+}
+
+.site-header__nav-link {
+  position: relative;
+}
+.site-header__nav-link::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--kin-400), var(--kin-500));
+  transition:
+    width 0.55s var(--motion-ease),
+    left 0.55s var(--motion-ease);
+}
+.site-header__nav-link:hover::after,
+.site-header__nav-link--active::after {
+  width: 100%;
+  left: 0;
+}
+.site-header__nav-link--active {
+  color: var(--murasaki-700);
+  font-weight: 700;
+}
+
+.disco-song-card.motion-card:hover,
+.places-spot-card.motion-card:hover,
+.fc-benefits__item.motion-card:hover,
+.page-news__item.motion-card:hover,
+.page-fc-site__perk.motion-card:hover {
+  transform: var(--motion-lift);
+  box-shadow: 0 12px 32px rgba(60, 40, 30, 0.14);
+}
+
+.page-fc-site__perk--highlight .page-fc-site__perk-btn {
+  animation: motionFeatureHighlight 4.2s var(--motion-ease) infinite;
+}
+@keyframes motionFeatureHighlight {
+  0%, 100% {
+    box-shadow: inset 0 0 0 1px rgba(201, 169, 97, 0.15);
+  }
+  50% {
+    box-shadow: inset 0 0 0 1px rgba(201, 169, 97, 0.55), 0 6px 20px rgba(93, 58, 107, 0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-shell--ready .motion-section:not(.motion-stagger):not(.site-reveal-stagger):not(.is-visible),
+  .site-shell--ready .site-reveal:not(.motion-stagger):not(.site-reveal-stagger):not(.is-visible),
+  .site-shell--ready .motion-stagger:not(.is-visible) > *,
+  .site-shell--ready .site-reveal-stagger:not(.is-visible) > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+  .motion-page-enter,
+  .site-page-enter,
+  .motion-page-title,
+  .motion-hero-block,
+  .site-shell--ready,
+  .motion-hero-video,
+  .motion-scroll-cue,
+  .motion-scroll-hint,
+  .motion-cta-shine::before,
+  .site-cta-accent::before,
+  .motion-cta-shine::after,
+  .site-cta-accent::after {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .motion-card:hover,
+  .ui-card--interactive:hover,
+  .page-image-card--interactive:hover,
+  .ui-btn--primary:hover:not(:disabled),
+  .ui-btn--outline:hover:not(:disabled),
+  .ui-btn--gold:hover:not(:disabled),
+  .motion-button:hover:not(:disabled) {
+    transform: none;
+  }
+  .motion-image:hover img,
+  .motion-image:hover video {
+    transform: none;
+  }
+  .home-hero__video,
+  .home-hero__light,
+  .home-hero__scroll-cue,
+  .home-hero-reveal,
+  .home-motion-section,
+  .home-motion-stagger > *,
+  .home-motion-stagger__item,
+  .home-category-card,
+  .home-news__item,
+  .home-cta-btn::before {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ============================================================
+   ホーム画面専用モーション
+   ============================================================ */
+
+.home-hero {
+  --hero-scroll-progress: 0;
+  --hero-mouse-x: 0.5;
+  --hero-mouse-y: 0.42;
+  --hero-bg-scale: 1.04;
+  --hero-overlay-opacity: 0.72;
+}
+
+.home-hero__video {
+  transform: scale(var(--hero-bg-scale)) translateY(calc(var(--hero-scroll-progress) * -22px));
+  transition: transform 0.12s linear;
+  will-change: transform;
+}
+
+.home-hero__overlay {
+  opacity: var(--hero-overlay-opacity);
+  transition: opacity 0.2s ease;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, calc(0.08 + var(--hero-scroll-progress) * 0.06)) 0%,
+    rgba(255, 255, 255, 0.02) 22%,
+    transparent 38%
+  );
+}
+
+.home-hero__light {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.55;
+  background: radial-gradient(
+    ellipse 55% 45% at calc(var(--hero-mouse-x) * 100%) calc(var(--hero-mouse-y) * 100%),
+    rgba(255, 248, 240, 0.38) 0%,
+    rgba(201, 169, 97, 0.08) 32%,
+    transparent 68%
+  );
+  transition: opacity 0.4s ease;
+}
+
+.home-hero--active .home-hero__light {
+  opacity: 0.72;
+}
+
+/* ヒーロー段階表示（script制御） */
+.home-hero-reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.home-hero-reveal.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+.home-hero-reveal--cta.is-revealed {
+  transition-delay: 0.05s;
+}
+
+.home-hero__scroll-cue {
+  animation: homeScrollCue 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes homeScrollCue {
+  0%, 100% {
+    opacity: 0.45;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(12px);
+  }
+}
+
+/* ホームセクション reveal */
+.site-shell--ready .home-motion-section:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.site-shell--ready .home-motion-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.site-shell--ready .home-motion-stagger:not(.is-visible) > .home-motion-stagger__item,
+.site-shell--ready .home-motion-stagger:not(.is-visible) > .home-motion-stagger-item,
+.site-shell--ready .home-motion-stagger:not(.is-visible) > * {
+  opacity: 0;
+  transform: translateY(28px) translateX(-18px);
+  transition: none;
+}
+.site-shell--ready .home-motion-stagger.is-visible > .home-motion-stagger__item:not(.is-stagger-visible),
+.site-shell--ready .home-motion-stagger.is-visible > .home-motion-stagger-item:not(.is-stagger-visible),
+.site-shell--ready .home-motion-stagger.is-visible > *:not(.is-stagger-visible) {
+  opacity: 0;
+  transform: translateY(28px) translateX(-18px);
+  transition: none;
+}
+.site-shell--ready .home-motion-stagger > .home-motion-stagger__item.is-stagger-visible,
+.site-shell--ready .home-motion-stagger > .home-motion-stagger-item.is-stagger-visible,
+.site-shell--ready .home-motion-stagger > *.is-stagger-visible {
+  opacity: 1;
+  transform: translateY(0) translateX(0);
+  transition:
+    opacity 0.82s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.82s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* カテゴリカード */
+.home-category-card {
+  position: relative;
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.45s ease;
+}
+.home-category-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--kin-400), var(--kin-500));
+  transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  border-radius: 0 2px 2px 0;
+}
+.home-category-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 36px rgba(93, 58, 107, 0.14);
+  border-color: rgba(201, 169, 97, 0.45);
+}
+.home-category-card:hover::after {
+  width: 100%;
+}
+.home-category-card:hover .top-categories__arrow {
+  transform: translateX(5px);
+  color: var(--kin-600);
+}
+
+/* ニュースパネル */
+.home-news__header.is-revealed {
+  animation: homeNewsTitle 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.site-shell--ready .home-motion-stagger.is-visible .home-news__header {
+  animation: homeNewsTitle 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+.site-shell--ready .home-motion-stagger.is-visible .home-news__item {
+  animation: homeNewsItemIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(0.35s + var(--news-i, 0) * 0.1s);
+}
+@keyframes homeNewsTitle {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes homeNewsItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.home-news__item {
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.35s ease;
+  border-radius: var(--site-radius-sm);
+  margin: 0 -8px;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+.home-news__item:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 251, 247, 0.85);
+  box-shadow: 0 6px 18px rgba(60, 40, 30, 0.06);
+}
+.home-news__item:hover .top-news__date {
+  color: var(--murasaki-600);
+}
+.home-news__item:hover .top-news__label {
+  background: var(--murasaki-200);
+  color: var(--murasaki-800);
+}
+
+.home-news__link {
+  transition: color 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.home-news__link:hover {
+  color: var(--murasaki-800);
+}
+.home-news__link:hover .home-news__link-arrow {
+  transform: translateX(4px);
+}
+.home-news__link-arrow {
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ホーム CTA */
+.home-cta-btn {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+.home-cta-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  animation: homeCtaShine 4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  pointer-events: none;
+}
+.home-cta-btn:hover:not(:disabled) {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(93, 58, 107, 0.28);
+}
+.home-cta-btn:active:not(:disabled) {
+  transform: translateY(-1px) scale(0.98);
+}
+.home-cta-btn--outline:hover:not(:disabled) {
+  box-shadow: 0 8px 22px rgba(93, 58, 107, 0.14);
+}
+.home-cta-btn--gold:hover:not(:disabled) {
+  box-shadow: 0 8px 24px rgba(168, 135, 63, 0.35);
+}
+@keyframes homeCtaShine {
+  0%, 72%, 100% { transform: translateX(-120%); opacity: 0; }
+  78%, 88% { transform: translateX(120%); opacity: 1; }
+}
+

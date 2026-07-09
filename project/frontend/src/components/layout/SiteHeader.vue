@@ -3,21 +3,40 @@
  * 部品名: 共通サイトヘッダー
  * 用途: ロゴ・ナビ・検索・ログイン/ファンクラブ加入・文字サイズ（レスポンシブ・1段構成）
  */
+import { ref, onMounted, onUnmounted } from 'vue'
 import UiIco from '../ui/UiIco.vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
+import HeaderAccountMenu from './HeaderAccountMenu.vue'
 
 defineProps({
   items: { type: Array, required: true },
   page: { type: String, required: true },
+  isLoggedIn: { type: Boolean, default: false },
+  userName: { type: String, default: '' },
+  membership: { type: String, default: 'general' },
 })
 
-const emit = defineEmits(['logo', 'navigate', 'open-drawer', 'open-auth', 'open-search'])
+const emit = defineEmits(['logo', 'navigate', 'open-drawer', 'open-auth', 'open-search', 'open-account', 'logout', 'go-fanclub'])
 
 const logoSrc = '/images/misorahibari-logo-cropped.png'
+const scrolled = ref(false)
+
+function onScroll() {
+  scrolled.value = window.scrollY > 20
+}
+
+onMounted(() => {
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+})
 </script>
 
 <template>
-  <header role="banner" class="site-header">
+  <header role="banner" class="site-header" :class="{ 'site-header--scrolled': scrolled }">
     <div class="site-header__inner">
       <button
         type="button"
@@ -58,28 +77,22 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
           <button
             type="button"
             class="site-header__search"
-            aria-label="検索（準備中）"
+            aria-label="サイト内検索"
             @click="emit('open-search')"
           >
             <UiIco name="search" :size="20" color="var(--site-text)" />
           </button>
 
-          <div class="site-header__auth">
-            <button
-              type="button"
-              class="site-header__btn site-header__btn--login"
-              @click="emit('open-auth', 'login')"
-            >
-              ログイン
-            </button>
-            <button
-              type="button"
-              class="site-header__btn site-header__btn--register"
-              @click="emit('open-auth', 'register')"
-            >
-              ファンクラブ加入
-            </button>
-          </div>
+          <HeaderAccountMenu
+            class="site-header__auth"
+            :is-logged-in="isLoggedIn"
+            :user-name="userName"
+            :membership="membership"
+            @open-auth="(mode) => emit('open-auth', mode)"
+            @open-account="emit('open-account')"
+            @logout="emit('logout')"
+            @go-fanclub="emit('go-fanclub')"
+          />
         </div>
 
         <TextSizeControl tone="ink" variant="header" class="site-header__text-size" />
@@ -107,6 +120,11 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
   background: linear-gradient(180deg, #fffefb 0%, #fdf9f5 100%);
   border-bottom: 1px solid var(--site-border);
   box-shadow: 0 2px 12px rgba(60, 40, 30, 0.04);
+  transition:
+    background 0.55s ease,
+    box-shadow 0.55s ease,
+    border-color 0.55s ease,
+    backdrop-filter 0.55s ease;
 }
 
 .site-header__inner {
@@ -343,7 +361,7 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
     padding: 6px 0;
     margin: 0;
     border: 0;
-    border-bottom: 2px solid transparent;
+    border-bottom: none;
     background: transparent;
     cursor: pointer;
     font-family: var(--ff-sans-jp);
@@ -357,13 +375,11 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
 
   .site-header__nav-link:hover {
     color: var(--ink-700);
-    border-bottom-color: var(--kin-400);
   }
 
   .site-header__nav-link--active {
-    color: var(--site-text);
+    color: var(--murasaki-700);
     font-weight: 700;
-    border-bottom-color: var(--kin-500);
   }
 
   .site-header__actions-bar {

@@ -1,30 +1,25 @@
 /**
- * 掲示板投稿の月間利用回数（localStorage）
+ * 掲示板投稿 — 利用回数（バックエンド API + セッション Cookie）
+ * モジュール共有 state で複数コンポーネント間の不整合を防ぐ
  */
-function monthKey() {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-}
+import { ref } from 'vue'
+import { fetchUsage } from '../api/usage.js'
 
-function storageKey(accountId) {
-  return `hibari-board-usage-${accountId || 'guest'}-${monthKey()}`
-}
+const FEATURE = 'board-post'
 
-export function getBoardUsageCount(accountId) {
-  if (typeof window === 'undefined') return 0
+export const boardUsageStatus = ref(null)
+export const boardUsageLoading = ref(false)
+
+export async function refreshBoardUsageStatus() {
+  boardUsageLoading.value = true
   try {
-    return Number(localStorage.getItem(storageKey(accountId)) || 0)
-  } catch {
-    return 0
+    const status = await fetchUsage(FEATURE)
+    boardUsageStatus.value = status
+    return status
+  } catch (err) {
+    boardUsageStatus.value = null
+    throw err
+  } finally {
+    boardUsageLoading.value = false
   }
-}
-
-export function incrementBoardUsage(accountId) {
-  const next = getBoardUsageCount(accountId) + 1
-  try {
-    localStorage.setItem(storageKey(accountId), String(next))
-  } catch {
-    /* ignore */
-  }
-  return next
 }

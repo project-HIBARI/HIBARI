@@ -28,7 +28,7 @@ const emit = defineEmits(['open-ai'])
       <p class="top-ai-card__bubble">また会えてうれしいわ。</p>
     </div>
 
-    <UiButton variant="primary" size="md" class="top-ai-card__btn" @click="emit('open-ai')">
+    <UiButton variant="primary" size="md" class="top-ai-card__btn home-cta-btn" @click="emit('open-ai')">
       <UiIco name="chat" :size="16" color="#fff" />
       AI美空ひばりと話す
     </UiButton>

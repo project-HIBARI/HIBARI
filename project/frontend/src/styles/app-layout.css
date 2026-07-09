@@ -51,14 +51,6 @@ body {
   max-width: none;
 }
 
-/* —— プレミアムバー —— */
-.premium-bar {
-  background: linear-gradient(90deg, var(--site-bg-pink) 0%, var(--site-surface-muted) 50%, var(--site-bg-warm) 100%);
-  border-bottom: 1px solid var(--site-border);
-  padding: 8px 32px;
-  text-align: center;
-}
-
 /* —— フッター —— */
 .app-footer {
   padding: 36px 56px 32px;
@@ -134,9 +126,6 @@ body {
   }
   .site-main {
     min-height: auto;
-  }
-  .premium-bar {
-    padding: 8px 12px;
   }
   .app-footer {
     padding: 24px 16px;

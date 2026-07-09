@@ -40,7 +40,7 @@ defineEmits(['click'])
   letter-spacing: 0.08em;
   cursor: pointer;
   border-radius: var(--site-radius-sm);
-  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   white-space: nowrap;
 }
 .ui-btn:disabled {

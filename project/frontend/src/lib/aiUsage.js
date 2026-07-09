@@ -1,30 +1,31 @@
 /**
- * AIひばり対話の月間利用回数（デモ: localStorage）
+ * AIひばり対話 — 利用回数（バックエンド API + セッション Cookie）
  */
-function monthKey() {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+import { consumeUsage, fetchUsage } from '../api/usage.js'
+
+const FEATURE = 'ai-chat'
+
+let statusRef = null
+
+export function bindAiUsageRef(ref) {
+  statusRef = ref
 }
 
-function storageKey(accountId) {
-  return `hibari-ai-usage-${accountId || 'guest'}-${monthKey()}`
+export async function refreshAiUsageStatus() {
+  const status = await fetchUsage(FEATURE)
+  if (statusRef) statusRef.value = status
+  return status
 }
 
-export function getAiUsageCount(accountId) {
-  if (typeof window === 'undefined') return 0
+export async function consumeAiUsage() {
   try {
-    return Number(localStorage.getItem(storageKey(accountId)) || 0)
-  } catch {
-    return 0
+    const status = await consumeUsage(FEATURE)
+    if (statusRef) statusRef.value = status
+    return status
+  } catch (err) {
+    if (err.status === 429 && err.data) {
+      if (statusRef) statusRef.value = err.data
+    }
+    throw err
   }
-}
-
-export function incrementAiUsage(accountId) {
-  const next = getAiUsageCount(accountId) + 1
-  try {
-    localStorage.setItem(storageKey(accountId), String(next))
-  } catch {
-    /* ignore */
-  }
-  return next
 }
