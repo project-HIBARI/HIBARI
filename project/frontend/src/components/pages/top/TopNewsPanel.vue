@@ -4,7 +4,6 @@
  */
 import { computed } from 'vue'
 import UiCard from '../../ui/UiCard.vue'
-import SectionTitle from '../../ui/SectionTitle.vue'
 import MemberGate from '../../common/MemberGate.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 import { useMemberAccess } from '../../../composables/useMemberAccess.js'
@@ -24,26 +23,27 @@ function onOpenAll() {
 
 <template>
   <UiCard tone="white" padding="md" class="top-news">
-    <SectionTitle
-      title="最新ニュース"
-      size="md"
-      link-label="一覧を見る ›"
-      @link-click="onOpenAll"
-    />
+    <div class="top-news__head home-news__header">
+      <h2 class="top-news__heading">最新ニュース</h2>
+      <button type="button" class="home-news__link" @click="onOpenAll">
+        一覧を見る <span class="home-news__link-arrow">›</span>
+      </button>
+    </div>
 
     <ul class="top-news__list">
       <li
         v-for="(n, i) in visibleItems"
         :key="i"
-        class="top-news__item"
+        class="top-news__item home-news__item"
         :class="{ 'top-news__item--locked': !canView && i >= 2 }"
+        :style="{ '--news-i': i }"
       >
         <div class="top-news__row">
           <time class="top-news__date">{{ n.date }}</time>
           <span v-if="i === 0 || n.isNew" class="top-news__new">NEW</span>
           <span v-if="n.label" class="top-news__label">{{ n.label }}</span>
         </div>
-        <p class="top-news__title">{{ n.title }}</p>
+        <p class="top-news__title-text">{{ n.title }}</p>
       </li>
     </ul>
 
@@ -66,6 +66,23 @@ function onOpenAll() {
   display: flex;
   flex-direction: column;
   min-height: 380px;
+}
+.top-news__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: var(--sp-5);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--site-border);
+}
+.top-news__heading {
+  margin: 0;
+  font-family: var(--ff-mincho);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--site-text);
+  letter-spacing: 0.06em;
 }
 .top-news__list {
   list-style: none;
@@ -92,6 +109,7 @@ function onOpenAll() {
   font-size: 12px;
   color: var(--site-text-light);
   letter-spacing: 0.04em;
+  transition: color 0.35s ease;
 }
 .top-news__new {
   display: inline-block;
@@ -110,8 +128,9 @@ function onOpenAll() {
   background: var(--murasaki-100);
   padding: 1px 6px;
   border-radius: 3px;
+  transition: background 0.35s ease, color 0.35s ease;
 }
-.top-news__title {
+.top-news__title-text {
   margin: 0;
   font-size: 13px;
   line-height: 1.65;
@@ -119,6 +138,17 @@ function onOpenAll() {
 }
 .top-news__gate {
   margin-top: 12px;
+}
+.home-news__link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  color: var(--murasaki-700);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 @media (max-width: 767px) {

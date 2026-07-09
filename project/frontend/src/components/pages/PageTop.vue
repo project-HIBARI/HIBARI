@@ -9,12 +9,12 @@ import TopSubscriptionCard from './top/TopSubscriptionCard.vue'
 import TopNewsPanel from './top/TopNewsPanel.vue'
 import TopEventsPanel from './top/TopEventsPanel.vue'
 import TopCategoryCards from './top/TopCategoryCards.vue'
-import { useScrollReveal } from '../../composables/useScrollReveal.js'
+import { useHomeMotion } from '../../composables/useHomeMotion.js'
 
 const emit = defineEmits(['navigate', 'open-auth', 'open-modal'])
 
 const pageRoot = ref(null)
-useScrollReveal(pageRoot)
+useHomeMotion(pageRoot)
 
 function scrollToEnjoy() {
   const el = document.getElementById('home-enjoy-guide')
@@ -40,16 +40,25 @@ function onComingSoon(target) {
     />
 
     <div class="page-top__body">
-      <section class="page-top__columns motion-section site-reveal site-reveal--delay-1" aria-label="おすすめと最新情報">
+      <section
+        class="page-top__columns home-motion-section home-motion-stagger"
+        aria-label="おすすめと最新情報"
+      >
         <TopSubscriptionCard
+          class="page-top__panel"
+          :style="{ '--home-stagger-i': 0 }"
           @open-detail="emit('open-modal', 'fanclub')"
           @use-feature="(f) => emit('open-auth', f)"
         />
         <TopNewsPanel
+          class="page-top__panel"
+          :style="{ '--home-stagger-i': 1 }"
           @navigate="(id) => emit('navigate', id)"
           @need-auth="(m) => emit('open-auth', m)"
         />
         <TopEventsPanel
+          class="page-top__panel"
+          :style="{ '--home-stagger-i': 2 }"
           @open-all="emit('open-modal', 'events')"
           @need-auth="(m) => emit('open-auth', m)"
         />

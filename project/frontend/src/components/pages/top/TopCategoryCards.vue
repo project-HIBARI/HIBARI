@@ -1,7 +1,6 @@
 <script setup>
 /**
  * 部品名: ホーム — 下部カテゴリ導線カード
- * 用途: 各ページや準備中機能への誘導カード5枚を横並びで表示する
  */
 import PageImageCard from '../../common/PageImageCard.vue'
 import { PAGE_IMAGES } from '../../../lib/pageImages.js'
@@ -66,13 +65,16 @@ function onClick(card) {
 </script>
 
 <template>
-  <section class="top-categories motion-stagger site-reveal-stagger motion-section--delay-2" aria-label="コンテンツ一覧">
+  <section
+    class="top-categories home-motion-section home-motion-stagger"
+    aria-label="コンテンツ一覧"
+  >
     <button
       v-for="(c, i) in cards"
       :key="c.id"
       type="button"
-      class="top-categories__card stagger-item motion-card"
-      :style="{ '--stagger-i': i }"
+      class="top-categories__card home-category-card"
+      :style="{ '--home-stagger-i': i }"
       :aria-label="c.title"
       @click="onClick(c)"
     >
@@ -81,7 +83,7 @@ function onClick(card) {
         <p class="top-categories__desc">{{ c.desc }}</p>
         <span class="top-categories__arrow">›</span>
       </div>
-      <div class="top-categories__visual">
+      <div class="top-categories__visual home-category-card__visual">
         <PageImageCard
           :image="c.image"
           :alt="c.alt"
@@ -114,19 +116,6 @@ function onClick(card) {
   text-align: left;
   padding: 0;
   min-height: 118px;
-  transition:
-    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.45s ease;
-}
-.top-categories__card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--site-shadow-md);
-  border-color: rgba(122, 80, 136, 0.22);
-}
-.top-categories__card:hover .top-categories__arrow {
-  transform: translateX(3px);
-  color: var(--murasaki-700);
 }
 .top-categories__body {
   flex: 1;
@@ -145,6 +134,14 @@ function onClick(card) {
   align-items: stretch;
   background: var(--site-surface-muted);
   overflow: hidden;
+}
+.home-category-card:hover .top-categories__visual :deep(.page-image-card__img),
+.home-category-card:hover .top-categories__visual :deep(img) {
+  transform: scale(1.05);
+}
+.top-categories__visual :deep(.page-image-card__img),
+.top-categories__visual :deep(img) {
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .top-categories__title {
   margin: 0 0 6px;
