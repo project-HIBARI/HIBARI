@@ -17,6 +17,11 @@ import {
 import { useMemberAccess } from '../../../composables/useMemberAccess.js'
 import { useOpenChatNotifications } from '../../../composables/useOpenChatNotifications.js'
 import { MEMBERSHIP_LABELS, PERMISSION } from '../../../constants/membership.js'
+import {
+  resolveOpenChatMediaUrl,
+  isOpenChatImageMessage,
+  isOpenChatVideoMessage,
+} from '../../../lib/openChatMedia.js'
 
 const emit = defineEmits(['need-auth'])
 
@@ -69,6 +74,18 @@ function formatTime(value) {
 
 function membershipLabel(value) {
   return MEMBERSHIP_LABELS[value] || '会員'
+}
+
+function mediaUrl(msg) {
+  return resolveOpenChatMediaUrl(msg)
+}
+
+function isImageMessage(msg) {
+  return isOpenChatImageMessage(msg)
+}
+
+function isVideoMessage(msg) {
+  return isOpenChatVideoMessage(msg)
 }
 
 function roomUnreadCount(room) {
@@ -519,13 +536,25 @@ onUnmounted(() => {
                       {{ msg.author_name }}
                       <span class="open-chat__author-plan">{{ membershipLabel(msg.membership) }}</span>
                     </p>
-                    <div v-if="msg.message_type === 'image' && msg.media_path" class="open-chat__media">
-                      <a :href="msg.media_path" target="_blank" rel="noopener noreferrer">
-                        <img :src="msg.media_path" :alt="msg.body || '画像'" class="open-chat__image" />
+                    <div v-if="isImageMessage(msg)" class="open-chat__media">
+                      <a :href="mediaUrl(msg)" target="_blank" rel="noopener noreferrer">
+                        <img
+                          :src="mediaUrl(msg)"
+                          :alt="msg.body || '画像'"
+                          class="open-chat__image"
+                          loading="lazy"
+                          decoding="async"
+                        />
                       </a>
                     </div>
-                    <div v-else-if="msg.message_type === 'video' && msg.media_path" class="open-chat__media">
-                      <video :src="msg.media_path" class="open-chat__video" controls playsinline />
+                    <div v-else-if="isVideoMessage(msg)" class="open-chat__media">
+                      <video
+                        :src="mediaUrl(msg)"
+                        class="open-chat__video"
+                        controls
+                        playsinline
+                        preload="metadata"
+                      />
                     </div>
                     <p v-if="msg.body" class="open-chat__text">{{ msg.body }}</p>
                     <time class="open-chat__time">{{ formatTime(msg.created_at) }}</time>
@@ -883,6 +912,7 @@ onUnmounted(() => {
 }
 .open-chat__bubble {
   max-width: min(75%, 320px);
+  min-width: 0;
   padding: 10px 12px;
   border-radius: 18px;
   background: #fff;
@@ -989,13 +1019,25 @@ onUnmounted(() => {
 }
 .open-chat__media {
   margin-bottom: 6px;
+  min-width: 0;
+}
+.open-chat__media a {
+  display: block;
+  line-height: 0;
 }
 .open-chat__image {
   display: block;
+  width: 100%;
   max-width: 100%;
+  min-width: 120px;
+  min-height: 80px;
   max-height: 280px;
   border-radius: 10px;
   object-fit: contain;
+  background: #f3f0ec;
+}
+.open-chat__bubble-row:not(.open-chat__bubble-row--own) .open-chat__image {
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 .open-chat__video {
   display: block;

@@ -207,8 +207,33 @@ def save_open_chat_media_file(file_storage):
     stored_name = f"{uuid.uuid4().hex}.{ext}"
     save_path = OPEN_CHAT_UPLOAD_FOLDER / stored_name
     file_storage.save(save_path)
+    if not save_path.is_file():
+        raise ValueError("ファイルの保存に失敗しました")
 
     return f"/uploads/open-chat/{stored_name}", media_type
+
+
+def normalize_message_type(message_type, media_path=None):
+    value = (message_type or "text").strip().lower()
+    if value in MESSAGE_TYPES:
+        return value
+    if media_path:
+        inferred = get_chat_media_type(media_path.rsplit("/", 1)[-1])
+        if inferred:
+            return inferred
+    return "text"
+
+
+def build_media_url(media_path):
+    if not media_path:
+        return None
+    path = str(media_path).strip()
+    if not path.startswith("/uploads/open-chat/"):
+        return path
+    filename = path.rsplit("/", 1)[-1]
+    if not filename:
+        return None
+    return f"/api/open-chats/media/{filename}"
 
 
 MESSAGE_SELECT = """
@@ -233,7 +258,8 @@ MESSAGE_SELECT = """
 def serialize_message(row, account_id, to_jst_str):
     mapping = _row_mapping(row)
     author_id = int(mapping["account_id"])
-    message_type = mapping.get("message_type") or "text"
+    media_path = mapping.get("media_path")
+    message_type = normalize_message_type(mapping.get("message_type"), media_path)
     body = mapping.get("body") or ""
     return {
         "message_id": int(mapping["message_id"]),
@@ -243,7 +269,8 @@ def serialize_message(row, account_id, to_jst_str):
         "membership": mapping["membership"],
         "message_type": message_type,
         "body": body,
-        "media_path": mapping.get("media_path"),
+        "media_path": media_path,
+        "media_url": build_media_url(media_path),
         "created_at": to_jst_str(mapping["created_at"]),
         "is_own": author_id == account_id,
     }
@@ -476,10 +503,49 @@ def register_open_chat_routes(
             print(e)
             return jsonify({"error": "通知の取得に失敗しました"}), 500
 
+    def serve_open_chat_media_file(filename):
+        try:
+            account_id = get_session_account_id()
+        except ValueError:
+            return jsonify({"error": "ログインが必要です"}), 401
+
+        denied = require_fanclub_member(account_id)
+        if denied:
+            return denied
+
+        safe_name = secure_filename(filename)
+        if not safe_name:
+            return jsonify({"error": "ファイルが見つかりません"}), 404
+
+        media_path = f"/uploads/open-chat/{safe_name}"
+        rows = fetch_all(
+            """
+            SELECT 1
+            FROM open_chat_messages msg
+            JOIN open_chat_members mem
+                ON mem.room_id = msg.room_id AND mem.account_id = :account_id
+            WHERE msg.media_path = :media_path
+              AND msg.deleted_at IS NULL
+            LIMIT 1
+            """,
+            {"account_id": account_id, "media_path": media_path},
+        )
+        if not rows:
+            return jsonify({"error": "このメディアを表示する権限がありません"}), 403
+
+        file_path = OPEN_CHAT_UPLOAD_FOLDER / safe_name
+        if not file_path.is_file():
+            return jsonify({"error": "ファイルが見つかりません"}), 404
+
+        return send_from_directory(str(OPEN_CHAT_UPLOAD_FOLDER), safe_name)
+
+    @app.route("/api/open-chats/media/<path:filename>")
+    def serve_open_chat_media(filename):
+        return serve_open_chat_media_file(filename)
+
     @app.route("/uploads/open-chat/<path:filename>")
     def serve_open_chat_upload(filename):
-        safe_name = secure_filename(filename)
-        return send_from_directory(str(OPEN_CHAT_UPLOAD_FOLDER), safe_name)
+        return serve_open_chat_media_file(filename)
 
     @app.route("/api/open-chats/<int:room_id>/upload", methods=["POST"])
     def upload_open_chat_media(room_id):
