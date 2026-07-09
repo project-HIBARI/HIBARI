@@ -14,6 +14,7 @@ const emit = defineEmits(['open-auth', 'scroll-enjoy'])
 const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVideo.src
 
 const heroRef = ref(null)
+const videoFailed = ref(false)
 const { heroStyle, heroActive } = useHeroParallax(heroRef)
 
 const revealTitle = ref(false)
@@ -54,7 +55,10 @@ onBeforeUnmount(() => {
     :style="heroStyle"
     aria-label="メインビジュアル"
   >
+    <div v-if="videoFailed" class="home-hero__fallback" aria-hidden="true" />
+
     <video
+      v-show="!videoFailed"
       class="home-hero__video"
       autoplay
       muted
@@ -62,6 +66,7 @@ onBeforeUnmount(() => {
       playsinline
       preload="auto"
       aria-hidden="true"
+      @error="videoFailed = true"
     >
       <source :src="heroVideoSrc" type="video/mp4" />
     </video>
@@ -148,6 +153,15 @@ onBeforeUnmount(() => {
   pointer-events: none;
   opacity: 1;
   filter: contrast(1.05);
+}
+
+.home-hero__fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(118deg, rgba(255, 249, 246, 0.95) 0%, rgba(248, 236, 228, 0.88) 42%, rgba(93, 58, 107, 0.22) 100%),
+    radial-gradient(ellipse 80% 60% at 70% 30%, rgba(201, 169, 97, 0.18), transparent 70%);
 }
 
 .home-hero__overlay {

@@ -66,15 +66,14 @@ function onClick(card) {
 
 <template>
   <section
-    class="top-categories home-motion-section home-motion-stagger"
+    class="top-categories home-motion-stagger"
     aria-label="コンテンツ一覧"
   >
     <button
       v-for="(c, i) in cards"
       :key="c.id"
       type="button"
-      class="top-categories__card home-category-card"
-      :style="{ '--home-stagger-i': i }"
+      class="top-categories__card home-category-card home-motion-stagger__item"
       :aria-label="c.title"
       @click="onClick(c)"
     >

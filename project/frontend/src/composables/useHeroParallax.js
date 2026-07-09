@@ -4,8 +4,13 @@
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 import { prefersReducedMotion, whenSiteReady } from './useSiteReady.js'
 
+function isTouchDevice() {
+  return window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window
+}
+
 export function useHeroParallax(heroRef) {
   const reduced = prefersReducedMotion()
+  const touch = isTouchDevice()
   const scrollProgress = ref(0)
   const mouseX = ref(0.5)
   const mouseY = ref(0.5)
@@ -14,16 +19,18 @@ export function useHeroParallax(heroRef) {
   let targetMouseX = 0.5
   let targetMouseY = 0.5
   let currentMouseX = 0.5
-  let currentMouseY = 0.5
+  let currentMouseY = 0.42
   let scrollTicking = false
   let mouseRafId = null
   let cleanupReady = null
 
+  const scrollIntensity = touch ? 0.45 : 1
+
   function applyVars() {
     const el = heroRef.value
     if (!el) return
-    const bgScale = 1.04 + scrollProgress.value * 0.05
-    const overlayOpacity = 0.68 + scrollProgress.value * 0.22
+    const bgScale = 1.04 + scrollProgress.value * 0.05 * scrollIntensity
+    const overlayOpacity = 0.68 + scrollProgress.value * 0.22 * scrollIntensity
     el.style.setProperty('--hero-scroll-progress', scrollProgress.value.toFixed(4))
     el.style.setProperty('--hero-mouse-x', mouseX.value.toFixed(4))
     el.style.setProperty('--hero-mouse-y', mouseY.value.toFixed(4))
@@ -59,7 +66,7 @@ export function useHeroParallax(heroRef) {
   }
 
   function onMouseMove(event) {
-    if (reduced) return
+    if (reduced || touch) return
     const el = heroRef.value
     if (!el) return
     const rect = el.getBoundingClientRect()
@@ -77,12 +84,14 @@ export function useHeroParallax(heroRef) {
     heroActive.value = true
     applyVars()
     updateScroll()
-    if (!reduced) {
+    if (!reduced && !touch) {
       mouseRafId = requestAnimationFrame(tickMouse)
     }
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('mousemove', onMouseMove, { passive: true })
-    heroRef.value?.addEventListener('mouseleave', onMouseLeave)
+    if (!touch) {
+      window.addEventListener('mousemove', onMouseMove, { passive: true })
+      heroRef.value?.addEventListener('mouseleave', onMouseLeave)
+    }
   }
 
   function stopMotion() {
@@ -99,8 +108,8 @@ export function useHeroParallax(heroRef) {
     '--hero-scroll-progress': scrollProgress.value,
     '--hero-mouse-x': mouseX.value,
     '--hero-mouse-y': mouseY.value,
-    '--hero-bg-scale': 1.04 + scrollProgress.value * 0.05,
-    '--hero-overlay-opacity': 0.68 + scrollProgress.value * 0.22,
+    '--hero-bg-scale': 1.04 + scrollProgress.value * 0.05 * scrollIntensity,
+    '--hero-overlay-opacity': 0.68 + scrollProgress.value * 0.22 * scrollIntensity,
   }))
 
   onMounted(() => {
