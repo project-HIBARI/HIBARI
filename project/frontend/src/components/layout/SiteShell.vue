@@ -8,7 +8,7 @@
 
  */
 
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 
 import SiteHeader from './SiteHeader.vue'
 
@@ -68,7 +68,8 @@ import { useSiteIntro } from '../../composables/useSiteIntro.js'
 
 import { useAuth } from '../../composables/useAuth.js'
 
-import { MEMBERSHIP, PERMISSION } from '../../constants/membership.js'
+import { MEMBERSHIP, PERMISSION, hasPermission } from '../../constants/membership.js'
+import { useOpenChatNotifications } from '../../composables/useOpenChatNotifications.js'
 
 
 
@@ -123,9 +124,34 @@ const auth = useAuth()
 
 const { membership, isLoggedIn, user, setUser, refreshUser, logout } = auth
 
+const { startPolling: startOpenChatNotify, stopPolling: stopOpenChatNotify, setActiveRoomId } =
+  useOpenChatNotifications()
+
 
 
 useBodyScrollLock(drawerOpen)
+
+function syncOpenChatNotifications() {
+  if (isLoggedIn.value && hasPermission(membership.value, PERMISSION.OPEN_CHAT)) {
+    startOpenChatNotify()
+    return
+  }
+  stopOpenChatNotify()
+  setActiveRoomId(null)
+}
+
+watch([isLoggedIn, membership], syncOpenChatNotifications, { immediate: true })
+
+watch([page, fanclubSection], ([currentPage, currentSection]) => {
+  if (currentPage !== 'fanclub-site' || currentSection !== 'open-chat') {
+    setActiveRoomId(null)
+  }
+})
+
+onUnmounted(() => {
+  stopOpenChatNotify()
+  setActiveRoomId(null)
+})
 
 
 

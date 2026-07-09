@@ -12,13 +12,24 @@ import {
   fetchOpenChatMessages,
   sendOpenChatMessage,
   fetchOpenChatMembers,
+  uploadOpenChatMedia,
 } from '../../../api/openChat.js'
 import { useMemberAccess } from '../../../composables/useMemberAccess.js'
+import { useOpenChatNotifications } from '../../../composables/useOpenChatNotifications.js'
 import { MEMBERSHIP_LABELS, PERMISSION } from '../../../constants/membership.js'
 
 const emit = defineEmits(['need-auth'])
 
 const { isLoggedIn, canUse } = useMemberAccess()
+const {
+  totalUnread,
+  notificationsEnabled,
+  notificationPermission,
+  setActiveRoomId,
+  refresh: refreshNotifications,
+  enableNotifications,
+  disableNotifications,
+} = useOpenChatNotifications()
 
 const POLL_MS = 4000
 
@@ -34,6 +45,8 @@ const joining = ref(false)
 const showMembers = ref(false)
 const messagesLoading = ref(false)
 const lastMessageId = ref(null)
+const pendingMedia = ref(null)
+const fileInputRef = ref(null)
 
 const messagesEl = ref(null)
 let pollTimer = null
@@ -50,6 +63,49 @@ function formatTime(value) {
 
 function membershipLabel(value) {
   return MEMBERSHIP_LABELS[value] || '会員'
+}
+
+function roomUnreadCount(room) {
+  return room.unread_count || 0
+}
+
+function clearPendingMedia() {
+  if (pendingMedia.value?.previewUrl) {
+    URL.revokeObjectURL(pendingMedia.value.previewUrl)
+  }
+  pendingMedia.value = null
+  if (fileInputRef.value) fileInputRef.value.value = ''
+}
+
+function onPickMedia(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  const isImage = file.type.startsWith('image/')
+  const isVideo = file.type.startsWith('video/')
+  if (!isImage && !isVideo) {
+    error.value = '画像または動画ファイルを選択してください'
+    return
+  }
+
+  clearPendingMedia()
+  pendingMedia.value = {
+    file,
+    kind: isImage ? 'image' : 'video',
+    previewUrl: URL.createObjectURL(file),
+    name: file.name,
+  }
+}
+
+async function toggleNotifications() {
+  if (notificationsEnabled.value) {
+    disableNotifications()
+    return
+  }
+  const ok = await enableNotifications()
+  if (!ok) {
+    error.value = 'ブラウザの通知が許可されませんでした。設定から通知を有効にしてください。'
+  }
 }
 
 async function loadRooms() {
@@ -98,6 +154,7 @@ async function loadMessages(initial = false) {
     if (incoming.length) {
       await nextTick()
       scrollToBottom()
+      await refreshNotifications()
     }
   } catch (err) {
     if (initial) error.value = err.message || 'メッセージの取得に失敗しました'
@@ -140,9 +197,11 @@ function stopPolling() {
 async function selectRoom(roomId) {
   if (activeRoomId.value === roomId) return
   activeRoomId.value = roomId
+  setActiveRoomId(roomId)
   messages.value = []
   lastMessageId.value = null
   showMembers.value = false
+  clearPendingMedia()
   if (activeRoom.value?.is_joined) {
     await loadMessages(true)
   }
@@ -194,27 +253,53 @@ async function handleLeave() {
 
 async function handleSend() {
   const text = draft.value.trim()
-  if (!text || !activeRoomId.value || sending.value) return
+  const media = pendingMedia.value
+  if ((!text && !media) || !activeRoomId.value || sending.value) return
 
   sending.value = true
   error.value = ''
   try {
-    const data = await sendOpenChatMessage(activeRoomId.value, text)
+    let message_type = 'text'
+    let media_path = null
+
+    if (media) {
+      const uploaded = await uploadOpenChatMedia(activeRoomId.value, media.file)
+      message_type = uploaded.media_type
+      media_path = uploaded.path
+    } else if (!text) {
+      return
+    }
+
+    const data = await sendOpenChatMessage(activeRoomId.value, {
+      body: text,
+      message_type,
+      media_path,
+    })
+
     if (data?.message) {
       messages.value = [...messages.value, data.message]
       lastMessageId.value = data.message.message_id
       draft.value = ''
+      clearPendingMedia()
+      const preview =
+        message_type === 'text'
+          ? (text.length > 60 ? `${text.slice(0, 60)}…` : text)
+          : message_type === 'image'
+            ? '📷 画像'
+            : '🎬 動画'
       const idx = rooms.value.findIndex((r) => r.room_id === activeRoomId.value)
       if (idx >= 0) {
         rooms.value[idx] = {
           ...rooms.value[idx],
           is_joined: true,
-          last_message_preview: text.length > 60 ? `${text.slice(0, 60)}…` : text,
+          last_message_preview: preview,
           last_message_at: data.message.created_at,
+          unread_count: 0,
         }
       }
       await nextTick()
       scrollToBottom()
+      await refreshNotifications()
     }
   } catch (err) {
     error.value = err.message || '送信に失敗しました'
@@ -237,7 +322,8 @@ async function toggleMembers() {
   }
 }
 
-watch(activeRoomId, async () => {
+watch(activeRoomId, async (roomId) => {
+  setActiveRoomId(roomId)
   if (activeRoom.value?.is_joined) {
     await loadMessages(true)
     startPolling()
@@ -251,15 +337,20 @@ onMounted(async () => {
     loading.value = false
     return
   }
+  setActiveRoomId(activeRoomId.value)
   await loadRooms()
+  if (activeRoomId.value) setActiveRoomId(activeRoomId.value)
   if (activeRoom.value?.is_joined) {
     await loadMessages(true)
     startPolling()
   }
+  await refreshNotifications()
 })
 
 onUnmounted(() => {
   stopPolling()
+  setActiveRoomId(null)
+  clearPendingMedia()
 })
 </script>
 
@@ -278,7 +369,21 @@ onUnmounted(() => {
 
       <div class="open-chat__layout">
         <aside class="open-chat__rooms">
-          <h3 class="open-chat__rooms-title">オープンチャット</h3>
+          <div class="open-chat__rooms-head">
+            <h3 class="open-chat__rooms-title">オープンチャット</h3>
+            <span v-if="totalUnread > 0" class="open-chat__rooms-badge">{{ totalUnread }}</span>
+          </div>
+          <button
+            type="button"
+            class="open-chat__notify-btn"
+            :class="{ 'open-chat__notify-btn--on': notificationsEnabled }"
+            @click="toggleNotifications"
+          >
+            {{ notificationsEnabled ? '🔔 通知オン' : '🔕 通知をオンにする' }}
+          </button>
+          <p v-if="notificationPermission === 'denied'" class="open-chat__notify-hint">
+            ブラウザ設定で通知がブロックされています。
+          </p>
           <p v-if="loading" class="open-chat__muted">読み込み中…</p>
           <ul v-else class="open-chat__room-list">
             <li v-for="room in rooms" :key="room.room_id">
@@ -290,7 +395,12 @@ onUnmounted(() => {
               >
                 <span class="open-chat__room-icon" aria-hidden="true">{{ room.icon_emoji }}</span>
                 <span class="open-chat__room-body">
-                  <span class="open-chat__room-name">{{ room.name }}</span>
+                  <span class="open-chat__room-name-row">
+                    <span class="open-chat__room-name">{{ room.name }}</span>
+                    <span v-if="roomUnreadCount(room) > 0" class="open-chat__room-unread">
+                      {{ roomUnreadCount(room) }}
+                    </span>
+                  </span>
                   <span class="open-chat__room-preview">
                     {{ room.last_message_preview || room.description }}
                   </span>
@@ -364,25 +474,74 @@ onUnmounted(() => {
                     {{ msg.author_name }}
                     <span class="open-chat__author-plan">{{ membershipLabel(msg.membership) }}</span>
                   </p>
-                  <p class="open-chat__text">{{ msg.body }}</p>
+                  <div v-if="msg.message_type === 'image' && msg.media_path" class="open-chat__media">
+                    <a :href="msg.media_path" target="_blank" rel="noopener noreferrer">
+                      <img :src="msg.media_path" :alt="msg.body || '画像'" class="open-chat__image" />
+                    </a>
+                  </div>
+                  <div v-else-if="msg.message_type === 'video' && msg.media_path" class="open-chat__media">
+                    <video :src="msg.media_path" class="open-chat__video" controls playsinline />
+                  </div>
+                  <p v-if="msg.body" class="open-chat__text">{{ msg.body }}</p>
                   <time class="open-chat__time">{{ formatTime(msg.created_at) }}</time>
                 </div>
               </article>
             </div>
 
             <form class="open-chat__composer" @submit.prevent="handleSend">
-              <textarea
-                v-model="draft"
-                class="open-chat__input"
-                rows="2"
-                maxlength="2000"
-                placeholder="メッセージを入力（Enterで送信、Shift+Enterで改行）"
-                :disabled="sending"
-                @keydown="onKeydown"
-              />
-              <UiButton variant="primary" size="md" type="submit" :disabled="sending || !draft.trim()">
-                {{ sending ? '送信中…' : '送信' }}
-              </UiButton>
+              <div class="open-chat__composer-main">
+                <div v-if="pendingMedia" class="open-chat__pending">
+                  <img
+                    v-if="pendingMedia.kind === 'image'"
+                    :src="pendingMedia.previewUrl"
+                    alt=""
+                    class="open-chat__pending-thumb"
+                  />
+                  <video
+                    v-else
+                    :src="pendingMedia.previewUrl"
+                    class="open-chat__pending-thumb"
+                    muted
+                  />
+                  <span class="open-chat__pending-name">{{ pendingMedia.name }}</span>
+                  <button type="button" class="open-chat__pending-remove" @click="clearPendingMedia">×</button>
+                </div>
+                <textarea
+                  v-model="draft"
+                  class="open-chat__input"
+                  rows="2"
+                  maxlength="2000"
+                  placeholder="メッセージを入力（Enterで送信、Shift+Enterで改行）"
+                  :disabled="sending"
+                  @keydown="onKeydown"
+                />
+              </div>
+              <div class="open-chat__composer-actions">
+                <input
+                  ref="fileInputRef"
+                  type="file"
+                  class="open-chat__file-input"
+                  accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime"
+                  @change="onPickMedia"
+                />
+                <button
+                  type="button"
+                  class="open-chat__attach-btn"
+                  title="画像・動画を添付"
+                  :disabled="sending"
+                  @click="fileInputRef?.click()"
+                >
+                  📎
+                </button>
+                <UiButton
+                  variant="primary"
+                  size="md"
+                  type="submit"
+                  :disabled="sending || (!draft.trim() && !pendingMedia)"
+                >
+                  {{ sending ? '送信中…' : '送信' }}
+                </UiButton>
+              </div>
             </form>
           </template>
         </section>
@@ -417,10 +576,51 @@ onUnmounted(() => {
   padding: var(--sp-4);
 }
 .open-chat__rooms-title {
-  margin: 0 0 var(--sp-3);
+  margin: 0;
   font-family: var(--ff-mincho);
   font-size: 15px;
   color: var(--murasaki-700);
+}
+.open-chat__rooms-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--sp-3);
+}
+.open-chat__rooms-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #c0453b;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.open-chat__notify-btn {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--murasaki-400);
+  border-radius: var(--site-radius-sm);
+  background: #fff;
+  font-family: var(--ff-sans-jp);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--murasaki-700);
+  cursor: pointer;
+}
+.open-chat__notify-btn--on {
+  background: var(--murasaki-100);
+}
+.open-chat__notify-hint {
+  margin: 0 0 10px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #a33b2f;
 }
 .open-chat__room-list {
   list-style: none;
@@ -463,6 +663,26 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+}
+.open-chat__room-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.open-chat__room-unread {
+  flex-shrink: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #c0453b;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .open-chat__room-name {
   font-size: 13px;
@@ -594,12 +814,88 @@ onUnmounted(() => {
   text-align: right;
 }
 .open-chat__composer {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   padding: 14px 18px;
   border-top: 1px solid var(--site-border);
   background: var(--site-surface);
+}
+.open-chat__composer-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.open-chat__composer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.open-chat__file-input {
+  display: none;
+}
+.open-chat__attach-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--site-border);
+  border-radius: var(--site-radius-md);
+  background: var(--site-surface-muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+.open-chat__attach-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.open-chat__pending {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px dashed var(--murasaki-400);
+  border-radius: var(--site-radius-md);
+  background: var(--murasaki-100);
+}
+.open-chat__pending-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #000;
+}
+.open-chat__pending-name {
+  flex: 1;
+  font-size: 11px;
+  color: var(--site-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.open-chat__pending-remove {
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--site-text-muted);
+}
+.open-chat__media {
+  margin-bottom: 6px;
+}
+.open-chat__image {
+  display: block;
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 10px;
+  object-fit: contain;
+}
+.open-chat__video {
+  display: block;
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 10px;
+  background: #000;
 }
 .open-chat__input {
   width: 100%;

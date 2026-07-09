@@ -29,6 +29,7 @@ const emit = defineEmits(['update:active'])
     >
       <UiIco v-if="t.icon" :name="t.icon" :size="14" />
       {{ t.label }}
+      <span v-if="t.badge" class="tab-bar__badge">{{ t.badge }}</span>
     </button>
   </nav>
 </template>
@@ -78,6 +79,17 @@ const emit = defineEmits(['update:active'])
 .tab-bar--light .tab-bar__btn--active {
   color: var(--murasaki-700);
   border-bottom-color: var(--murasaki-600);
+}
+.tab-bar__badge {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #c0453b;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
 }
 
 @media (max-width: 767px) {

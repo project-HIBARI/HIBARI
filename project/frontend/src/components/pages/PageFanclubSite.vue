@@ -18,6 +18,7 @@ import FanclubOpenChat from './fanclub/FanclubOpenChat.vue'
 import { useMemberAccess } from '../../composables/useMemberAccess.js'
 import { MEMBERSHIP_LABELS, PERMISSION } from '../../constants/membership.js'
 import { benefitToSection } from '../../lib/fanclubBenefits.js'
+import { useOpenChatNotifications } from '../../composables/useOpenChatNotifications.js'
 
 const props = defineProps({
   activeSection: { type: String, default: 'overview' },
@@ -26,6 +27,7 @@ const props = defineProps({
 const emit = defineEmits(['navigate', 'open-modal', 'open-auth', 'section-change'])
 
 const { canUse, isLoggedIn, membership, isPremium } = useMemberAccess()
+const { totalUnread } = useOpenChatNotifications()
 
 const section = ref(props.activeSection)
 const pageRoot = ref(null)
@@ -48,13 +50,18 @@ watch(
   },
 )
 
-const sectionTabs = [
+const sectionTabs = computed(() => [
   { id: 'overview', label: 'トップ' },
   { id: 'board', label: '会員掲示板', icon: 'chat' },
-  { id: 'open-chat', label: 'オープンチャット', icon: 'heart' },
+  {
+    id: 'open-chat',
+    label: 'オープンチャット',
+    icon: 'heart',
+    badge: totalUnread.value > 0 ? (totalUnread.value > 99 ? '99+' : totalUnread.value) : null,
+  },
   { id: 'chat', label: 'AIチャット', icon: 'flower' },
   { id: 'benefits', label: '特典一覧', icon: 'heart' },
-]
+])
 
 const BENEFIT_SUB_SECTIONS = new Set([
   'benefits',
