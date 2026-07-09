@@ -113,11 +113,19 @@ function onClick(card) {
   text-align: left;
   padding: 0;
   min-height: 118px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.45s ease;
 }
 .top-categories__card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: var(--site-shadow-md);
+  border-color: rgba(122, 80, 136, 0.22);
+}
+.top-categories__card:hover .top-categories__arrow {
+  transform: translateX(3px);
+  color: var(--murasaki-700);
 }
 .top-categories__body {
   flex: 1;
@@ -159,6 +167,7 @@ function onClick(card) {
   font-size: 18px;
   color: var(--murasaki-500);
   line-height: 1;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), color 0.35s ease;
 }
 
 @media (max-width: 1200px) {

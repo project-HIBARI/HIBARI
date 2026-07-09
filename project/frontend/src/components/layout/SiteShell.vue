@@ -12,6 +12,8 @@ import { ref, onMounted } from 'vue'
 
 import SiteHeader from './SiteHeader.vue'
 
+import SiteIntroVideo from './SiteIntroVideo.vue'
+
 import AppDrawerNav from './AppDrawerNav.vue'
 
 import PremiumMemberBar from './PremiumMemberBar.vue'
@@ -53,6 +55,8 @@ import PageFanclub from '../pages/PageFanclub.vue'
 import PageFanclubSite from '../pages/PageFanclubSite.vue'
 
 import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
+
+import { useSiteIntro } from '../../composables/useSiteIntro.js'
 
 import { useAuth } from '../../composables/useAuth.js'
 
@@ -100,6 +104,13 @@ const postLoginRedirect = ref(null)
 /** ファンクラブ会員サイト内の表示セクション */
 const fanclubSection = ref('overview')
 
+/** ページ切替時のアニメーション用 */
+const pageEnterKey = ref(0)
+
+/** イントロビデオ表示 */
+const { introVisible, introLeaving, completeIntro } = useSiteIntro()
+const siteReady = ref(false)
+
 const auth = useAuth()
 
 const { membership, isLoggedIn, user, setUser, refreshUser } = auth
@@ -112,7 +123,15 @@ useBodyScrollLock(drawerOpen)
 
 onMounted(() => {
   refreshUser()
+  if (!introVisible.value) {
+    siteReady.value = true
+  }
 })
+
+function onIntroComplete() {
+  completeIntro()
+  siteReady.value = true
+}
 
 
 
@@ -127,6 +146,8 @@ function goTo(id) {
   page.value = id
 
   drawerOpen.value = false
+
+  pageEnterKey.value += 1
 
   window.scrollTo({ top: 0, behavior: 'smooth' })
 
@@ -412,7 +433,19 @@ function handleAiModalAuth(mode) {
 
 <template>
 
-  <div class="site-shell site-bg">
+  <SiteIntroVideo
+    v-if="introVisible"
+    :leaving="introLeaving"
+    @complete="onIntroComplete"
+  />
+
+  <div
+    class="site-shell site-bg"
+    :class="{
+      'site-shell--during-intro': introVisible && !introLeaving,
+      'site-shell--ready': siteReady && !introVisible,
+    }"
+  >
 
     <SiteHeader
 
@@ -456,9 +489,11 @@ function handleAiModalAuth(mode) {
 
     <main
       id="main-content"
+      :key="pageEnterKey"
       :class="[
         'main-pad',
         'site-main',
+        'site-page-enter',
         {
           'main-pad--flush': page === 'login' || page === 'register',
           'main-pad--top': page === 'top',

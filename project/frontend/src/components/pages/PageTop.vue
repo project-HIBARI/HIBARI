@@ -3,13 +3,18 @@
  * ページ: ホーム（top）
  * 構成: ヒーロー / サブスク・ニュース・イベント / カテゴリ導線
  */
+import { ref } from 'vue'
 import TopHeroSection from './top/TopHeroSection.vue'
 import TopSubscriptionCard from './top/TopSubscriptionCard.vue'
 import TopNewsPanel from './top/TopNewsPanel.vue'
 import TopEventsPanel from './top/TopEventsPanel.vue'
 import TopCategoryCards from './top/TopCategoryCards.vue'
+import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
 const emit = defineEmits(['navigate', 'open-auth', 'open-modal'])
+
+const pageRoot = ref(null)
+useScrollReveal(pageRoot)
 
 function scrollToEnjoy() {
   const el = document.getElementById('home-enjoy-guide')
@@ -28,14 +33,15 @@ function onComingSoon(target) {
 </script>
 
 <template>
-  <div class="page-top">
+  <div ref="pageRoot" class="page-top">
     <TopHeroSection
+      class="site-reveal is-visible"
       @open-auth="(m) => emit('open-auth', m)"
       @scroll-enjoy="scrollToEnjoy"
     />
 
     <div class="page-top__body">
-      <section class="page-top__columns" aria-label="おすすめと最新情報">
+      <section class="page-top__columns site-reveal site-reveal--delay-1" aria-label="おすすめと最新情報">
         <TopSubscriptionCard
           @open-detail="emit('open-modal', 'fanclub')"
           @use-feature="(f) => emit('open-auth', f)"
@@ -50,7 +56,11 @@ function onComingSoon(target) {
         />
       </section>
 
-      <TopCategoryCards @navigate="(id) => emit('navigate', id)" @coming-soon="onComingSoon" />
+      <TopCategoryCards
+        class="site-reveal site-reveal--delay-2"
+        @navigate="(id) => emit('navigate', id)"
+        @coming-soon="onComingSoon"
+      />
     </div>
   </div>
 </template>

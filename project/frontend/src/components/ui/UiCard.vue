@@ -11,6 +11,8 @@ defineProps({
   tone: { type: String, default: 'white' },
   /** 枠線を表示するか */
   bordered: { type: Boolean, default: true },
+  /** ホバー時に浮く演出 */
+  interactive: { type: Boolean, default: true },
 })
 </script>
 
@@ -20,7 +22,7 @@ defineProps({
     :class="[
       `ui-card--pad-${padding}`,
       `ui-card--tone-${tone}`,
-      { 'ui-card--bordered': bordered },
+      { 'ui-card--bordered': bordered, 'ui-card--interactive': interactive },
     ]"
   >
     <slot />

@@ -3,6 +3,7 @@
  * 部品名: 共通サイトヘッダー
  * 用途: ロゴ・ナビ・検索・ログイン/ファンクラブ加入・文字サイズ（レスポンシブ・1段構成）
  */
+import { ref, onMounted, onUnmounted } from 'vue'
 import UiIco from '../ui/UiIco.vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
 
@@ -14,10 +15,24 @@ defineProps({
 const emit = defineEmits(['logo', 'navigate', 'open-drawer', 'open-auth', 'open-search'])
 
 const logoSrc = '/images/misorahibari-logo-cropped.png'
+const scrolled = ref(false)
+
+function onScroll() {
+  scrolled.value = window.scrollY > 20
+}
+
+onMounted(() => {
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+})
 </script>
 
 <template>
-  <header role="banner" class="site-header">
+  <header role="banner" class="site-header" :class="{ 'site-header--scrolled': scrolled }">
     <div class="site-header__inner">
       <button
         type="button"
@@ -74,7 +89,7 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
             </button>
             <button
               type="button"
-              class="site-header__btn site-header__btn--register"
+              class="site-header__btn site-header__btn--register site-cta-accent"
               @click="emit('open-auth', 'register')"
             >
               ファンクラブ加入
@@ -107,6 +122,11 @@ const logoSrc = '/images/misorahibari-logo-cropped.png'
   background: linear-gradient(180deg, #fffefb 0%, #fdf9f5 100%);
   border-bottom: 1px solid var(--site-border);
   box-shadow: 0 2px 12px rgba(60, 40, 30, 0.04);
+  transition:
+    background 0.55s ease,
+    box-shadow 0.55s ease,
+    border-color 0.55s ease,
+    backdrop-filter 0.55s ease;
 }
 
 .site-header__inner {

@@ -38,8 +38,8 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
           ここだけの体験を、あなたに。
         </p>
         <div class="home-hero__cta">
-          <UiButton variant="primary" size="lg" @click="emit('open-auth', 'register')">
-            新規登録（無料）
+          <UiButton variant="primary" size="lg" class="site-cta-accent" @click="emit('open-auth', 'register')">
+            ファンクラブ加入
           </UiButton>
           <UiButton variant="outline" size="lg" @click="emit('scroll-enjoy')">
             サイトの楽しみ方
@@ -111,6 +111,18 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
   width: fit-content;
   max-width: 720px;
   padding: 28px 32px;
+  animation: heroCopyEnter 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+@keyframes heroCopyEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .home-hero__copy::before {
@@ -202,6 +214,9 @@ const heroVideoSrc = HIBARU_DATA.homeHeroVideo?.src || HIBARU_DATA.homePromoVide
 @media (prefers-reduced-motion: reduce) {
   .home-hero__video {
     display: none;
+  }
+  .home-hero__copy {
+    animation: none;
   }
   .home-hero__overlay {
     background: linear-gradient(118deg, #fff9f6 0%, var(--site-bg-pink) 38%, #f8f0ea 100%);
