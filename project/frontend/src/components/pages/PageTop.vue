@@ -4,6 +4,8 @@
  */
 import { ref } from 'vue'
 import TopHeroSection from './top/TopHeroSection.vue'
+import TopQuickNav from './top/TopQuickNav.vue'
+import TopSpotlight from './top/TopSpotlight.vue'
 import TopVideoPromo from './top/TopVideoPromo.vue'
 import TopEnjoyGuide from './top/TopEnjoyGuide.vue'
 import TopSubscriptionCard from './top/TopSubscriptionCard.vue'
@@ -48,6 +50,13 @@ function onEnjoyNavigate(target) {
       @open-ai="emit('open-modal', 'ai')"
       @scroll-enjoy="scrollToEnjoy"
     />
+
+    <TopQuickNav
+      @navigate="(id) => emit('navigate', id)"
+      @open-auth="(m) => emit('open-auth', m)"
+    />
+
+    <TopSpotlight @navigate="(id) => emit('navigate', id)" />
 
     <TopVideoPromo class="page-top__promo home-motion-stagger__item" />
 
