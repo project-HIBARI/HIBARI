@@ -54,11 +54,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   justify-content: center;
   padding: 20px;
 }
-.modal-shell__overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(40, 30, 25, 0.45);
-}
 .modal-shell__panel {
   position: relative;
   background: var(--site-surface);
@@ -72,6 +67,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   z-index: 1;
   box-shadow: var(--site-shadow-md);
   color: var(--site-text);
+  animation: modalShellIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.modal-shell__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(40, 30, 25, 0.45);
+  animation: modalOverlayIn 0.32s ease both;
 }
 .modal-shell__panel--wide {
   max-width: 760px;
@@ -116,6 +118,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   .modal-shell__title {
     font-size: 18px;
     margin-bottom: 16px;
+  }
+}
+
+@keyframes modalOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalShellIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 </style>

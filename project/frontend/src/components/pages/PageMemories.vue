@@ -4,7 +4,7 @@
  * 用途: ファンの思い出投稿と交流イベントを表示する（ライトテーマ）
  */
 import { ref, computed } from 'vue'
-import PageHead from '../ui/PageHead.vue'
+import MemoriesHeroSection from './memories/MemoriesHeroSection.vue'
 import TabBar from '../ui/TabBar.vue'
 import MemoriesBoard from './memories/MemoriesBoard.vue'
 import MemoriesPostAside from './memories/MemoriesPostAside.vue'
@@ -16,7 +16,7 @@ import { useBoardPost } from '../../composables/useBoardPost.js'
 import { revokeMediaPreview } from '../../lib/boardMedia.js'
 import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
-const emit = defineEmits(['navigate', 'open-auth'])
+const emit = defineEmits(['navigate', 'open-auth', 'open-modal'])
 
 const pageRoot = ref(null)
 useScrollReveal(pageRoot)
@@ -123,7 +123,7 @@ function like(id) {
 
 <template>
   <div ref="pageRoot" class="page-memories">
-    <PageHead kanji="憶" title="思い出" sub="Memories · 証言と愛唱 · ファンの集い" />
+    <MemoriesHeroSection @open-ai="emit('open-modal', 'ai')" />
 
     <TabBar
       :dark="false"

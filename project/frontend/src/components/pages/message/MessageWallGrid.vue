@@ -1,122 +1,206 @@
 <script setup>
 /**
- * 部品名: 献花 — 寄せられたメッセージ一覧
- * 用途: 献花ページで寄せられたメッセージをカード一覧で表示する
+ * 部品名: 献花 — 寄せられたメッセージ一覧（ガラス風カード）
  */
-import { HIBARU_DATA } from '../../../data/hibaruData.js'
+import { computed } from 'vue'
+import { flowerByName } from '../../../lib/flowers.js'
+import FlowerCutout from './FlowerCutout.vue'
 
-const flowers = ['白百合', '紅薔薇', '白菊', 'かすみ草', '桔梗', '小手毬']
-const flowerEmoji = ['🌸', '🌹', '🌼', '🌿', '🔔', '🍃']
+const props = defineProps({
+  items: {
+    type: Array,
+    default: () => [],
+  },
+})
 
-function emojiFor(flower) {
-  const i = flowers.indexOf(flower)
-  return i >= 0 ? flowerEmoji[i] : '🌸'
-}
+const sorted = computed(() =>
+  [...props.items].sort((a, b) => {
+    const da = new Date(a.date?.replace(/\./g, '-') || 0).getTime()
+    const db = new Date(b.date?.replace(/\./g, '-') || 0).getTime()
+    return db - da
+  }),
+)
 </script>
 
 <template>
-  <section class="msg-wall">
-    <h3 class="msg-wall__title">寄せられたメッセージ</h3>
-    <div class="msg-wall__grid">
-      <article v-for="(m, i) in HIBARU_DATA.messages" :key="i" class="msg-wall__card">
-        <div class="msg-wall__emoji" aria-hidden="true">{{ emojiFor(m.flower) }}</div>
-        <div>
+  <section class="msg-wall" aria-labelledby="msg-wall-title">
+    <header class="msg-wall__head">
+      <h2 id="msg-wall-title" class="msg-wall__title">みなさんの献花・メッセージ</h2>
+      <p class="msg-wall__sort" aria-label="並び順">新しい順</p>
+    </header>
+
+    <div v-if="sorted.length" class="msg-wall__grid site-reveal-stagger">
+      <article
+        v-for="(m, i) in sorted"
+        :key="m.id ?? i"
+        class="msg-wall__card stagger-item"
+      >
+        <div class="msg-wall__flower">
+          <FlowerCutout :src="flowerByName(m.flower).image" :alt="m.flower" size="sm" />
+          <span class="msg-wall__flower-name">{{ m.flower }}</span>
+        </div>
+        <div class="msg-wall__body-wrap">
           <p class="msg-wall__body">{{ m.body }}</p>
-          <p class="msg-wall__meta">
-            — {{ m.name }} · {{ m.location }} · {{ m.flower }} · <span class="msg-wall__date">{{ m.date }}</span>
-          </p>
+          <footer class="msg-wall__meta">
+            <span class="msg-wall__author">{{ m.name }}</span>
+            <span v-if="m.location" class="msg-wall__location">{{ m.location }}</span>
+            <time class="msg-wall__date" :datetime="m.date">{{ m.date }}</time>
+          </footer>
         </div>
       </article>
     </div>
-    <footer class="msg-wall__archive">
-      <span class="msg-wall__archive-label">年別アーカイブ：</span>
-      <button v-for="y in [2024, 2023, 2022, 2021, 2020]" :key="y" type="button" class="msg-wall__year">
-        {{ y }}年
-      </button>
-    </footer>
+
+    <p v-else class="msg-wall__empty">まだ献花はありません。最初の想いを届けてみませんか。</p>
   </section>
 </template>
 
 <style scoped>
+.msg-wall {
+  margin-bottom: var(--sp-7);
+}
+
+.msg-wall__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
+  flex-wrap: wrap;
+}
+
 .msg-wall__title {
+  margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 20px;
-  margin: 0 0 var(--sp-5);
+  font-size: clamp(20px, 2.4vw, 26px);
+  font-weight: 700;
+  letter-spacing: 0.1em;
   color: var(--site-text);
 }
+
+.msg-wall__sort {
+  margin: 0;
+  font-family: var(--ff-latin);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--kin-600);
+}
+
 .msg-wall__grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--sp-4);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-5);
 }
+
 .msg-wall__card {
-  background: var(--site-surface);
-  border: 1px solid var(--site-border);
-  border-radius: var(--site-radius-md);
-  padding: var(--sp-4);
-  display: grid;
-  grid-template-columns: 36px 1fr;
-  gap: 14px;
-  box-shadow: var(--site-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--site-surface) 68%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, var(--site-border) 80%, rgba(255, 255, 255, 0.6));
+  box-shadow: 0 10px 32px rgba(59, 47, 42, 0.06);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+  overflow: hidden;
 }
-.msg-wall__emoji {
-  padding-top: 4px;
-  font-size: 24px;
+
+.msg-wall__card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 18px 48px rgba(59, 47, 42, 0.1);
 }
-.msg-wall__body {
-  font-size: 14px;
-  line-height: 1.9;
-  color: var(--site-text);
-  margin: 0;
+
+.msg-wall__flower {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-3);
+  min-height: 124px;
 }
-.msg-wall__meta {
-  margin: 10px 0 0;
-  font-size: 11px;
-  color: var(--site-text-light);
-  letter-spacing: 0.1em;
+
+.msg-wall__card:hover :deep(.flower-cutout__img) {
+  transform: scale(1.06);
 }
-.msg-wall__date {
-  font-family: var(--ff-mono);
+
+.msg-wall__card :deep(.flower-cutout__img) {
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.msg-wall__archive {
-  margin-top: var(--sp-6);
-  padding: var(--sp-4) 0;
-  border-top: 1px solid var(--site-border);
-}
-.msg-wall__archive-label {
+
+.msg-wall__flower-name {
   font-family: var(--ff-mincho);
   font-size: 13px;
-  color: var(--site-text-muted);
-  letter-spacing: 0.15em;
-}
-.msg-wall__year {
-  background: var(--site-surface);
-  border: 1px solid var(--site-border);
-  color: var(--site-text-muted);
-  padding: 4px 12px;
-  cursor: pointer;
-  font-family: var(--ff-mono);
-  font-size: 11px;
-  margin-left: 8px;
-  border-radius: var(--site-radius-sm);
-}
-.msg-wall__year:hover {
-  border-color: var(--murasaki-400);
+  letter-spacing: 0.1em;
   color: var(--murasaki-700);
 }
 
-@media (max-width: 480px) {
+.msg-wall__body-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--sp-4);
+}
+
+.msg-wall__body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.95;
+  color: var(--site-text);
+  flex: 1;
+}
+
+.msg-wall__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 11px;
+  color: var(--site-text-light);
+  letter-spacing: 0.06em;
+  padding-top: var(--sp-3);
+  border-top: 1px solid color-mix(in srgb, var(--site-border) 70%, transparent);
+}
+
+.msg-wall__author {
+  font-family: var(--ff-mincho);
+  color: var(--site-text-muted);
+}
+
+.msg-wall__location::before {
+  content: '·';
+  margin-right: 10px;
+}
+
+.msg-wall__date {
+  margin-left: auto;
+  font-family: var(--ff-mono);
+}
+
+.msg-wall__empty {
+  margin: 0;
+  padding: var(--sp-8) var(--sp-5);
+  text-align: center;
+  font-family: var(--ff-mincho);
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--site-text-muted);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--site-surface) 60%, transparent);
+  border: 1px dashed var(--site-border);
+}
+
+@media (max-width: 1024px) {
+  .msg-wall__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
   .msg-wall__grid {
     grid-template-columns: 1fr;
+    gap: var(--sp-4);
   }
-  .msg-wall__archive {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-  }
-  .msg-wall__year {
-    margin-left: 0;
+  .msg-wall__card {
+    padding: var(--sp-5) var(--sp-4);
   }
 }
 </style>
