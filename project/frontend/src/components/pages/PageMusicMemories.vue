@@ -4,6 +4,7 @@
  * 役割: 複数アーティストのファンクラブへの入口ハブ
  */
 import UiButton from '../ui/UiButton.vue'
+import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
 import { MUSIC_MEMORIES_ARTISTS, PLATFORM_CHAT_ARTISTS } from '../../data/musicMemoriesData.js'
 import { SITE_NAME, SITE_TAGLINE } from '../../constants/site.js'
 
@@ -24,10 +25,9 @@ function onArtistClick(artist) {
   <div class="music-memories" :class="{ 'music-memories--embedded': embedded }">
     <header v-if="!embedded" class="music-memories__header" role="banner">
       <div class="music-memories__header-inner">
-        <p class="music-memories__brand" :aria-label="SITE_NAME">
-          <span class="music-memories__brand-mark" aria-hidden="true">♪</span>
-          {{ SITE_NAME }}
-        </p>
+        <div class="music-memories__brand-wrap">
+          <MusicMemoriesLogo variant="full" size="hero" />
+        </div>
         <p class="music-memories__header-tag">{{ SITE_TAGLINE }}</p>
       </div>
     </header>
@@ -155,27 +155,13 @@ function onArtistClick(artist) {
   flex-wrap: wrap;
 }
 
-.music-memories__brand {
-  margin: 0;
-  font-family: var(--ff-latin);
-  font-size: clamp(1.25rem, 2.5vw, 1.6rem);
-  font-weight: 600;
-  letter-spacing: 0.14em;
+.music-memories__brand-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
-.music-memories__brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--murasaki-600), var(--murasaki-800));
-  font-size: 14px;
-  color: #fff;
+.music-memories__brand-wrap :deep(.mm-logo--full) {
+  max-height: clamp(40px, 8vw, 56px);
 }
 
 .music-memories__header-tag {

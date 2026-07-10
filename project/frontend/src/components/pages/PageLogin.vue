@@ -5,6 +5,7 @@
 import LoginHeroBackground from './login/LoginHeroBackground.vue'
 import PlatformAuthBackground from '../layout/PlatformAuthBackground.vue'
 import LoginFormCard from './login/LoginFormCard.vue'
+import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
 import { SITE_NAME, SITE_TAGLINE } from '../../constants/site.js'
 
 defineProps({
@@ -24,8 +25,7 @@ const emit = defineEmits(['open-auth', 'login-success'])
       <div class="page-login__inner">
         <header class="page-login__head">
           <div v-if="variant === 'platform'" class="page-login__brand-row">
-            <span class="page-login__brand-mark" aria-hidden="true">♪</span>
-            <p class="page-login__brand">{{ SITE_NAME }}</p>
+            <MusicMemoriesLogo variant="full" size="hero" />
           </div>
           <h1 id="login-page-title" class="page-login__title">ログイン</h1>
           <p class="page-login__subtitle">Login</p>
@@ -92,31 +92,13 @@ const emit = defineEmits(['open-auth', 'login-success'])
 }
 
 .page-login__brand-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  display: flex;
+  justify-content: center;
   margin-bottom: 20px;
 }
 
-.page-login__brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--murasaki-600), var(--murasaki-800));
-  font-size: 14px;
-  color: #fff;
-}
-
-.page-login__brand {
-  margin: 0;
-  font-family: var(--ff-latin);
-  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  color: #f8f4ef;
+.page-login__brand-row :deep(.mm-logo--full) {
+  max-height: clamp(52px, 10vw, 80px);
 }
 
 .page-login__title {

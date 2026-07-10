@@ -5,7 +5,8 @@
  */
 import { ref, onMounted, onUnmounted } from 'vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
-import { SITE_NAME, HIBARI_FANCLUB_NAME } from '../../constants/site.js'
+import { HIBARI_FANCLUB_NAME } from '../../constants/site.js'
+import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
 
 const emit = defineEmits(['complete'])
 
@@ -91,13 +92,15 @@ onUnmounted(() => {
     />
 
     <div v-else class="site-intro__fallback" aria-hidden="true">
-      <p class="site-intro__fallback-label">{{ SITE_NAME }}</p>
+      <MusicMemoriesLogo variant="full" size="hero" class="site-intro__fallback-logo" />
       <p class="site-intro__fallback-title">{{ HIBARI_FANCLUB_NAME }}</p>
     </div>
 
     <div class="site-intro__veil" aria-hidden="true" />
 
-    <p class="site-intro__brand">{{ SITE_NAME }}</p>
+    <div class="site-intro__brand">
+      <MusicMemoriesLogo variant="full" size="lg" />
+    </div>
     <p class="site-intro__brand-sub">{{ HIBARI_FANCLUB_NAME }}</p>
 
     <button
@@ -183,13 +186,16 @@ onUnmounted(() => {
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
-  font-family: var(--ff-latin);
-  font-size: clamp(18px, 3vw, 24px);
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.92);
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
-  white-space: nowrap;
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.35));
+}
+
+.site-intro__brand :deep(.mm-logo--full) {
+  max-height: clamp(48px, 8vw, 72px);
+}
+
+.site-intro__fallback-logo {
+  margin-bottom: 16px;
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.35));
 }
 .site-intro__brand-sub {
   position: absolute;
