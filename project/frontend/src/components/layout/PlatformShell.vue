@@ -128,6 +128,7 @@ function onUserUpdated(account) {
         ← {{ SITE_NAME }} へ戻る
       </button>
       <PageLogin
+        variant="platform"
         @open-auth="onOpenAuth"
         @login-success="onLoginSuccess"
       />
@@ -138,6 +139,7 @@ function onUserUpdated(account) {
         ← {{ SITE_NAME }} へ戻る
       </button>
       <PageRegister
+        variant="platform"
         :initial-plan="registerPlan"
         @navigate="setView('hub')"
         @open-auth="onOpenAuth"
@@ -257,8 +259,8 @@ function onUserUpdated(account) {
 
 .platform-shell__auth {
   position: relative;
-  background: var(--site-bg);
   min-height: calc(100vh - 65px);
+  overflow: hidden;
 }
 
 .platform-shell__back {
@@ -268,13 +270,20 @@ function onUserUpdated(account) {
   z-index: 20;
   margin: 0;
   padding: 8px 14px;
-  border: 1px solid var(--site-border);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
-  background: #fff;
-  color: var(--murasaki-700);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8f4ef;
   font-family: var(--ff-sans-jp);
   font-size: 12px;
   letter-spacing: 0.06em;
   cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.platform-shell__back:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(201, 169, 97, 0.45);
 }
 </style>

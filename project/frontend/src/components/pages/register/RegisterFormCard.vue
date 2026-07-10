@@ -18,6 +18,7 @@ import { MEMBERSHIP, MEMBERSHIP_LABELS } from '../../../constants/membership.js'
 
 const props = defineProps({
   initialPlan: { type: String, default: MEMBERSHIP.GENERAL },
+  platform: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['navigate', 'open-auth', 'complete'])
@@ -288,7 +289,7 @@ function onAgreeTerms() {
 </script>
 
 <template>
-  <div class="reg-card">
+  <div class="reg-card" :class="{ 'reg-card--platform': platform }">
     <span class="reg-card__corner reg-card__corner--tl" aria-hidden="true" />
     <span class="reg-card__corner reg-card__corner--tr" aria-hidden="true" />
     <span class="reg-card__corner reg-card__corner--bl" aria-hidden="true" />
@@ -337,7 +338,7 @@ function onAgreeTerms() {
       <div class="reg-card__login">
         <hr class="reg-card__divider" />
         <h2 class="reg-card__login-title">既に会員登録がお済みの方</h2>
-        <button type="button" class="reg-card__login-btn" @click="emit('navigate', 'login')">
+        <button type="button" class="reg-card__login-btn" @click="emit('open-auth', 'login')">
           ログインはこちら
           <span aria-hidden="true">›</span>
         </button>
@@ -501,6 +502,88 @@ function onAgreeTerms() {
 .reg-card__login-btn:hover {
   border-color: var(--murasaki-400);
   background: var(--murasaki-100);
+}
+
+.reg-card--platform {
+  background: rgba(32, 26, 32, 0.82);
+  border: 1px solid rgba(201, 169, 97, 0.45);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  border-radius: var(--site-radius-lg);
+}
+
+.reg-card--platform .reg-card__corner {
+  border-color: var(--kin-400);
+}
+
+.reg-card--platform .reg-card__login-title {
+  color: rgba(248, 244, 239, 0.88);
+}
+
+.reg-card--platform .reg-card__login-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f8f4ef;
+}
+
+.reg-card--platform .reg-card__divider {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.reg-card--platform .reg-card__back {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f8f4ef;
+}
+
+.reg-card--platform .reg-card__error {
+  background: rgba(155, 44, 44, 0.2);
+  border-color: rgba(240, 196, 190, 0.35);
+  color: #ffb4a8;
+}
+
+.reg-card--platform :deep(.reg-step__label),
+.reg-card--platform :deep(.reg-step__item),
+.reg-card--platform :deep(.register-label),
+.reg-card--platform :deep(.register-option__label),
+.reg-card--platform :deep(.register-plan__name),
+.reg-card--platform :deep(.register-plan__price),
+.reg-card--platform :deep(h3),
+.reg-card--platform :deep(h4),
+.reg-card--platform :deep(p),
+.reg-card--platform :deep(label),
+.reg-card--platform :deep(.reg-done__title) {
+  color: rgba(248, 244, 239, 0.88);
+}
+
+.reg-card--platform :deep(.register-desc),
+.reg-card--platform :deep(.register-plan__desc),
+.reg-card--platform :deep(.reg-done__lead),
+.reg-card--platform :deep(.reg-done__dt) {
+  color: rgba(248, 244, 239, 0.58);
+}
+
+.reg-card--platform :deep(input:not([type='checkbox'])),
+.reg-card--platform :deep(select),
+.reg-card--platform :deep(textarea) {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #f8f4ef;
+}
+
+.reg-card--platform :deep(input::placeholder),
+.reg-card--platform :deep(textarea::placeholder) {
+  color: rgba(248, 244, 239, 0.38);
+}
+
+.reg-card--platform :deep(.register-plan) {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.reg-card--platform :deep(.register-plan--active) {
+  border-color: var(--kin-400);
+  background: rgba(122, 80, 136, 0.25);
 }
 
 @media (max-width: 767px) {

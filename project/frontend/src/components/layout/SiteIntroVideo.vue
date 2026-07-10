@@ -18,7 +18,7 @@ const videoRef = ref(null)
 const videoFailed = ref(false)
 const canSkip = ref(false)
 
-const DISPLAY_MS = 2600
+const DISPLAY_MS = 5500
 const FADE_MS = 680
 
 let displayTimer = null
@@ -52,6 +52,13 @@ onMounted(() => {
   displayTimer = window.setTimeout(finish, DISPLAY_MS)
 
   window.setTimeout(tryPlay, 60)
+
+  const el = videoRef.value
+  if (el) {
+    el.addEventListener('ended', () => {
+      window.setTimeout(finish, 400)
+    })
+  }
 })
 
 onUnmounted(() => {
