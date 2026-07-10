@@ -3,6 +3,7 @@
  */
 import { ref } from 'vue'
 import { fetchOpenChatNotifications } from '../api/openChat.js'
+import { SITE_ICON_SRC } from '../constants/site.js'
 
 const POLL_MS = 8000
 
@@ -57,7 +58,7 @@ function createNotificationState(scope) {
         new Notification(room.room_name, {
           body,
           tag: `open-chat-${scope}-${room.room_id}-${latest.message_id}`,
-          icon: '/images/misorahibari-logo-cropped.png',
+          icon: SITE_ICON_SRC,
         })
       } catch {
         // 通知非対応環境

@@ -4,6 +4,8 @@
  */
 import { ref } from 'vue'
 import TopHeroSection from './top/TopHeroSection.vue'
+import TopVideoPromo from './top/TopVideoPromo.vue'
+import TopEnjoyGuide from './top/TopEnjoyGuide.vue'
 import TopSubscriptionCard from './top/TopSubscriptionCard.vue'
 import TopNewsPanel from './top/TopNewsPanel.vue'
 import TopEventsPanel from './top/TopEventsPanel.vue'
@@ -29,6 +31,14 @@ function onComingSoon(target) {
     emit('open-auth', target)
   }
 }
+
+function onEnjoyNavigate(target) {
+  if (target === 'ai') {
+    emit('open-modal', 'ai')
+    return
+  }
+  emit('navigate', target)
+}
 </script>
 
 <template>
@@ -37,6 +47,13 @@ function onComingSoon(target) {
       @open-auth="(m) => emit('open-auth', m)"
       @open-ai="emit('open-modal', 'ai')"
       @scroll-enjoy="scrollToEnjoy"
+    />
+
+    <TopVideoPromo class="page-top__promo home-motion-stagger__item" />
+
+    <TopEnjoyGuide
+      class="page-top__enjoy"
+      @navigate="onEnjoyNavigate"
     />
 
     <div class="page-top__body">
@@ -75,6 +92,16 @@ function onComingSoon(target) {
 <style scoped>
 .page-top__body {
   overflow-x: clip;
+}
+.page-top__promo {
+  margin-bottom: var(--sp-8);
+}
+.page-top__enjoy {
+  margin-bottom: var(--sp-7);
+  padding: 0 var(--sp-6);
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .page-top__columns {
   display: grid;

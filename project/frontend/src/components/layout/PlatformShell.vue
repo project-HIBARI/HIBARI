@@ -10,6 +10,7 @@ import PageRegister from '../pages/PageRegister.vue'
 import PagePlatformOpenChat from '../pages/PagePlatformOpenChat.vue'
 import HeaderAccountMenu from './HeaderAccountMenu.vue'
 import AccountModal from '../modals/AccountModal.vue'
+import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
 import { MEMBERSHIP } from '../../constants/membership.js'
 import { SITE_NAME } from '../../constants/site.js'
 
@@ -82,8 +83,7 @@ function onUserUpdated(account) {
           aria-label="Music Memories ホーム"
           @click="setView('hub')"
         >
-          <span class="platform-shell__brand-mark" aria-hidden="true">♪</span>
-          {{ SITE_NAME }}
+          <MusicMemoriesLogo variant="full" size="md" />
         </button>
 
         <nav class="platform-shell__nav" aria-label="プラットフォームナビ">
@@ -128,6 +128,7 @@ function onUserUpdated(account) {
         ← {{ SITE_NAME }} へ戻る
       </button>
       <PageLogin
+        variant="platform"
         @open-auth="onOpenAuth"
         @login-success="onLoginSuccess"
       />
@@ -138,6 +139,7 @@ function onUserUpdated(account) {
         ← {{ SITE_NAME }} へ戻る
       </button>
       <PageRegister
+        variant="platform"
         :initial-plan="registerPlan"
         @navigate="setView('hub')"
         @open-auth="onOpenAuth"
@@ -211,28 +213,15 @@ function onUserUpdated(account) {
 .platform-shell__brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   margin: 0;
   padding: 0;
   border: 0;
   background: transparent;
-  color: #f8f4ef;
-  font-family: var(--ff-latin);
-  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
-  font-weight: 600;
-  letter-spacing: 0.14em;
   cursor: pointer;
 }
 
-.platform-shell__brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--murasaki-600), var(--murasaki-800));
-  font-size: 13px;
+.platform-shell__brand :deep(.mm-logo--full) {
+  max-height: 44px;
 }
 
 .platform-shell__account :deep(.header-account__btn--login) {
@@ -257,8 +246,8 @@ function onUserUpdated(account) {
 
 .platform-shell__auth {
   position: relative;
-  background: var(--site-bg);
   min-height: calc(100vh - 65px);
+  overflow: hidden;
 }
 
 .platform-shell__back {
@@ -268,13 +257,20 @@ function onUserUpdated(account) {
   z-index: 20;
   margin: 0;
   padding: 8px 14px;
-  border: 1px solid var(--site-border);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
-  background: #fff;
-  color: var(--murasaki-700);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8f4ef;
   font-family: var(--ff-sans-jp);
   font-size: 12px;
   letter-spacing: 0.06em;
   cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.platform-shell__back:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(201, 169, 97, 0.45);
 }
 </style>
