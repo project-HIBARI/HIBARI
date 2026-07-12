@@ -3,14 +3,20 @@
  * 部品名: Music Memories プラットフォームシェル
  * 役割: ハブ・ログイン・新規登録・アカウント設定を束ねる
  */
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import PageMusicMemories from '../pages/PageMusicMemories.vue'
 import PageLogin from '../pages/PageLogin.vue'
 import PageRegister from '../pages/PageRegister.vue'
 import PagePlatformOpenChat from '../pages/PagePlatformOpenChat.vue'
+import PageSnsFeed from '../pages/PageSnsFeed.vue'
+import PageSnsProfile from '../pages/PageSnsProfile.vue'
+import PageSnsDm from '../pages/PageSnsDm.vue'
 import HeaderAccountMenu from './HeaderAccountMenu.vue'
 import AccountModal from '../modals/AccountModal.vue'
 import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
+import UiIco from '../ui/UiIco.vue'
+import { useAuth } from '../../composables/useAuth.js'
+import { useSnsDmUnread } from '../../composables/useSnsDmUnread.js'
 import { MEMBERSHIP } from '../../constants/membership.js'
 import { SITE_NAME } from '../../constants/site.js'
 
@@ -33,9 +39,42 @@ const emit = defineEmits([
 ])
 
 const modal = ref(null)
+const snsCreateIntent = ref(0)
+const profileAccountId = ref(null)
+const dmTargetAccountId = ref(null)
+
+const { user: authUser, isLoggedIn: authIsLoggedIn } = useAuth()
+const { unreadCount: dmUnreadCount, startPolling: startDmPolling, stopPolling: stopDmPolling } = useSnsDmUnread()
+
+watch(authIsLoggedIn, (loggedIn) => {
+  if (loggedIn) startDmPolling()
+  else stopDmPolling()
+}, { immediate: true })
 
 function setView(next) {
   emit('update:view', next)
+}
+
+function openProfile(accountId) {
+  profileAccountId.value = accountId
+  setView('profile')
+}
+
+function openDm(accountId = null) {
+  if (!authUser.value) {
+    onOpenAuth('login')
+    return
+  }
+  dmTargetAccountId.value = accountId
+  setView('dm')
+}
+
+function openMyProfile() {
+  if (!authUser.value) {
+    onOpenAuth('login')
+    return
+  }
+  openProfile(authUser.value.account_id)
 }
 
 function onOpenAuth(mode) {
@@ -53,6 +92,10 @@ function onOpenAuth(mode) {
     return
   }
   emit('open-auth', { mode })
+}
+
+function onSnsNeedAuth(payload) {
+  onOpenAuth(payload?.mode || 'login')
 }
 
 function onLoginSuccess(user) {
@@ -91,6 +134,14 @@ function onUserUpdated(account) {
           <button
             type="button"
             class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'sns' }"
+            @click="setView('sns')"
+          >
+            みんなの投稿
+          </button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
             :class="{ 'platform-shell__nav-btn--active': view === 'open-chat' }"
             @click="setView('open-chat')"
           >
@@ -121,6 +172,30 @@ function onUserUpdated(account) {
     <PagePlatformOpenChat
       v-else-if="view === 'open-chat'"
       @need-auth="(mode) => emit('open-auth', { mode, returnTo: { feature: 'open-chat' } })"
+    />
+
+    <PageSnsFeed
+      v-else-if="view === 'sns'"
+      :create-intent="snsCreateIntent"
+      @need-auth="onSnsNeedAuth"
+      @open-chat="setView('open-chat')"
+      @open-dm="openDm()"
+      @open-profile="openProfile"
+    />
+
+    <PageSnsProfile
+      v-else-if="view === 'profile' && profileAccountId"
+      :account-id="profileAccountId"
+      @need-auth="onSnsNeedAuth"
+      @open-dm="openDm"
+      @open-profile="openProfile"
+    />
+
+    <PageSnsDm
+      v-else-if="view === 'dm'"
+      :target-account-id="dmTargetAccountId"
+      @open-chat="setView('open-chat')"
+      @open-profile="openProfile"
     />
 
     <div v-else-if="view === 'login'" class="platform-shell__auth">
@@ -154,6 +229,57 @@ function onUserUpdated(account) {
       @logout="onLogout"
       @user-updated="onUserUpdated"
     />
+
+    <nav
+      v-if="!['login', 'register'].includes(view)"
+      class="platform-shell__tabbar sp-only"
+      aria-label="モバイルナビゲーション"
+    >
+      <button
+        type="button"
+        class="platform-shell__tab"
+        :class="{ 'platform-shell__tab--active': view === 'sns' }"
+        @click="setView('sns')"
+      >
+        <UiIco name="home" :size="20" />
+        <span>ホーム</span>
+      </button>
+      <button
+        type="button"
+        class="platform-shell__tab"
+        :class="{ 'platform-shell__tab--active': view === 'hub' }"
+        @click="setView('hub')"
+      >
+        <UiIco name="disc" :size="20" />
+        <span>Music Memories</span>
+      </button>
+      <button
+        type="button"
+        class="platform-shell__tab platform-shell__tab--post"
+        aria-label="投稿する"
+        @click="setView('sns'); snsCreateIntent++"
+      >
+        <UiIco name="plus" :size="22" color="#fff" />
+      </button>
+      <button
+        type="button"
+        class="platform-shell__tab"
+        :class="{ 'platform-shell__tab--active': view === 'open-chat' }"
+        @click="setView('open-chat')"
+      >
+        <UiIco name="chat" :size="20" />
+        <span>チャット</span>
+      </button>
+      <button
+        type="button"
+        class="platform-shell__tab"
+        :class="{ 'platform-shell__tab--active': view === 'profile' }"
+        @click="openMyProfile"
+      >
+        <UiIco name="user" :size="20" />
+        <span>マイページ</span>
+      </button>
+    </nav>
   </div>
 </template>
 
@@ -272,5 +398,50 @@ function onUserUpdated(account) {
 .platform-shell__back:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(201, 169, 97, 0.45);
+}
+
+.platform-shell__tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  align-items: center;
+  justify-content: space-around;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: rgba(26, 20, 24, 0.96);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.platform-shell__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: transparent;
+  border: 0;
+  color: rgba(248, 244, 239, 0.55);
+  font-family: var(--ff-sans-jp);
+  font-size: 10px;
+  padding: 4px 6px;
+  cursor: pointer;
+  min-width: 56px;
+}
+
+.platform-shell__tab--active {
+  color: var(--kin-400);
+}
+
+.platform-shell__tab--post {
+  min-width: 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--murasaki-700);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transform: translateY(-8px);
+  align-items: center;
+  justify-content: center;
 }
 </style>

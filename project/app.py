@@ -36,6 +36,12 @@ from event_applications import (
     fetch_applications_for_account,
 )
 from open_chat import ensure_open_chat_schema, register_open_chat_routes
+from sns import ensure_sns_schema, register_sns_routes
+from sns_posts import register_sns_post_routes
+from sns_stories import register_sns_story_routes
+from sns_profile import register_sns_profile_routes
+from sns_dm import register_sns_dm_routes
+from sns_moderation import register_sns_moderation_routes
 from password_utils import (
     hash_password,
     normalize_email,
@@ -212,6 +218,7 @@ ensure_usage_schema(engine)
 ensure_account_settings_schema(engine)
 ensure_event_applications_schema(engine)
 ensure_open_chat_schema(engine)
+ensure_sns_schema(engine)
 
 
 def ensure_contact_schema():
@@ -1905,6 +1912,84 @@ def create_fanclub():
 
 
 register_open_chat_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_post_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_story_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_profile_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_dm_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_moderation_routes(
     app,
     engine,
     fetch_all=fetch_all,
