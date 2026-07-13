@@ -10,13 +10,18 @@ import UiIco from '../../ui/UiIco.vue'
 import { useSnsUsage } from '../../../composables/useSnsUsage.js'
 import { createSnsPost, uploadSnsMedia, createSnsStory } from '../../../api/sns.js'
 
+const props = defineProps({
+  /** 指定すると種別選択ステップを飛ばして直接フォームを開く（story | photo | text） */
+  initialType: { type: String, default: null },
+})
+
 const emit = defineEmits(['close', 'created', 'limit-reached'])
 
 const { usageStatus, canPostNow, remainingMessage, nextResetLabel, refreshUsage } = useSnsUsage()
 refreshUsage()
 
-const step = ref('type') // type | form
-const postType = ref('photo') // story | photo | text
+const step = ref(props.initialType ? 'form' : 'type') // type | form
+const postType = ref(props.initialType || 'photo') // story | photo | text
 const body = ref('')
 const hashtagsInput = ref('')
 const commentsEnabled = ref(true)

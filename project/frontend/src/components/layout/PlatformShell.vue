@@ -15,6 +15,7 @@ import HeaderAccountMenu from './HeaderAccountMenu.vue'
 import AccountModal from '../modals/AccountModal.vue'
 import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
 import UiIco from '../ui/UiIco.vue'
+import ToastHost from '../ui/ToastHost.vue'
 import { useAuth } from '../../composables/useAuth.js'
 import { useSnsDmUnread } from '../../composables/useSnsDmUnread.js'
 import { MEMBERSHIP } from '../../constants/membership.js'
@@ -117,7 +118,7 @@ function onUserUpdated(account) {
 </script>
 
 <template>
-  <div class="platform-shell">
+  <div class="platform-shell mm-sns">
     <header class="platform-shell__header" role="banner">
       <div class="platform-shell__header-inner">
         <button
@@ -130,13 +131,22 @@ function onUserUpdated(account) {
         </button>
 
         <nav class="platform-shell__nav" aria-label="プラットフォームナビ">
-          <button type="button" class="platform-shell__nav-btn" @click="setView('hub')">ホーム</button>
           <button
             type="button"
             class="platform-shell__nav-btn"
-            :class="{ 'platform-shell__nav-btn--active': view === 'sns' }"
+            :class="{ 'platform-shell__nav-btn--active': view === 'hub' }"
+            @click="setView('hub')"
+          >
+            <UiIco name="home" :size="14" />
+            ホーム
+          </button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'sns' || view === 'profile' }"
             @click="setView('sns')"
           >
+            <UiIco name="user" :size="14" />
             みんなの投稿
           </button>
           <button
@@ -145,6 +155,7 @@ function onUserUpdated(account) {
             :class="{ 'platform-shell__nav-btn--active': view === 'open-chat' }"
             @click="setView('open-chat')"
           >
+            <UiIco name="chat" :size="14" />
             オープンチャット
           </button>
         </nav>
@@ -280,21 +291,23 @@ function onUserUpdated(account) {
         <span>マイページ</span>
       </button>
     </nav>
+
+    <ToastHost />
   </div>
 </template>
 
 <style scoped>
 .platform-shell {
   min-height: 100vh;
-  background: #1a1418;
+  background: var(--sns-bg);
 }
 
 .platform-shell__header {
   position: sticky;
   top: 0;
   z-index: 40;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(26, 20, 24, 0.92);
+  border-bottom: 1px solid var(--sns-border-soft);
+  background: rgba(22, 15, 24, 0.92);
   backdrop-filter: blur(10px);
 }
 
@@ -317,23 +330,32 @@ function onUserUpdated(account) {
 }
 
 .platform-shell__nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
   padding: 7px 14px;
   border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
   border-radius: 999px;
   background: transparent;
-  color: rgba(248, 244, 239, 0.72);
+  color: var(--sns-text-muted);
   font-family: var(--ff-sans-jp);
   font-size: 12px;
   letter-spacing: 0.06em;
   cursor: pointer;
 }
 
-.platform-shell__nav-btn:hover,
+.platform-shell__nav-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--sns-ivory);
+}
+
 .platform-shell__nav-btn--active {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.14);
-  color: #f8f4ef;
+  background: rgba(228, 190, 99, 0.1);
+  border-color: rgba(228, 190, 99, 0.35);
+  color: var(--sns-gold);
+  font-weight: 600;
 }
 
 .platform-shell__brand {
@@ -352,22 +374,56 @@ function onUserUpdated(account) {
 
 .platform-shell__account :deep(.header-account__btn--login) {
   background: transparent;
-  color: #f8f4ef;
+  color: var(--sns-ivory);
   border-color: rgba(255, 255, 255, 0.28);
 }
 
 .platform-shell__account :deep(.header-account__btn--register) {
-  background: var(--murasaki-600);
+  background: var(--sns-purple);
   border-color: var(--murasaki-700);
 }
 
 .platform-shell__account :deep(.header-account__trigger) {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.14);
+  background: var(--sns-card);
+  border-color: var(--sns-border);
+}
+
+.platform-shell__account :deep(.header-account__trigger):hover {
+  border-color: rgba(228, 190, 99, 0.4);
+}
+
+.platform-shell__account :deep(.header-account__avatar) {
+  background: var(--sns-purple);
 }
 
 .platform-shell__account :deep(.header-account__name) {
-  color: #f8f4ef;
+  color: var(--sns-ivory);
+}
+
+.platform-shell__account :deep(.header-account__chevron) {
+  color: var(--sns-text-muted);
+}
+
+.platform-shell__account :deep(.header-account__menu) {
+  background: var(--sns-card-strong);
+  border-color: var(--sns-border);
+}
+
+.platform-shell__account :deep(.header-account__plan) {
+  color: var(--sns-gold-pale);
+  border-bottom-color: var(--sns-border);
+}
+
+.platform-shell__account :deep(.header-account__item) {
+  color: var(--sns-ivory);
+}
+
+.platform-shell__account :deep(.header-account__item:hover) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.platform-shell__account :deep(.header-account__item--logout) {
+  border-top-color: var(--sns-border);
 }
 
 .platform-shell__auth {
@@ -409,9 +465,9 @@ function onUserUpdated(account) {
   align-items: center;
   justify-content: space-around;
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
-  background: rgba(26, 20, 24, 0.96);
+  background: rgba(22, 15, 24, 0.96);
   backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--sns-border-soft);
 }
 
 .platform-shell__tab {
@@ -421,16 +477,17 @@ function onUserUpdated(account) {
   gap: 2px;
   background: transparent;
   border: 0;
-  color: rgba(248, 244, 239, 0.55);
+  color: var(--sns-text-muted);
   font-family: var(--ff-sans-jp);
   font-size: 10px;
   padding: 4px 6px;
-  cursor: pointer;
+  min-height: 44px;
   min-width: 56px;
+  cursor: pointer;
 }
 
 .platform-shell__tab--active {
-  color: var(--kin-400);
+  color: var(--sns-gold);
 }
 
 .platform-shell__tab--post {
@@ -438,7 +495,8 @@ function onUserUpdated(account) {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--murasaki-700);
+  background: var(--sns-purple);
+  border: 1px solid rgba(228, 190, 99, 0.4);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
   transform: translateY(-8px);
   align-items: center;

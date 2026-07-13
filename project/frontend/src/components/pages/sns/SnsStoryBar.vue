@@ -101,7 +101,7 @@ function onSelfAvatarClick() {
   margin: 0;
   padding: 14px 4px;
   font-size: 12px;
-  color: rgba(248, 244, 239, 0.5);
+  color: var(--sns-text-muted, rgba(248, 244, 239, 0.5));
   white-space: nowrap;
 }
 .sns-story-bar__item {
@@ -116,15 +116,17 @@ function onSelfAvatarClick() {
   position: relative;
   width: 56px;
   height: 56px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   padding: 2px;
-  border: 2px solid rgba(255, 255, 255, 0.15);
+  border: 2px solid var(--sns-border, rgba(255, 255, 255, 0.15));
   background: transparent;
   cursor: pointer;
 }
 .sns-story-bar__avatar-btn--unviewed {
-  border-color: var(--kin-500);
-  background: linear-gradient(135deg, var(--kin-500), var(--murasaki-600));
+  border-color: var(--sns-gold, var(--kin-500));
+  background: linear-gradient(135deg, var(--sns-gold, var(--kin-500)), var(--sns-purple, var(--murasaki-600)));
 }
 .sns-story-bar__avatar {
   display: flex;
@@ -134,11 +136,11 @@ function onSelfAvatarClick() {
   height: 100%;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--murasaki-700);
+  background: var(--sns-purple, var(--murasaki-700));
   color: #fff;
   font-size: 18px;
   font-family: var(--ff-sans-jp);
-  border: 2px solid #1a1418;
+  border: 2px solid var(--sns-bg, #1a1418);
 }
 .sns-story-bar__avatar img {
   width: 100%;
@@ -152,8 +154,8 @@ function onSelfAvatarClick() {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--murasaki-600);
-  border: 2px solid #1a1418;
+  background: var(--sns-purple, var(--murasaki-600));
+  border: 2px solid var(--sns-bg, #1a1418);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -161,7 +163,7 @@ function onSelfAvatarClick() {
 }
 .sns-story-bar__label {
   font-size: 10px;
-  color: rgba(248, 244, 239, 0.7);
+  color: var(--sns-text-muted, rgba(248, 244, 239, 0.7));
   max-width: 64px;
   overflow: hidden;
   text-overflow: ellipsis;

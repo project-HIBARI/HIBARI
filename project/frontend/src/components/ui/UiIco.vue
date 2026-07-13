@@ -127,5 +127,13 @@ const common = computed(() => ({
     <template v-else-if="name === 'story-ring'">
       <circle cx="12" cy="12" r="9.5" />
     </template>
+    <template v-else-if="name === 'camera'">
+      <path d="M4 8h3l1.6-2.4h6.8L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
+      <circle cx="12" cy="14" r="3.6" />
+    </template>
+    <template v-else-if="name === 'crown'">
+      <path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8z" />
+      <line x1="5" y1="21" x2="19" y2="21" />
+    </template>
   </svg>
 </template>

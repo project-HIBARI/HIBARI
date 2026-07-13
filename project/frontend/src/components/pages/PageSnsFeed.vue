@@ -15,9 +15,13 @@ import SnsStoryViewer from './sns/SnsStoryViewer.vue'
 import SnsShareModal from './sns/SnsShareModal.vue'
 import SnsUsageLimitModal from '../modals/SnsUsageLimitModal.vue'
 import SnsReportModal from '../modals/SnsReportModal.vue'
+import SnsUsageCard from './sns/SnsUsageCard.vue'
+import SnsEmptyState from './sns/SnsEmptyState.vue'
+import SnsSkeletonCard from './sns/SnsSkeletonCard.vue'
 import { useAuth } from '../../composables/useAuth.js'
 import { useSnsUsage } from '../../composables/useSnsUsage.js'
 import { useSnsDmUnread } from '../../composables/useSnsDmUnread.js'
+import { useToast } from '../../composables/useToast.js'
 import { fetchSnsFeed, toggleSnsLike, toggleSnsSave, deleteSnsPost, fetchSnsStories, toggleSnsBlock } from '../../api/sns.js'
 
 const props = defineProps({
@@ -28,8 +32,9 @@ const props = defineProps({
 const emit = defineEmits(['open-chat', 'need-auth', 'open-dm', 'open-profile'])
 
 const { isLoggedIn, membership } = useAuth()
-const { usageStatus, remainingMessage, nextResetLabel, refreshUsage } = useSnsUsage()
+const { usageStatus, remainingMessage, nextResetLabel, isUnlimited, refreshUsage } = useSnsUsage()
 const { unreadCount: dmUnreadCount } = useSnsDmUnread()
+const { showToast } = useToast()
 
 const TABS = [
   { id: 'all', label: 'すべて' },
@@ -51,8 +56,22 @@ const detailPost = ref(null)
 const sharePost = ref(null)
 const reportTarget = ref(null) // { type, id }
 
-function onShare(post) {
+async function onShare(post) {
   if (!requireLogin()) return
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Music Memories',
+        text: post.body ? post.body.slice(0, 80) : `${post.author_name}さんの投稿`,
+        url: window.location.href,
+      })
+      return
+    } catch (err) {
+      if (err?.name === 'AbortError') return // ユーザーによるキャンセル
+      sharePost.value = post
+      return
+    }
+  }
   sharePost.value = post
 }
 
@@ -203,8 +222,10 @@ async function onSave(post) {
   try {
     const result = await toggleSnsSave(post.post_id)
     post.saved_by_viewer = result.saved
+    showToast(result.saved ? '投稿を保存しました' : '保存を解除しました')
   } catch {
     post.saved_by_viewer = prev
+    showToast('通信に失敗しました', { tone: 'error' })
   }
 }
 
@@ -251,27 +272,33 @@ watch(() => props.createIntent, (value, oldValue) => {
       @create="openCreateModal"
     />
 
-    <TabBar :tabs="TABS" :active="activeTab" @update:active="onTabChange" />
+    <TabBar :tabs="TABS" :active="activeTab" pill @update:active="onTabChange" />
 
-    <p v-if="isLoggedIn" class="sns-feed__usage">{{ remainingMessage }}</p>
+    <SnsUsageCard
+      v-if="isLoggedIn"
+      :message="remainingMessage"
+      :next-reset-label="nextResetLabel"
+      :unlimited="isUnlimited"
+    />
 
     <section class="sns-feed__list" aria-label="投稿一覧">
-      <p v-if="loading" class="sns-feed__state">読み込み中…</p>
+      <SnsSkeletonCard v-if="loading" variant="post" :count="3" />
 
       <template v-else-if="errorMessage">
-        <p class="sns-feed__state sns-feed__state--error">{{ errorMessage }}</p>
-        <UiButton variant="outline" size="sm" @click="loadFeed()">再試行</UiButton>
-      </template>
-
-      <template v-else-if="!posts.length">
-        <p class="sns-feed__state">
-          まだ投稿がありません。最初の思い出を投稿するか、オープンチャットでみんなと語り合いましょう。
-        </p>
-        <div class="sns-feed__empty-actions">
-          <UiButton variant="gold" size="sm" @click="openCreateModal">投稿する</UiButton>
-          <UiButton variant="outline" size="sm" @click="emit('open-chat')">オープンチャットに参加する</UiButton>
+        <div class="sns-feed__error-card">
+          <p class="sns-feed__state sns-feed__state--error">読み込みに失敗しました</p>
+          <UiButton variant="outline" size="sm" @click="loadFeed()">もう一度試す</UiButton>
         </div>
       </template>
+
+      <SnsEmptyState
+        v-else-if="!posts.length"
+        icon="image"
+        title="まだ投稿がありません"
+        message="最初の思い出を投稿するか、オープンチャットでみんなと語り合いましょう"
+        action-label="投稿する"
+        @action="openCreateModal"
+      />
 
       <template v-else>
         <SnsPostCard
@@ -296,6 +323,7 @@ watch(() => props.createIntent, (value, oldValue) => {
     <section class="sns-feed__chat-cta">
       <p class="sns-feed__chat-text">みんなで美空ひばりさんの思い出を語りませんか？</p>
       <UiButton variant="gold" size="sm" @click="emit('open-chat')">オープンチャットに参加する</UiButton>
+      <span class="sns-feed__chat-deco" aria-hidden="true">♪</span>
     </section>
 
     <button type="button" class="sns-feed__fab" aria-label="投稿する" @click="openCreateModal">
@@ -373,18 +401,18 @@ watch(() => props.createIntent, (value, oldValue) => {
   margin: 0;
   font-family: var(--ff-mincho);
   font-size: clamp(1.35rem, 4vw, 1.75rem);
-  color: #f8f4ef;
+  color: var(--sns-ivory);
   letter-spacing: 0.06em;
 }
 
 .sns-feed__dm-btn {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.06);
-  color: #f8f4ef;
+  border: 1px solid rgba(228, 190, 99, 0.4);
+  background: rgba(228, 190, 99, 0.08);
+  color: var(--sns-gold);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -405,13 +433,7 @@ watch(() => props.createIntent, (value, oldValue) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #1a1418;
-}
-
-.sns-feed__usage {
-  margin: -4px 0 0;
-  font-size: 12px;
-  color: var(--kin-400);
+  border: 2px solid var(--sns-bg);
 }
 
 .sns-feed__list {
@@ -425,35 +447,42 @@ watch(() => props.createIntent, (value, oldValue) => {
   padding: 24px 12px;
   text-align: center;
   font-size: 13px;
-  color: rgba(248, 244, 239, 0.6);
+  color: var(--sns-text-muted);
 }
 
 .sns-feed__state--error {
   color: #e08a8a;
 }
 
-.sns-feed__empty-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
-
 .sns-feed__chat-cta {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
   align-items: flex-start;
   padding: 20px;
   border-radius: var(--site-radius-lg);
-  border: 1px solid rgba(201, 169, 97, 0.35);
-  background: linear-gradient(135deg, rgba(122, 80, 136, 0.22), rgba(26, 20, 24, 0.5));
+  border: 1px solid rgba(228, 190, 99, 0.35);
+  background: linear-gradient(135deg, rgba(109, 61, 130, 0.3), var(--sns-bg) 80%);
+  overflow: hidden;
 }
 
 .sns-feed__chat-text {
   margin: 0;
-  font-size: 13px;
-  color: rgba(248, 244, 239, 0.8);
+  max-width: 80%;
+  font-family: var(--ff-mincho);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--sns-ivory);
+}
+
+.sns-feed__chat-deco {
+  position: absolute;
+  right: 12px;
+  bottom: -10px;
+  font-size: 56px;
+  color: rgba(228, 190, 99, 0.16);
+  pointer-events: none;
 }
 
 .sns-feed__fab {
@@ -463,8 +492,8 @@ watch(() => props.createIntent, (value, oldValue) => {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 0;
-  background: var(--murasaki-700);
+  border: 1px solid rgba(228, 190, 99, 0.4);
+  background: var(--sns-purple);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
@@ -474,8 +503,20 @@ watch(() => props.createIntent, (value, oldValue) => {
 }
 
 @media (max-width: 767px) {
+  /* モバイルでは下部ナビ中央の投稿ボタンのみを使い、FABは重複表示しない */
   .sns-feed__fab {
-    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    display: none;
   }
+}
+
+.sns-feed__error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 16px;
+  border-radius: var(--site-radius-lg);
+  border: 1px solid var(--sns-border);
+  background: var(--sns-card);
 }
 </style>

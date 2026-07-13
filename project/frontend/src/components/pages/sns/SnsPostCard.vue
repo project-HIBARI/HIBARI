@@ -120,7 +120,7 @@ function onMenuAction(action) {
       <button
         type="button"
         class="sns-card__action"
-        :class="{ 'sns-card__action--active': post.saved_by_viewer }"
+        :class="{ 'sns-card__action--saved': post.saved_by_viewer }"
         :aria-label="post.saved_by_viewer ? '保存を解除する' : '保存する'"
         @click="emit('save', post)"
       >
@@ -136,8 +136,8 @@ function onMenuAction(action) {
 <style scoped>
 .sns-card {
   border-radius: var(--site-radius-lg);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--sns-card, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--sns-border, rgba(255, 255, 255, 0.1));
   overflow: hidden;
 }
 .sns-card__head {
@@ -162,7 +162,7 @@ function onMenuAction(action) {
   height: 36px;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--murasaki-700);
+  background: var(--sns-purple, var(--murasaki-700));
   color: #fff;
   display: flex;
   align-items: center;
@@ -182,11 +182,11 @@ function onMenuAction(action) {
 .sns-card__name {
   font-family: var(--ff-sans-jp);
   font-size: 13px;
-  color: #f8f4ef;
+  color: var(--sns-ivory, #f8f4ef);
 }
 .sns-card__time {
   font-size: 11px;
-  color: rgba(248, 244, 239, 0.5);
+  color: var(--sns-text-muted, rgba(248, 244, 239, 0.5));
 }
 .sns-card__menu-wrap {
   position: relative;
@@ -194,17 +194,19 @@ function onMenuAction(action) {
 .sns-card__menu-btn {
   background: transparent;
   border: 0;
-  color: rgba(248, 244, 239, 0.6);
+  color: var(--sns-text-muted, rgba(248, 244, 239, 0.6));
   cursor: pointer;
-  padding: 6px;
+  padding: 10px;
+  min-width: 40px;
+  min-height: 40px;
 }
 .sns-card__menu {
   position: absolute;
   top: 100%;
   right: 0;
   z-index: 5;
-  background: #231b22;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--sns-card-strong, #231b22);
+  border: 1px solid var(--sns-border, rgba(255, 255, 255, 0.14));
   border-radius: var(--site-radius-sm);
   overflow: hidden;
   min-width: 100px;
@@ -215,7 +217,7 @@ function onMenuAction(action) {
   padding: 10px 14px;
   background: transparent;
   border: 0;
-  color: #f8f4ef;
+  color: var(--sns-ivory, #f8f4ef);
   font-size: 12px;
   text-align: left;
   cursor: pointer;
@@ -257,7 +259,7 @@ function onMenuAction(action) {
   font-family: var(--ff-sans-jp);
   font-size: 14px;
   line-height: 1.8;
-  color: #f0ece6;
+  color: var(--sns-ivory, #f0ece6);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -267,7 +269,7 @@ function onMenuAction(action) {
   flex-wrap: wrap;
   gap: 8px;
   font-size: 12px;
-  color: var(--kin-400);
+  color: var(--sns-gold-pale, var(--kin-400));
 }
 .sns-card__text-image {
   width: 100%;
@@ -283,17 +285,23 @@ function onMenuAction(action) {
 .sns-card__action {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: transparent;
   border: 0;
-  color: rgba(248, 244, 239, 0.7);
+  color: var(--sns-text-muted, rgba(248, 244, 239, 0.7));
   cursor: pointer;
   font-family: var(--ff-sans-jp);
   font-size: 12px;
-  padding: 4px;
+  padding: 10px;
+  min-width: 44px;
+  min-height: 44px;
 }
 .sns-card__action--active {
   color: var(--beni-500);
+}
+.sns-card__action--saved {
+  color: var(--sns-gold, var(--kin-500));
 }
 .sns-card__action--share {
   margin-left: auto;
