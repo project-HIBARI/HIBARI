@@ -42,8 +42,11 @@ function onOpenDisco() {
 <template>
   <section
     v-if="todaySong"
-    class="spotlight home-motion-section"
+    class="spotlight"
     aria-label="今日のひばり"
+    data-aos="fade-up"
+    data-aos-duration="800"
+    data-aos-once="true"
   >
     <div class="spotlight__inner">
       <div class="spotlight__badge">

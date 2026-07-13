@@ -4,6 +4,7 @@
  * 用途: ホーム・歩み・ディスコグラフィ・献花などで横並び導線カードを表示する
  */
 import PageImageCard from './PageImageCard.vue'
+import { aosAttrs, AOS_DELAY_STEP } from '../../lib/aos.js'
 
 defineProps({
   cards: { type: Array, required: true },
@@ -28,9 +29,6 @@ function onClick(card) {
     class="site-categories"
     :class="{
       'top-categories': homeMotion,
-      'home-motion-stagger': homeMotion,
-      'motion-stagger site-reveal-stagger': motion && !homeMotion,
-      'motion-section--delay-2': motion && !homeMotion,
     }"
     :aria-label="ariaLabel"
   >
@@ -42,10 +40,8 @@ function onClick(card) {
       :class="{
         'top-categories__card': homeMotion,
         'home-category-card': homeMotion,
-        'home-motion-stagger__item': homeMotion,
-        'stagger-item motion-card': motion && !homeMotion,
       }"
-      :style="motion && !homeMotion ? { '--stagger-i': i } : undefined"
+      v-bind="aosAttrs(i * AOS_DELAY_STEP)"
       :aria-label="c.title"
       @click="onClick(c)"
     >
@@ -70,6 +66,7 @@ function onClick(card) {
           image-only
           compact
           fit="contain"
+          :aos="false"
         />
       </div>
     </button>

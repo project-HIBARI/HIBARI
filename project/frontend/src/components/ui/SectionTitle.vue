@@ -3,6 +3,8 @@
  * 部品名: セクション見出し
  * 用途: 各ページ内のブロックタイトル（最新ニュース、人気スポット等）を表示
  */
+import { aosAttrs } from '../../lib/aos.js'
+
 defineProps({
   title: { type: String, required: true },
   /** 右側に表示するリンクテキスト（省略可） */
@@ -11,13 +13,19 @@ defineProps({
   sub: { type: String, default: '' },
   /** sm / md / lg */
   size: { type: String, default: 'md' },
+  /** AOS スクロールアニメーション */
+  aos: { type: Boolean, default: true },
 })
 
 defineEmits(['link-click'])
 </script>
 
 <template>
-  <div class="section-title" :class="`section-title--${size}`">
+  <div
+    class="section-title"
+    :class="`section-title--${size}`"
+    v-bind="aos ? aosAttrs() : {}"
+  >
     <div class="section-title__main">
       <h2 class="section-title__heading">{{ title }}</h2>
       <p v-if="sub" class="section-title__sub">{{ sub }}</p>

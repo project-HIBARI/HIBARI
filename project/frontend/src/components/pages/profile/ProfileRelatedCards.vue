@@ -14,6 +14,7 @@ const emit = defineEmits(['navigate', 'coming-soon'])
     class="profile-related"
     :cards="HOME_CATEGORY_CARDS"
     aria-label="関連コンテンツ"
+    home-motion
     @navigate="emit('navigate', $event)"
     @coming-soon="emit('coming-soon', $event)"
   />

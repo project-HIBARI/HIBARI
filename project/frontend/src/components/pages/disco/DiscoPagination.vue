@@ -4,6 +4,7 @@
  * 用途: 楽曲一覧のページ切り替えコントロール
  */
 import UiButton from '../../ui/UiButton.vue'
+import { aosAttrs } from '../../../lib/aos.js'
 
 const props = defineProps({
   page: { type: Number, default: 1 },
@@ -27,8 +28,9 @@ function goTo(p) {
     v-if="totalPages > 1"
     class="disco-pagination"
     aria-label="ページナビゲーション"
+    v-bind="aosAttrs()"
   >
-    <UiButton variant="ghost" size="sm" :disabled="page <= 1" @click="goTo(page - 1)">
+    <UiButton variant="ghost" size="sm" aos :disabled="page <= 1" @click="goTo(page - 1)">
       ‹ 前へ
     </UiButton>
 
@@ -47,7 +49,7 @@ function goTo(p) {
       </button>
     </div>
 
-    <UiButton variant="ghost" size="sm" :disabled="page >= totalPages" @click="goTo(page + 1)">
+    <UiButton variant="ghost" size="sm" aos :disabled="page >= totalPages" @click="goTo(page + 1)">
       次へ ›
     </UiButton>
 

@@ -14,6 +14,7 @@ const emit = defineEmits(['navigate', 'coming-soon'])
     class="message-related"
     :cards="HOME_CATEGORY_CARDS"
     aria-label="関連コンテンツ"
+    home-motion
     @navigate="emit('navigate', $event)"
     @coming-soon="emit('coming-soon', $event)"
   />
@@ -22,5 +23,6 @@ const emit = defineEmits(['navigate', 'coming-soon'])
 <style scoped>
 .message-related {
   margin-top: var(--sp-8);
+  margin-bottom: var(--sp-6);
 }
 </style>

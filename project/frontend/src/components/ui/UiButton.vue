@@ -3,6 +3,8 @@
  * 部品名: 共通ボタン
  * 用途: ヘッダー・各ページの CTA・フィルタ等で使うライトテーマ用ボタン
  */
+import { aosAttrs } from '../../lib/aos.js'
+
 defineProps({
   /** primary=紫 / outline=線枠 / ghost=透明 / gold=金アクセント */
   variant: { type: String, default: 'primary' },
@@ -12,6 +14,10 @@ defineProps({
   type: { type: String, default: 'button' },
   /** 無効状態 */
   disabled: { type: Boolean, default: false },
+  /** AOS スクロールアニメーション */
+  aos: { type: Boolean, default: false },
+  /** AOS 遅延（ms） */
+  aosDelay: { type: Number, default: 0 },
 })
 
 defineEmits(['click'])
@@ -23,6 +29,7 @@ defineEmits(['click'])
     class="ui-btn"
     :class="[`ui-btn--${variant}`, `ui-btn--${size}`]"
     :disabled="disabled"
+    v-bind="aos ? aosAttrs(aosDelay) : {}"
     @click="$emit('click', $event)"
   >
     <slot />

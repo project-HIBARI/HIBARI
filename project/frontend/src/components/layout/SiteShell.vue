@@ -8,7 +8,7 @@
 
  */
 
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 
 import SiteHeader from './SiteHeader.vue'
 
@@ -65,6 +65,7 @@ import { useAuth } from '../../composables/useAuth.js'
 
 import { MEMBERSHIP, PERMISSION, hasPermission } from '../../constants/membership.js'
 import { useOpenChatNotifications } from '../../composables/useOpenChatNotifications.js'
+import { initAos, scheduleAosRefresh, destroyAosScheduling } from '../../lib/aos.js'
 
 const props = defineProps({
   pendingFeature: { type: String, default: null },
@@ -150,6 +151,7 @@ watch([page, fanclubSection], ([currentPage, currentSection]) => {
 onUnmounted(() => {
   stopOpenChatNotify()
   setActiveRoomId(null)
+  destroyAosScheduling()
 })
 
 
@@ -158,6 +160,10 @@ onMounted(() => {
   refreshUser()
   if (!introVisible.value) {
     siteReady.value = true
+    nextTick(() => {
+      initAos()
+      scheduleAosRefresh()
+    })
   }
 })
 
@@ -176,7 +182,25 @@ watch(
 function onIntroComplete() {
   completeIntro()
   siteReady.value = true
+  nextTick(() => {
+    initAos()
+    scheduleAosRefresh()
+  })
 }
+
+watch(siteReady, (ready) => {
+  if (!ready || introVisible.value) return
+  nextTick(() => {
+    initAos()
+    scheduleAosRefresh()
+  })
+})
+
+watch([page, pageEnterKey], () => {
+  nextTick(() => {
+    scheduleAosRefresh()
+  })
+}, { flush: 'post' })
 
 
 
@@ -194,7 +218,7 @@ function goTo(id) {
 
   pageEnterKey.value += 1
 
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
 
 }
 
@@ -612,6 +636,7 @@ function handleAiModalAuth(mode) {
         v-else-if="page === 'message'"
         @navigate="goTo"
         @open-auth="openAuth"
+        @open-modal="openModal"
       />
 
       <PageFaq v-else-if="page === 'faq'" />

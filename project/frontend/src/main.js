@@ -2,6 +2,7 @@
  * エントリポイント — Vue アプリ起動
  */
 import { createApp } from 'vue'
+import 'aos/dist/aos.css'
 import './style.css'
 import App from './App.vue'
 import { useTextSize } from './composables/useTextSize.js'

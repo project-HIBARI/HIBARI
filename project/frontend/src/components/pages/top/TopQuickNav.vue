@@ -64,7 +64,7 @@ function onCta() {
 </script>
 
 <template>
-  <nav class="quick-nav home-motion-section" aria-label="主要ページへのクイックアクセス">
+  <nav class="quick-nav" aria-label="主要ページへのクイックアクセス" data-aos="fade-up" data-aos-duration="800" data-aos-once="true">
     <div class="quick-nav__inner">
       <div class="quick-nav__status">
         <span class="quick-nav__status-dot" :class="{ 'is-member': isFanclubMember }" aria-hidden="true" />

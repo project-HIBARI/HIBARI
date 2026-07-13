@@ -6,6 +6,7 @@
 import UiCard from '../../ui/UiCard.vue'
 import { pageImageUrl, PROFILE_SIDEBAR_IMAGE } from '../../../lib/pageImages.js'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
+import { aosAttrs } from '../../../lib/aos.js'
 
 const p = HIBARU_DATA.profile
 const sidebarPhoto = pageImageUrl(PROFILE_SIDEBAR_IMAGE)
@@ -27,7 +28,7 @@ const rows = [
 <template>
   <!-- PC では sticky、スマホでは縦積みのプロフィールサイドバー -->
   <aside class="profile-sidebar" aria-label="基本プロフィール">
-    <figure class="profile-sidebar__photo-wrap">
+    <figure class="profile-sidebar__photo-wrap" v-bind="aosAttrs()">
       <img
         :src="sidebarPhoto"
         alt=""
@@ -39,9 +40,9 @@ const rows = [
       <figcaption class="profile-sidebar__caption">{{ p.photoCaption }}</figcaption>
     </figure>
 
-    <p class="profile-sidebar__bio">{{ p.bio }}</p>
+    <p class="profile-sidebar__bio" v-bind="aosAttrs(80)">{{ p.bio }}</p>
 
-    <UiCard tone="white" padding="md" class="profile-sidebar__info">
+    <UiCard tone="white" padding="md" class="profile-sidebar__info" v-bind="aosAttrs(160)">
       <h2 class="profile-sidebar__heading">基本プロフィール</h2>
       <dl class="profile-sidebar__dl">
         <template v-for="[k, v] in rows" :key="k">
@@ -51,7 +52,7 @@ const rows = [
       </dl>
     </UiCard>
 
-    <UiCard tone="warm" padding="md" class="profile-sidebar__awards">
+    <UiCard tone="warm" padding="md" class="profile-sidebar__awards" v-bind="aosAttrs(240)">
       <h2 class="profile-sidebar__heading profile-sidebar__heading--gold">主な受賞歴</h2>
       <ul class="profile-sidebar__award-list">
         <li v-for="(a, i) in p.awards" :key="i" class="profile-sidebar__award-item">

@@ -2,7 +2,6 @@
 /**
  * ページ: ホーム（top）
  */
-import { ref } from 'vue'
 import TopHeroSection from './top/TopHeroSection.vue'
 import TopQuickNav from './top/TopQuickNav.vue'
 import TopSpotlight from './top/TopSpotlight.vue'
@@ -12,12 +11,9 @@ import TopSubscriptionCard from './top/TopSubscriptionCard.vue'
 import TopNewsPanel from './top/TopNewsPanel.vue'
 import TopEventsPanel from './top/TopEventsPanel.vue'
 import TopCategoryCards from './top/TopCategoryCards.vue'
-import { useHomeMotion } from '../../composables/useHomeMotion.js'
+import { aosAttrs } from '../../lib/aos.js'
 
 const emit = defineEmits(['navigate', 'open-auth', 'open-modal', 'use-feature'])
-
-const pageRoot = ref(null)
-useHomeMotion(pageRoot)
 
 function scrollToEnjoy() {
   const el = document.getElementById('home-enjoy-guide')
@@ -44,7 +40,7 @@ function onEnjoyNavigate(target) {
 </script>
 
 <template>
-  <div ref="pageRoot" class="page-top">
+  <div class="page-top">
     <TopHeroSection
       @open-auth="(m) => emit('open-auth', m)"
       @open-ai="emit('open-modal', 'ai')"
@@ -58,7 +54,7 @@ function onEnjoyNavigate(target) {
 
     <TopSpotlight @navigate="(id) => emit('navigate', id)" />
 
-    <TopVideoPromo class="page-top__promo home-motion-stagger__item" />
+    <TopVideoPromo class="page-top__promo" v-bind="aosAttrs()" />
 
     <TopEnjoyGuide
       class="page-top__enjoy"
@@ -67,22 +63,22 @@ function onEnjoyNavigate(target) {
 
     <div class="page-top__body">
       <section
-        class="page-top__columns home-motion-stagger"
+        class="page-top__columns"
         aria-label="おすすめと最新情報"
       >
-        <div class="page-top__panel home-motion-stagger__item">
+        <div class="page-top__panel" v-bind="aosAttrs(0)">
           <TopSubscriptionCard
             @open-detail="emit('open-modal', 'fanclub')"
             @use-feature="(f) => emit('use-feature', f)"
           />
         </div>
-        <div class="page-top__panel home-motion-stagger__item">
+        <div class="page-top__panel" v-bind="aosAttrs(80)">
           <TopNewsPanel
             @navigate="(id) => emit('navigate', id)"
             @need-auth="(m) => emit('open-auth', m)"
           />
         </div>
-        <div class="page-top__panel home-motion-stagger__item">
+        <div class="page-top__panel" v-bind="aosAttrs(160)">
           <TopEventsPanel
             @open-all="emit('open-modal', 'events')"
             @need-auth="(m) => emit('open-auth', m)"

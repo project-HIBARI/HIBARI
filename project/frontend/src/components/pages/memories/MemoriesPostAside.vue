@@ -3,6 +3,7 @@
  * 部品名: 思い出 — 投稿フォーム（サイド）
  */
 import BoardPostForm from '../../board/BoardPostForm.vue'
+import { aosAttrs } from '../../../lib/aos.js'
 
 defineProps({
   submitted: { type: Boolean, default: false },
@@ -16,7 +17,7 @@ const emit = defineEmits(['update:postData', 'submit', 'reset', 'need-auth'])
 </script>
 
 <template>
-  <aside class="mem-post">
+  <aside class="mem-post" v-bind="aosAttrs(200)" aria-label="思い出を投稿">
     <div class="mem-post__card">
       <BoardPostForm
         :post-data="postData"

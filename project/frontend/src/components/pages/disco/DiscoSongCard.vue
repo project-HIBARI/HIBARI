@@ -5,6 +5,7 @@
  */
 import RecordChip from '../../ui/RecordChip.vue'
 import UiIco from '../../ui/UiIco.vue'
+import { aosAttrs } from '../../../lib/aos.js'
 
 const props = defineProps({
   song: { type: Object, required: true },
@@ -36,7 +37,7 @@ function onPlayClick(e) {
 </script>
 
 <template>
-  <article class="disco-song-card motion-card">
+  <article class="disco-song-card motion-card" v-bind="aosAttrs(index * 80)">
     <div class="disco-song-card__main">
       <button
         type="button"

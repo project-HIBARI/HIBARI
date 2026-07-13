@@ -17,7 +17,7 @@ import PlacesRelatedSongs from './places/PlacesRelatedSongs.vue'
 import PlacesAiCard from './places/PlacesAiCard.vue'
 import PlacesCtaSection from './places/PlacesCtaSection.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
-import { useScrollReveal } from '../../composables/useScrollReveal.js'
+import { aosAttrs } from '../../lib/aos.js'
 
 const FAV_KEY = 'hbr-places-favorites'
 
@@ -31,9 +31,6 @@ const appliedKeyword = ref('')
 
 const selected = ref(HIBARU_DATA.places[0])
 const favorites = ref(new Set())
-const pageRoot = ref(null)
-
-useScrollReveal(pageRoot)
 
 onMounted(() => {
   try {
@@ -110,10 +107,10 @@ function selectSpot(spot) {
 </script>
 
 <template>
-  <div ref="pageRoot" class="page-places">
-    <PlacesHeroSection class="motion-section site-reveal" @open-ai="emit('open-modal', 'ai')" />
+  <div class="page-places">
+    <PlacesHeroSection v-bind="aosAttrs()" @open-ai="emit('open-modal', 'ai')" />
 
-    <div class="page-places__map-layout site-reveal site-reveal--delay-1">
+    <div class="page-places__map-layout" v-bind="aosAttrs(80)">
       <PlacesMapPanel
         :places="filteredPlaces"
         :selected="selected"
@@ -135,7 +132,7 @@ function selectSpot(spot) {
       @reset="resetFilters"
     />
 
-    <PlacesCategoryTabs v-model:category="categoryFilter" />
+    <PlacesCategoryTabs v-model:category="categoryFilter" v-bind="aosAttrs(120)" />
 
     <div id="places-spot-grid">
       <PlacesSpotGrid
@@ -147,17 +144,19 @@ function selectSpot(spot) {
     </div>
 
     <PlacesGalleryPanel
+      v-bind="aosAttrs(160)"
       @open-gallery="emit('open-auth', 'gallery')"
       @need-auth="(m) => emit('open-auth', m)"
     />
 
-    <PlacesEpisodePanel />
+    <PlacesEpisodePanel v-bind="aosAttrs(200)" />
 
-    <PlacesRelatedSongs />
+    <PlacesRelatedSongs v-bind="aosAttrs(240)" />
 
-    <PlacesAiCard @open-ai="emit('open-modal', 'ai')" />
+    <PlacesAiCard v-bind="aosAttrs(280)" @open-ai="emit('open-modal', 'ai')" />
 
     <PlacesCtaSection
+      v-bind="aosAttrs(320)"
       @open-auth="(mode) => emit('open-auth', mode)"
       @navigate="(id) => emit('navigate', id)"
     />

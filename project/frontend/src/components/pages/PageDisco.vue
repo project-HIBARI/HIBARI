@@ -3,7 +3,7 @@
  * ページ: ディスコグラフィ（曲）
  * 構成: ヒーロー / PV / フィルタ / 楽曲グリッド / ページネーション / AI / 関連導線
  */
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import DiscoHeroSection from './disco/DiscoHeroSection.vue'
 import DiscoPvSection from './disco/DiscoPvSection.vue'
 import DiscoFilterPanel from './disco/DiscoFilterPanel.vue'
@@ -13,7 +13,7 @@ import DiscoAiCard from './disco/DiscoAiCard.vue'
 import DiscoRelatedCards from './disco/DiscoRelatedCards.vue'
 import DiscoDetailDialog from './disco/DiscoDetailDialog.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
-import { useScrollReveal } from '../../composables/useScrollReveal.js'
+import { refreshAosHard } from '../../lib/aos.js'
 
 const FAV_KEY = 'hbr-disco-favorites'
 const PAGE_SIZE = 8
@@ -29,9 +29,6 @@ const yearEnd = ref(HIBARU_DATA.discographyStats.yearEnd)
 const currentPage = ref(1)
 const detail = ref(null)
 const favorites = ref(new Set())
-const pageRoot = ref(null)
-
-useScrollReveal(pageRoot)
 
 onMounted(() => {
   try {
@@ -108,27 +105,28 @@ watch([query, typeFilter, genre, sort, yearStart, yearEnd], () => {
   currentPage.value = 1
 })
 
+watch(currentPage, () => {
+  nextTick(() => refreshAosHard())
+})
+
 function openDetail(song) {
   detail.value = song
 }
 </script>
 
 <template>
-  <div ref="pageRoot" class="page-disco">
+  <div class="page-disco">
     <DiscoHeroSection
-      class="motion-section site-reveal"
       @open-detail="openDetail"
       @open-ai="emit('open-modal', 'ai')"
     />
 
     <DiscoPvSection
-      class="site-reveal site-reveal--delay-1"
       @coming-soon="emit('open-auth', 'pv')"
       @need-auth="(m) => emit('open-auth', m)"
     />
 
     <DiscoFilterPanel
-      class="site-reveal site-reveal--delay-2"
       :query="query"
       :type-filter="typeFilter"
       :genre="genre"
@@ -146,7 +144,6 @@ function openDetail(song) {
     />
 
     <DiscoSongGrid
-      class="site-reveal site-reveal--delay-3"
       :items="paginatedItems"
       :favorites="favorites"
       :empty-type="emptyType"

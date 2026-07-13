@@ -11,6 +11,7 @@
 import { computed } from 'vue'
 
 import { pageImageUrl } from '../../lib/pageImages.js'
+import { aosAttrs } from '../../lib/aos.js'
 
 
 
@@ -41,6 +42,9 @@ const props = defineProps({
   /** cover | contain（透過PNGは contain 推奨） */
 
   fit: { type: String, default: 'contain' },
+
+  /** AOS スクロールアニメーション（画像） */
+  aos: { type: Boolean, default: true },
 
 })
 
@@ -93,6 +97,8 @@ const imgAlt = computed(() => props.alt || props.title || '')
         decoding="async"
 
         draggable="false"
+
+        v-bind="aos ? aosAttrs() : {}"
 
       />
 

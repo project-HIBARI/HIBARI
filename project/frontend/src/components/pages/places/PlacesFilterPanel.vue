@@ -8,6 +8,7 @@ import UiCard from '../../ui/UiCard.vue'
 import UiButton from '../../ui/UiButton.vue'
 import UiIco from '../../ui/UiIco.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
+import { aosAttrs } from '../../../lib/aos.js'
 
 const region = defineModel('region', { type: String, default: 'all' })
 const prefecture = defineModel('prefecture', { type: String, default: 'all' })
@@ -40,7 +41,7 @@ function onRegionChange(e) {
 
 <template>
   <!-- スポット検索・絞り込み -->
-  <UiCard tone="white" padding="md" class="places-filter">
+  <UiCard tone="white" padding="md" class="places-filter" v-bind="aosAttrs()">
     <div class="places-filter__search">
       <UiIco name="search" :size="15" color="var(--kin-600)" class="places-filter__search-icon" />
       <input
@@ -76,7 +77,7 @@ function onRegionChange(e) {
     </div>
 
     <div class="places-filter__actions">
-      <UiButton variant="primary" size="sm" @click="emit('search')">
+      <UiButton variant="primary" size="sm" aos @click="emit('search')">
         <UiIco name="search" :size="14" color="#fff" />
         検索
       </UiButton>

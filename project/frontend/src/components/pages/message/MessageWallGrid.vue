@@ -2,9 +2,13 @@
 /**
  * 部品名: 献花 — 寄せられたメッセージ一覧（ガラス風カード）
  */
-import { computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { flowerByName } from '../../../lib/flowers.js'
 import FlowerCutout from './FlowerCutout.vue'
+import UiButton from '../../ui/UiButton.vue'
+import { aosAttrs, refreshAosHard } from '../../../lib/aos.js'
+
+const PAGE_SIZE = 12
 
 const props = defineProps({
   items: {
@@ -13,6 +17,8 @@ const props = defineProps({
   },
 })
 
+const page = ref(1)
+
 const sorted = computed(() =>
   [...props.items].sort((a, b) => {
     const da = new Date(a.date?.replace(/\./g, '-') || 0).getTime()
@@ -20,20 +26,53 @@ const sorted = computed(() =>
     return db - da
   }),
 )
+
+const totalPages = computed(() => Math.max(1, Math.ceil(sorted.value.length / PAGE_SIZE)))
+
+const paginatedItems = computed(() => {
+  const start = (page.value - 1) * PAGE_SIZE
+  return sorted.value.slice(start, start + PAGE_SIZE)
+})
+
+watch(
+  () => props.items.length,
+  () => {
+    page.value = 1
+  },
+)
+
+watch(page, () => {
+  nextTick(() => refreshAosHard())
+})
+
+watch(totalPages, (nextTotal) => {
+  if (page.value > nextTotal) {
+    page.value = nextTotal
+  }
+})
+
+function goPrev() {
+  if (page.value > 1) page.value -= 1
+}
+
+function goNext() {
+  if (page.value < totalPages.value) page.value += 1
+}
 </script>
 
 <template>
   <section class="msg-wall" aria-labelledby="msg-wall-title">
-    <header class="msg-wall__head">
+    <header class="msg-wall__head" v-bind="aosAttrs()">
       <h2 id="msg-wall-title" class="msg-wall__title">みなさんの献花・メッセージ</h2>
       <p class="msg-wall__sort" aria-label="並び順">新しい順</p>
     </header>
 
-    <div v-if="sorted.length" class="msg-wall__grid site-reveal-stagger">
+    <div v-if="sorted.length" class="msg-wall__grid">
       <article
-        v-for="(m, i) in sorted"
-        :key="m.id ?? i"
-        class="msg-wall__card stagger-item"
+        v-for="(m, i) in paginatedItems"
+        :key="m.id ?? `${page}-${i}`"
+        class="msg-wall__card"
+        v-bind="aosAttrs(i * 80)"
       >
         <div class="msg-wall__flower">
           <FlowerCutout :src="flowerByName(m.flower).image" :alt="m.flower" size="sm" />
@@ -49,6 +88,22 @@ const sorted = computed(() =>
         </div>
       </article>
     </div>
+
+    <nav
+      v-if="sorted.length"
+      class="msg-wall__pager"
+      aria-label="献花・メッセージのページ送り"
+    >
+      <UiButton variant="outline" size="sm" aos :disabled="page <= 1" @click="goPrev">
+        前へ
+      </UiButton>
+      <span class="msg-wall__pager-info" aria-live="polite">
+        {{ page }} / {{ totalPages }}
+      </span>
+      <UiButton variant="outline" size="sm" aos :disabled="page >= totalPages" @click="goNext">
+        次へ
+      </UiButton>
+    </nav>
 
     <p v-else class="msg-wall__empty">まだ献花はありません。最初の想いを届けてみませんか。</p>
   </section>
@@ -186,6 +241,24 @@ const sorted = computed(() =>
   border-radius: 24px;
   background: color-mix(in srgb, var(--site-surface) 60%, transparent);
   border: 1px dashed var(--site-border);
+}
+
+.msg-wall__pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-4);
+}
+
+.msg-wall__pager-info {
+  min-width: 4.5em;
+  text-align: center;
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--site-text-muted);
 }
 
 @media (max-width: 1024px) {

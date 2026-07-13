@@ -5,6 +5,7 @@
  */
 import UiCard from '../../ui/UiCard.vue'
 import SectionTitle from '../../ui/SectionTitle.vue'
+import { aosAttrs } from '../../../lib/aos.js'
 
 const emit = defineEmits(['navigate'])
 
@@ -23,11 +24,12 @@ const guides = [
 
     <div class="top-enjoy__grid">
       <UiCard
-        v-for="g in guides"
+        v-for="(g, i) in guides"
         :key="g.title"
         tone="pink"
         padding="md"
         class="top-enjoy__card"
+        v-bind="aosAttrs(i * 80)"
       >
         <button type="button" class="top-enjoy__btn" @click="emit('navigate', g.target)">
           <span class="top-enjoy__icon">{{ g.icon }}</span>

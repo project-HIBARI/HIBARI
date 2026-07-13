@@ -7,6 +7,7 @@ import SectionTitle from '../../ui/SectionTitle.vue'
 import UiButton from '../../ui/UiButton.vue'
 import UiIco from '../../ui/UiIco.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
+import { aosAttrs } from '../../../lib/aos.js'
 
 const emit = defineEmits(['open-gallery'])
 
@@ -24,6 +25,7 @@ const timeline = HIBARU_DATA.timeline
         :key="i"
         class="profile-timeline__item"
         :class="{ 'profile-timeline__item--last': i === timeline.length - 1 }"
+        v-bind="aosAttrs(i * 80)"
       >
         <div class="profile-timeline__marker" aria-hidden="true">
           <span class="profile-timeline__dot" />

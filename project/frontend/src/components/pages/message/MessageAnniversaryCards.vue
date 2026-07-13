@@ -3,6 +3,7 @@
  * 部品名: 献花ページ — 誕生日／不死鳥忌カード
  */
 import { daysUntil } from '../../../utils/hibaru.js'
+import { aosAttrs } from '../../../lib/aos.js'
 
 const daysBd = daysUntil(5, 29)
 const daysMem = daysUntil(6, 24)
@@ -36,6 +37,7 @@ const cards = [
       :key="i"
       class="msg-anniv__card"
       :class="{ 'msg-anniv__card--active': s.active }"
+      v-bind="aosAttrs(i * 100)"
     >
       <div class="msg-anniv__en">{{ s.en }}</div>
       <div class="msg-anniv__date">{{ s.date }}</div>
