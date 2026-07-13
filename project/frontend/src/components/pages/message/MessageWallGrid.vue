@@ -18,6 +18,7 @@ const props = defineProps({
 })
 
 const page = ref(1)
+const wallRoot = ref(null)
 
 const sorted = computed(() =>
   [...props.items].sort((a, b) => {
@@ -38,12 +39,9 @@ watch(
   () => props.items.length,
   () => {
     page.value = 1
+    nextTick(() => refreshAosHard())
   },
 )
-
-watch(page, () => {
-  nextTick(() => refreshAosHard())
-})
 
 watch(totalPages, (nextTotal) => {
   if (page.value > nextTotal) {
@@ -51,17 +49,30 @@ watch(totalPages, (nextTotal) => {
   }
 })
 
+function scrollToListTop() {
+  wallRoot.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function changePage(next) {
+  if (next < 1 || next > totalPages.value || next === page.value) return
+  page.value = next
+  nextTick(() => {
+    scrollToListTop()
+    refreshAosHard()
+  })
+}
+
 function goPrev() {
-  if (page.value > 1) page.value -= 1
+  changePage(page.value - 1)
 }
 
 function goNext() {
-  if (page.value < totalPages.value) page.value += 1
+  changePage(page.value + 1)
 }
 </script>
 
 <template>
-  <section class="msg-wall" aria-labelledby="msg-wall-title">
+  <section ref="wallRoot" class="msg-wall" aria-labelledby="msg-wall-title">
     <header class="msg-wall__head" v-bind="aosAttrs()">
       <h2 id="msg-wall-title" class="msg-wall__title">みなさんの献花・メッセージ</h2>
       <p class="msg-wall__sort" aria-label="並び順">新しい順</p>
@@ -112,6 +123,7 @@ function goNext() {
 <style scoped>
 .msg-wall {
   margin-bottom: var(--sp-7);
+  scroll-margin-top: 96px;
 }
 
 .msg-wall__head {

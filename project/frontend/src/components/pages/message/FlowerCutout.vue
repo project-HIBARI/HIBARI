@@ -58,7 +58,7 @@ defineProps({
 
 .flower-cutout--picker {
   width: 100%;
-  max-width: 168px;
-  height: 200px;
+  max-width: 116px;
+  height: 148px;
 }
 </style>

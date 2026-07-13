@@ -123,8 +123,8 @@ async function submitOffering() {
 
             <div class="msg-offer__fields">
               <div class="msg-offer__row">
-                <label class="msg-offer__field">
-                  <span class="msg-offer__label">お名前（ニックネーム可）</span>
+                <label class="msg-offer__field msg-offer__field--name">
+                  <span class="msg-offer__label">お名前<span class="msg-offer__label-note">（ニックネーム可）</span></span>
                   <input
                     v-model="formData.name"
                     class="msg-offer__input"
@@ -236,7 +236,7 @@ async function submitOffering() {
 
 .msg-offer__body {
   display: grid;
-  grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 132px) minmax(0, 1fr);
   gap: var(--sp-4);
   align-items: start;
 }
@@ -261,7 +261,7 @@ async function submitOffering() {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 220px;
+  min-height: 160px;
   padding: var(--sp-2);
   border: 1px solid var(--kin-500);
   border-radius: var(--site-radius-md);
@@ -300,7 +300,7 @@ async function submitOffering() {
 
 .msg-offer__row {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   gap: var(--sp-3);
   align-items: end;
 }
@@ -317,9 +317,14 @@ async function submitOffering() {
   margin-bottom: 6px;
   font-family: var(--ff-mincho);
   font-size: 10px;
-  line-height: 1.5;
-  letter-spacing: 0.04em;
+  line-height: 1.4;
+  letter-spacing: 0;
   color: var(--site-text-muted);
+  white-space: nowrap;
+}
+
+.msg-offer__label-note {
+  letter-spacing: 0;
 }
 
 .msg-offer__input {
@@ -412,7 +417,7 @@ async function submitOffering() {
   text-align: center;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 600px) {
   .msg-offer__body {
     grid-template-columns: 1fr;
     gap: var(--sp-4);
@@ -420,7 +425,7 @@ async function submitOffering() {
 
   .msg-offer__flower-frame {
     min-height: 140px;
-    max-width: 180px;
+    max-width: 132px;
     margin: 0 auto;
   }
 }
