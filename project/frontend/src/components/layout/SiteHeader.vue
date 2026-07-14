@@ -47,31 +47,49 @@ onUnmounted(() => {
     :class="{ 'site-header--scrolled': scrolled, 'site-header--menu-open': menuOpen }"
   >
     <div class="site-header__inner">
-      <button
-        v-if="showPlatformBack"
-        type="button"
-        class="site-header__platform-back"
-        @click="emit('exit-platform')"
-      >
-        <span class="site-header__platform-back-icon" aria-hidden="true">←</span>
-        {{ SITE_NAME }}
-      </button>
+      <div class="site-header__row site-header__row--top">
+        <div class="site-header__start">
+          <button
+            type="button"
+            class="site-header__logo"
+            aria-label="ホームへ"
+            @click="emit('logo')"
+          >
+            <img
+              :src="logoSrc"
+              :alt="`${SITE_NAME} · ${HIBARI_FANCLUB_NAME}`"
+              class="site-header__logo-img"
+              width="948"
+              height="337"
+              decoding="async"
+            />
+          </button>
+        </div>
 
-      <button
-        type="button"
-        class="site-header__logo"
-        aria-label="ホームへ"
-        @click="emit('logo')"
-      >
-        <img
-          :src="logoSrc"
-          :alt="`${SITE_NAME} · ${HIBARI_FANCLUB_NAME}`"
-          class="site-header__logo-img"
-          width="948"
-          height="337"
-          decoding="async"
-        />
-      </button>
+        <div class="site-header__actions-bar">
+          <HeaderSearch class="site-header__search-inline" @navigate="(page) => emit('navigate', page)" />
+
+          <TextSizeControl tone="ink" variant="header" class="site-header__text-size" />
+
+          <FanclubMembershipBadge
+            v-if="authOnPlatformOnly && isLoggedIn"
+            :user-name="userName"
+            :membership="membership"
+            :is-fanclub-member="isFanclubMember"
+          />
+        </div>
+
+        <button
+          type="button"
+          class="site-header__menu"
+          :class="{ 'site-header__menu--open': menuOpen }"
+          :aria-label="menuOpen ? 'メニューを閉じる' : 'メニューを開く'"
+          :aria-expanded="menuOpen"
+          @click="emit('toggle-drawer')"
+        >
+          <span v-for="i in 3" :key="i" class="site-header__menu-line" />
+        </button>
+      </div>
 
       <nav
         class="site-header__nav"
@@ -79,41 +97,29 @@ onUnmounted(() => {
         aria-label="メインナビゲーション"
       >
         <button
+          v-if="showPlatformBack"
+          type="button"
+          class="site-header__platform-back site-header__platform-back--in-nav"
+          :aria-label="`${SITE_NAME}へ戻る`"
+          @click="emit('exit-platform')"
+        >
+          <span class="site-header__platform-back-icon" aria-hidden="true">←</span>
+          <span class="site-header__platform-back-text">{{ SITE_NAME }}</span>
+        </button>
+
+        <button
           v-for="n in items"
           :key="n.id"
           type="button"
           class="site-header__nav-link"
           :class="{ 'site-header__nav-link--active': page === n.id }"
           :aria-current="page === n.id ? 'page' : undefined"
+          :title="n.shortLabel ? n.label : undefined"
           @click="emit('navigate', n.id)"
         >
-          {{ n.label }}
+          {{ n.shortLabel ?? n.label }}
         </button>
       </nav>
-
-      <div class="site-header__actions-bar">
-        <HeaderSearch class="site-header__search-inline" @navigate="(page) => emit('navigate', page)" />
-
-        <TextSizeControl tone="ink" variant="header" class="site-header__text-size" />
-
-        <FanclubMembershipBadge
-          v-if="authOnPlatformOnly && isLoggedIn"
-          :user-name="userName"
-          :membership="membership"
-          :is-fanclub-member="isFanclubMember"
-        />
-      </div>
-
-      <button
-        type="button"
-        class="site-header__menu"
-        :class="{ 'site-header__menu--open': menuOpen }"
-        :aria-label="menuOpen ? 'メニューを閉じる' : 'メニューを開く'"
-        :aria-expanded="menuOpen"
-        @click="emit('toggle-drawer')"
-      >
-        <span v-for="i in 3" :key="i" class="site-header__menu-line" />
-      </button>
     </div>
   </header>
 </template>
@@ -137,13 +143,22 @@ onUnmounted(() => {
 
 .site-header__inner {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
   width: 100%;
   max-width: 1520px;
   margin: 0 auto;
   padding: 14px 16px;
+  min-width: 0;
+}
+
+.site-header__row--top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
   min-width: 0;
 }
 
@@ -175,6 +190,22 @@ onUnmounted(() => {
 .site-header__platform-back-icon {
   font-size: 12px;
   line-height: 1;
+}
+
+.site-header__platform-back-text {
+  white-space: nowrap;
+}
+
+.site-header__platform-back--in-nav {
+  margin-right: 4px;
+}
+
+.site-header__start {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .site-header__logo {
@@ -277,13 +308,13 @@ onUnmounted(() => {
 }
 
 @media (max-width: 1099px) {
-  .site-header--menu-open .site-header__logo,
-  .site-header--menu-open .site-header__actions-bar {
+  .site-header--menu-open .site-header__row--top .site-header__start,
+  .site-header--menu-open .site-header__row--top .site-header__actions-bar {
     visibility: hidden;
     pointer-events: none;
   }
 
-  .site-header--menu-open .site-header__inner {
+  .site-header--menu-open .site-header__row--top {
     justify-content: flex-end;
   }
 
@@ -425,44 +456,43 @@ onUnmounted(() => {
   }
 }
 
-/* 1100px以上: 横並びナビ（コンパクト） */
+/* 1100px以上: 2段ヘッダー（上段ロゴ+操作 / 下段ナビ） */
 @media (min-width: 1100px) {
   .site-header__inner {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    column-gap: 20px;
-    padding: 14px 24px;
-    min-height: 80px;
+    padding: 12px 20px 10px;
   }
 
-  .site-header__logo {
-    grid-column: 1;
-    justify-self: start;
-    padding-right: 12px;
+  .site-header__row--top {
+    gap: 16px;
+    padding-bottom: 8px;
   }
 
   .site-header__logo-img {
-    width: 150px;
+    width: 148px;
+  }
+
+  .site-header__platform-back--in-nav {
+    margin-right: 8px;
+    padding-right: 14px;
+    border-right: 1px solid rgba(93, 58, 107, 0.12);
   }
 
   .site-header__nav {
     display: flex;
-    grid-column: 2;
-    justify-self: center;
     align-items: center;
     justify-content: center;
     flex-wrap: nowrap;
-    gap: 10px;
-    min-width: 0;
+    gap: 6px 14px;
+    width: 100%;
+    padding-top: 8px;
+    border-top: 1px solid rgba(93, 58, 107, 0.08);
   }
 
   .site-header__nav-link {
     flex: 0 0 auto;
-    padding: 6px 0;
+    padding: 4px 0;
     margin: 0;
     border: 0;
-    border-bottom: none;
     background: transparent;
     cursor: pointer;
     font-family: var(--ff-sans-jp);
@@ -471,7 +501,7 @@ onUnmounted(() => {
     letter-spacing: 0.05em;
     color: var(--site-text);
     white-space: nowrap;
-    transition: color 0.2s, border-color 0.2s;
+    transition: color 0.2s;
   }
 
   .site-header__nav-link:hover {
@@ -484,81 +514,85 @@ onUnmounted(() => {
   }
 
   .site-header__actions-bar {
-    grid-column: 3;
-    justify-self: end;
-    margin-left: 0;
-    gap: 12px;
+    margin-left: auto;
+    gap: 10px;
     flex-wrap: nowrap;
-  }
-
-  .site-header__auth {
-    order: 3;
-    margin-left: 0;
-  }
-
-  .site-header__text-size {
-    display: block;
-    order: 2;
   }
 
   .site-header__search-inline {
     order: 1;
+    max-width: 168px;
   }
 
-  .site-header__text-size :deep(.text-size-control__label) {
+  .site-header__actions-bar :deep(.fc-membership-badge__text) {
     display: none;
+  }
+
+  .site-header__actions-bar :deep(.fc-membership-badge) {
+    padding: 4px;
+    max-width: none;
+  }
+
+  .site-header__text-size {
+    display: none;
+    order: 2;
   }
 
   .site-header__menu {
     display: none;
-  }
-
-  .site-header__btn {
-    padding: 6px 12px;
-    font-size: 12px;
   }
 }
 
 /* 1280px以上: フルPC表示 */
 @media (min-width: 1280px) {
   .site-header__inner {
-    column-gap: 28px;
-    padding: 16px 32px;
-    min-height: 88px;
+    padding: 14px 28px 12px;
   }
 
-  .site-header__logo {
-    padding-right: 20px;
+  .site-header__row--top {
+    gap: 20px;
+    padding-bottom: 10px;
   }
 
   .site-header__logo-img {
-    width: 180px;
+    width: 172px;
+  }
+
+  .site-header__platform-back--in-nav {
+    margin-right: 10px;
+    padding-right: 18px;
   }
 
   .site-header__nav {
-    gap: 16px;
+    gap: 8px 18px;
+    padding-top: 10px;
   }
 
   .site-header__nav-link {
+    padding: 5px 0;
     font-size: 13px;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
   }
 
   .site-header__actions-bar {
-    gap: 14px;
-  }
-
-  .site-header__actions-primary {
     gap: 12px;
   }
 
-  .site-header__auth {
-    gap: 10px;
+  .site-header__search-inline {
+    max-width: 188px;
   }
 
-  .site-header__btn {
-    padding: 7px 16px;
-    font-size: 13px;
+  .site-header__actions-bar :deep(.fc-membership-badge__text) {
+    display: flex;
+  }
+
+  .site-header__actions-bar :deep(.fc-membership-badge) {
+    padding: 4px 12px 4px 4px;
+    max-width: 200px;
+  }
+
+  .site-header__text-size {
+    display: block;
   }
 
   .site-header__text-size :deep(.text-size-control__btn) {
@@ -580,23 +614,18 @@ onUnmounted(() => {
   }
 }
 
-/* 1360px以上: ゆとりあるフル表示 */
-@media (min-width: 1360px) {
+/* 1520px以上: 最大ゆとり */
+@media (min-width: 1520px) {
   .site-header__inner {
-    column-gap: 32px;
-    padding: 18px 36px;
-  }
-
-  .site-header__logo {
-    padding-right: 24px;
+    padding: 16px 36px 14px;
   }
 
   .site-header__logo-img {
-    width: 198px;
+    width: 190px;
   }
 
   .site-header__nav {
-    gap: 18px;
+    gap: 10px 22px;
   }
 
   .site-header__nav-link {
@@ -605,7 +634,11 @@ onUnmounted(() => {
   }
 
   .site-header__actions-bar {
-    gap: 16px;
+    gap: 14px;
+  }
+
+  .site-header__search-inline {
+    max-width: 200px;
   }
 
   .site-header__text-size :deep(.text-size-control__label) {

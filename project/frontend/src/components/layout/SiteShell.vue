@@ -45,6 +45,8 @@ import PageMemories from '../pages/PageMemories.vue'
 
 import PageMessage from '../pages/PageMessage.vue'
 
+import PageMemoryBook from '../pages/PageMemoryBook.vue'
+
 import PageFaq from '../pages/PageFaq.vue'
 
 import PageContact from '../pages/PageContact.vue'
@@ -81,15 +83,17 @@ const navItems = [
 
   { id: 'news', label: 'ニュース' },
 
-  { id: 'profile', label: '美空ひばりについて' },
+  { id: 'profile', label: '美空ひばりについて', shortLabel: '美空ひばり' },
 
-  { id: 'disco', label: 'ディスコグラフィ' },
+  { id: 'disco', label: 'ディスコグラフィ', shortLabel: 'ディスコ' },
 
   { id: 'map', label: 'ゆかりの地' },
 
   { id: 'memories', label: '思い出' },
 
   { id: 'message', label: '献花' },
+
+  { id: 'memory-book', label: 'Music Memory Book', shortLabel: '思い出帳' },
 
   { id: 'fanclub', label: 'ファンクラブ' },
 
@@ -634,6 +638,13 @@ function handleAiModalAuth(mode) {
 
       <PageMessage
         v-else-if="page === 'message'"
+        @navigate="goTo"
+        @open-auth="openAuth"
+        @open-modal="openModal"
+      />
+
+      <PageMemoryBook
+        v-else-if="page === 'memory-book'"
         @navigate="goTo"
         @open-auth="openAuth"
         @open-modal="openModal"

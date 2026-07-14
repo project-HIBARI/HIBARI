@@ -19,6 +19,7 @@ export function buildSearchIndex() {
   }
   items.push(
     { type: 'ページ', label: 'ファンクラブ', page: 'fanclub', key: 'page-fanclub' },
+    { type: 'ページ', label: 'Music Memory Book', page: 'memory-book', key: 'page-memory-book' },
     { type: 'ページ', label: '献花', page: 'message', key: 'page-message' },
     { type: 'ページ', label: 'お問い合わせ', page: 'contact', key: 'page-contact' },
     { type: 'ページ', label: 'FAQ', page: 'faq', key: 'page-faq' },
