@@ -8,6 +8,7 @@ import PageHead from '../ui/PageHead.vue'
 import SectionTitle from '../ui/SectionTitle.vue'
 import MemberGate from '../common/MemberGate.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
+import { SITE_NAME } from '../../constants/site.js'
 import { useMemberAccess } from '../../composables/useMemberAccess.js'
 import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
@@ -25,7 +26,7 @@ const items = HIBARU_DATA.news
     <PageHead kanji="新" title="ニュース" sub="News · 最新のお知らせ" />
 
     <p class="page-news__intro motion-section site-reveal">
-      美空ひばり公式ファンサイトからのお知らせ、イベント情報、メディア出演などを掲載しています。
+      {{ SITE_NAME }} 美空ひばり ファンクラブからのお知らせ、イベント情報、メディア出演などを掲載しています。
     </p>
 
     <section class="page-news__section site-reveal site-reveal--delay-1" aria-label="ニュース一覧">

@@ -25,7 +25,7 @@ export const HIBARU_DATA = {
   },
 
   news: [
-    { date: '2026.05.29', title: '【お知らせ】美空ひばり公式ファンサイト リニューアルオープン', type: 'info', label: 'お知らせ', isNew: true },
+    { date: '2026.05.29', title: '【お知らせ】Music Memories 美空ひばり ファンクラブ リニューアルオープン', type: 'info', label: 'お知らせ', isNew: true },
     { date: '2026.04.20', title: '【テレビ放映情報】4月29日（祝）NHK BSプレミアム「美空ひばり不死鳥コンサート」放映', type: 'tv', label: 'テレビ' },
     { date: '2026.04.15', title: '【イベント】5月29日（誕生日）記念館フィルムコンサート開催決定', type: 'event', label: 'イベント' },
     { date: '2026.04.10', title: '【テレビ放映情報】4月17日（金）テレビ朝日系「ザ・ベストテン名場面集」に美空ひばり出演映像', type: 'tv', label: 'テレビ' },
@@ -44,7 +44,7 @@ export const HIBARU_DATA = {
     label: '特別映像',
     title: '美空ひばりの世界を映像でたどる',
     description:
-      '名曲、舞台、思い出の瞬間を、公式ファンサイトならではの映像体験でお楽しみください。',
+      '名曲、舞台、思い出の瞬間を、Music Memories ならではの映像体験でお楽しみください。',
     cta: 'プロモーションを見る',
   },
 

@@ -25,9 +25,13 @@ const state = computed(() => getAccessState(props.permission))
     <p class="member-gate__text">{{ state.message }}</p>
     <div class="member-gate__actions">
       <template v-if="state.reason === 'login'">
-        <button type="button" class="member-gate__btn" @click="emit('login')">ログイン</button>
+        <button type="button" class="member-gate__btn member-gate__btn--primary" @click="emit('login')">
+          Music Memories でログイン
+        </button>
+      </template>
+      <template v-else-if="state.reason === 'fanclub'">
         <button type="button" class="member-gate__btn member-gate__btn--primary" @click="emit('register')">
-          新規登録
+          Music Memories でファンクラブ加入
         </button>
       </template>
       <button
@@ -36,7 +40,7 @@ const state = computed(() => getAccessState(props.permission))
         class="member-gate__btn member-gate__btn--primary"
         @click="emit('upgrade')"
       >
-        プレミアムに登録
+        Music Memories でプレミアム登録
       </button>
     </div>
   </div>

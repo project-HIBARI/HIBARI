@@ -1,8 +1,8 @@
 <script setup>
 /**
  * 部品名: ログインページ下部 CTA バナー
- * 用途: 「美空ひばりを、これからも共に。」訴求帯
  */
+import { SITE_NAME, SITE_TAGLINE } from '../../../constants/site.js'
 </script>
 
 <template>
@@ -16,8 +16,8 @@
     </div>
 
     <div class="login-cta__copy">
-      <h2 class="login-cta__title">美空ひばりを、これからも共に。</h2>
-      <p class="login-cta__sub">美空ひばりの歌と想いを、未来へつなぎましょう。</p>
+      <h2 class="login-cta__title">{{ SITE_NAME }} へようこそ</h2>
+      <p class="login-cta__sub">{{ SITE_TAGLINE }}</p>
     </div>
 
     <div class="login-cta__silhouette" aria-hidden="true">

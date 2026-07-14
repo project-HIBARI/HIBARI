@@ -3,13 +3,13 @@
  * 部品名: ゆかりの地 — ヒーローエリア
  * 用途: ページ冒頭のタイトル・肖像・地図装飾・AI導線を表示する
  */
-import { pageImageUrl, PAGE_HERO_IMAGE } from '../../../lib/pageImages.js'
+import { pageImageUrl, PROFILE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import TopAiCard from '../top/TopAiCard.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 
 const emit = defineEmits(['open-ai'])
 
-const heroImg = pageImageUrl(PAGE_HERO_IMAGE)
+const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
 
 const spotCount = HIBARU_DATA.places.length
 const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').length
@@ -55,11 +55,21 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
         </p>
       </div>
 
-      <div class="places-hero__visual">
-        <img :src="heroImg" alt="美空ひばり" class="places-hero__photo" />
-      </div>
+      <div class="places-hero__aside">
+        <div class="places-hero__visual">
+          <img
+            :src="heroImg"
+            alt=""
+            class="places-hero__photo"
+            width="360"
+            decoding="async"
+          />
+        </div>
 
-      <TopAiCard @open-ai="emit('open-ai')" />
+        <div class="places-hero__ai">
+          <TopAiCard @open-ai="emit('open-ai')" />
+        </div>
+      </div>
     </div>
   </section>
 </template>
@@ -71,6 +81,7 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
   padding: var(--sp-7) var(--sp-5);
   border-radius: var(--site-radius-lg);
   overflow: hidden;
+  min-height: 380px;
 }
 .places-hero__bg {
   position: absolute;
@@ -107,11 +118,51 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
 }
 .places-hero__inner {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr minmax(200px, 260px) auto;
-  gap: var(--sp-6);
+  display: flex;
   align-items: center;
+  gap: var(--sp-6);
   z-index: 1;
+}
+.places-hero__copy {
+  flex: 1 1 auto;
+  min-width: 240px;
+  max-width: 400px;
+}
+.places-hero__aside {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-4);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.places-hero__visual {
+  flex-shrink: 0;
+  width: 360px;
+  align-self: stretch;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+.places-hero__photo {
+  display: block;
+  width: 360px;
+  height: 100%;
+  object-fit: contain;
+  object-position: left bottom;
+  transform: scale(1.18);
+  transform-origin: left bottom;
+  filter: drop-shadow(var(--site-shadow-md));
+}
+.places-hero__ai {
+  display: flex;
+  width: 320px;
+  flex-shrink: 0;
+}
+.places-hero__ai :deep(.top-ai-card) {
+  width: 100%;
+  max-width: none;
+  height: 100%;
 }
 .places-hero__eyebrow {
   margin: 0 0 10px;
@@ -182,29 +233,47 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
   height: 32px;
   background: linear-gradient(180deg, var(--kin-500), transparent);
 }
-.places-hero__visual {
-  display: flex;
-  justify-content: center;
-}
-.places-hero__photo {
-  width: 100%;
-  max-width: 240px;
-  height: auto;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-  border-radius: var(--site-radius-lg);
-  border: 3px solid rgba(255, 255, 255, 0.9);
-  box-shadow: var(--site-shadow-md);
-}
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .places-hero__inner {
-    grid-template-columns: 1fr;
-    gap: var(--sp-7);
+    flex-direction: column;
+    align-items: stretch;
   }
+
+  .places-hero__copy {
+    max-width: none;
+  }
+
+  .places-hero__aside {
+    flex-direction: column;
+    margin-left: 0;
+    order: 2;
+    align-items: stretch;
+  }
+
   .places-hero__visual {
-    order: -1;
+    width: 100%;
+    max-width: 360px;
+    min-height: 280px;
+    margin: 0 auto;
+    align-self: center;
   }
+
+  .places-hero__photo {
+    width: 100%;
+    max-width: 360px;
+    height: 100%;
+    min-height: 280px;
+    object-position: left bottom;
+    transform: scale(1.12);
+    transform-origin: left bottom;
+  }
+
+  .places-hero__ai {
+    width: 100%;
+    max-width: none;
+  }
+
   .places-hero__scroll {
     display: none;
   }

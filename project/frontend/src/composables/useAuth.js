@@ -11,8 +11,12 @@ const initialized = ref(false)
 
 export function useAuth() {
   const isLoggedIn = computed(() => Boolean(user.value))
-  const membership = computed(() => normalizeMembership(user.value?.membership))
-  const isPremium = computed(() => isPremiumMember(membership.value))
+  const isFanclubMember = computed(() => Boolean(user.value?.is_fanclub_member))
+  const membership = computed(() => {
+    const value = user.value?.membership
+    return value ? normalizeMembership(value) : null
+  })
+  const isPremium = computed(() => isFanclubMember.value && isPremiumMember(membership.value))
 
   async function refreshUser() {
     loading.value = true
@@ -46,7 +50,7 @@ export function useAuth() {
   }
 
   function can(permission) {
-    if (!user.value) return false
+    if (!user.value?.is_fanclub_member) return false
     return hasPermission(membership.value, permission)
   }
 
@@ -55,6 +59,7 @@ export function useAuth() {
     loading: readonly(loading),
     initialized: readonly(initialized),
     isLoggedIn,
+    isFanclubMember,
     membership,
     isPremium,
     refreshUser,

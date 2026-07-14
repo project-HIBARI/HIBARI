@@ -1,9 +1,9 @@
 <script setup>
 /**
  * 部品名: 献花ページ — 誕生日／不死鳥忌カード
- * 用途: 献花ページ上部で記念日カード2枚を表示する
  */
 import { daysUntil } from '../../../utils/hibaru.js'
+import { aosAttrs } from '../../../lib/aos.js'
 
 const daysBd = daysUntil(5, 29)
 const daysMem = daysUntil(6, 24)
@@ -31,12 +31,13 @@ const cards = [
 </script>
 
 <template>
-  <section class="msg-anniv">
+  <section class="msg-anniv" aria-label="記念日の献花">
     <article
       v-for="(s, i) in cards"
       :key="i"
       class="msg-anniv__card"
       :class="{ 'msg-anniv__card--active': s.active }"
+      v-bind="aosAttrs(i * 100)"
     >
       <div class="msg-anniv__en">{{ s.en }}</div>
       <div class="msg-anniv__date">{{ s.date }}</div>
@@ -59,24 +60,38 @@ const cards = [
   gap: var(--sp-6);
   margin-bottom: var(--sp-7);
 }
+
 .msg-anniv__card {
   text-align: center;
   padding: var(--sp-7) var(--sp-6);
-  border-radius: var(--site-radius-lg);
-  border: 1px solid var(--site-border);
-  background: var(--site-surface);
-  box-shadow: var(--site-shadow);
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--site-border) 85%, transparent);
+  background: color-mix(in srgb, var(--site-surface) 70%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 32px rgba(59, 47, 42, 0.05);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
 }
+
+.msg-anniv__card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(59, 47, 42, 0.08);
+}
+
 .msg-anniv__card--active {
-  background: linear-gradient(135deg, var(--site-bg-pink) 0%, var(--site-surface) 100%);
-  border-color: var(--kin-500);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(252, 232, 236, 0.55) 0%, transparent 60%),
+    color-mix(in srgb, var(--site-surface) 75%, transparent);
+  border-color: color-mix(in srgb, var(--kin-500) 45%, var(--site-border));
 }
+
 .msg-anniv__en {
   font-family: var(--ff-latin);
   font-size: 11px;
   letter-spacing: 0.4em;
   color: var(--kin-600);
 }
+
 .msg-anniv__date {
   font-family: var(--ff-mincho);
   font-size: clamp(32px, 6vw, 48px);
@@ -85,24 +100,29 @@ const cards = [
   letter-spacing: 0.04em;
   color: var(--site-text);
 }
+
 .msg-anniv__jp {
   font-size: 13px;
   color: var(--site-text-muted);
 }
+
 .msg-anniv__rule {
   margin: 20px auto;
   width: 60px;
 }
+
 .msg-anniv__count {
   font-family: var(--ff-mono);
   font-size: 11px;
   color: var(--site-text-light);
   letter-spacing: 0.2em;
 }
+
 .msg-anniv__count-num {
   color: var(--kin-600);
   font-size: 14px;
 }
+
 .msg-anniv__days {
   margin-top: 12px;
   font-family: var(--ff-latin);
@@ -111,12 +131,13 @@ const cards = [
   color: var(--murasaki-600);
   line-height: 1;
 }
+
 .msg-anniv__days-unit {
   font-size: 14px;
   font-family: var(--ff-mincho);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .msg-anniv {
     grid-template-columns: 1fr;
   }

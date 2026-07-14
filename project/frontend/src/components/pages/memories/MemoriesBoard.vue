@@ -3,6 +3,8 @@
  * 部品名: 思い出掲示板 — 投稿リスト
  * 用途: 思い出ページでファン投稿をカード形式で表示する
  */
+import { aosAttrs } from '../../../lib/aos.js'
+
 defineProps({
   items: { type: Array, required: true },
 })
@@ -12,7 +14,7 @@ const emit = defineEmits(['like'])
 
 <template>
   <div class="mem-board">
-    <article v-for="m in items" :key="m.id" class="mem-board__item">
+    <article v-for="(m, i) in items" :key="m.id" class="mem-board__item" v-bind="aosAttrs(i * 80)">
       <div class="mem-board__song">♪ {{ m.song }}</div>
       <h3 class="mem-board__title">{{ m.title }}</h3>
       <p class="mem-board__body">{{ m.body }}</p>

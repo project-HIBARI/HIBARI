@@ -41,7 +41,7 @@ const messages = {
         公開まで今しばらくお待ちください。
       </p>
       <p v-if="!['search'].includes(mode)" class="auth-notice__note">
-        ファンクラブ特典や会員限定コンテンツのご案内は、トップページよりご確認いただけます。
+        ファンクラブ特典や会員限定コンテンツのご案内は、Music Memories トップページよりご確認いただけます。
       </p>
       <UiButton variant="primary" size="md" @click="emit('close')">閉じる</UiButton>
     </div>

@@ -7,6 +7,10 @@ import { ref } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
 import { useAuth } from '../../../composables/useAuth.js'
 
+defineProps({
+  platform: { type: Boolean, default: false },
+})
+
 const emit = defineEmits(['open-auth', 'success'])
 
 const { login } = useAuth()
@@ -64,7 +68,7 @@ function onForgotPassword() {
 </script>
 
 <template>
-  <div class="login-card">
+  <div class="login-card" :class="{ 'login-card--platform': platform }">
     <span class="login-card__corner login-card__corner--tl" aria-hidden="true" />
     <span class="login-card__corner login-card__corner--tr" aria-hidden="true" />
     <span class="login-card__corner login-card__corner--bl" aria-hidden="true" />
@@ -378,6 +382,67 @@ function onForgotPassword() {
 .login-card__register-btn:hover {
   border-color: var(--murasaki-400);
   background: var(--murasaki-100);
+}
+
+.login-card--platform {
+  background: rgba(32, 26, 32, 0.82);
+  border: 1px solid rgba(201, 169, 97, 0.45);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  border-radius: var(--site-radius-lg);
+}
+
+.login-card--platform .login-card__corner {
+  border-color: var(--kin-400);
+}
+
+.login-card--platform .login-card__corner::after {
+  color: var(--kin-400);
+}
+
+.login-card--platform .login-card__label,
+.login-card--platform .login-card__check span,
+.login-card--platform .login-card__register-title {
+  color: rgba(248, 244, 239, 0.88);
+}
+
+.login-card--platform .login-card__input {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #f8f4ef;
+}
+
+.login-card--platform .login-card__input::placeholder {
+  color: rgba(248, 244, 239, 0.38);
+}
+
+.login-card--platform .login-card__forgot {
+  color: var(--kin-400);
+}
+
+.login-card--platform .login-card__register-desc {
+  color: rgba(248, 244, 239, 0.58);
+}
+
+.login-card--platform .login-card__register-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f8f4ef;
+}
+
+.login-card--platform .login-card__register-btn:hover {
+  background: rgba(122, 80, 136, 0.35);
+  border-color: var(--kin-400);
+}
+
+.login-card--platform .login-card__divider {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.login-card--platform .login-card__error {
+  background: rgba(155, 44, 44, 0.2);
+  border-color: rgba(240, 196, 190, 0.35);
+  color: #ffb4a8;
 }
 
 @media (max-width: 767px) {

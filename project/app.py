@@ -35,6 +35,13 @@ from event_applications import (
     create_application,
     fetch_applications_for_account,
 )
+from open_chat import ensure_open_chat_schema, register_open_chat_routes
+from sns import ensure_sns_schema, register_sns_routes
+from sns_posts import register_sns_post_routes
+from sns_stories import register_sns_story_routes
+from sns_profile import register_sns_profile_routes
+from sns_dm import register_sns_dm_routes
+from sns_moderation import register_sns_moderation_routes
 from password_utils import (
     hash_password,
     normalize_email,
@@ -210,6 +217,8 @@ ensure_post_media_schema()
 ensure_usage_schema(engine)
 ensure_account_settings_schema(engine)
 ensure_event_applications_schema(engine)
+ensure_open_chat_schema(engine)
+ensure_sns_schema(engine)
 
 
 def ensure_contact_schema():
@@ -369,8 +378,12 @@ def get_membership_for_account(account_id):
         {"account_id": account_id}
     )
     if not rows:
-        return "general"
+        return None
     return "premium" if rows[0].is_premium else "general"
+
+
+def is_fanclub_member_account(account_id):
+    return get_membership_for_account(account_id) is not None
 
 
 def build_user_response(account_id, name, email):
@@ -380,6 +393,7 @@ def build_user_response(account_id, name, email):
         "name": name,
         "email": email,
         "membership": membership,
+        "is_fanclub_member": membership is not None,
         "is_premium": membership == "premium",
     }
 
@@ -584,13 +598,7 @@ def create_account():
             "success": True,
             "message": "登録できました",
             "account_id": account_id,
-            "user": {
-                "account_id": account_id,
-                "name": name_val,
-                "email": email_val,
-                "membership": membership,
-                "is_premium": is_premium_val,
-            }
+            "user": build_user_response(account_id, name_val, email_val),
         }), 201
 
     except Exception as e:
@@ -1901,8 +1909,100 @@ def create_fanclub():
     except Exception as e:
         print(e)
         return jsonify({"error": "ファンクラブ登録エラー", "detail": str(e)}), 500
- 
 
+
+register_open_chat_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_post_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_story_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_profile_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_dm_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_sns_moderation_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+ 
 ############################################################################
 ### 実行制御
 ############################################################################

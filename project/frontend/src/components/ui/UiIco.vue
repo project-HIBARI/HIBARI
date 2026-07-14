@@ -76,5 +76,64 @@ const common = computed(() => ({
       <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19" />
       <line x1="1" y1="1" x2="23" y2="23" />
     </template>
+    <template v-else-if="name === 'bookmark'">
+      <path d="M6 3h12v18l-6-4.5L6 21V3z" />
+    </template>
+    <template v-else-if="name === 'share'">
+      <circle cx="18" cy="5" r="2.6" />
+      <circle cx="6" cy="12" r="2.6" />
+      <circle cx="18" cy="19" r="2.6" />
+      <line x1="8.3" y1="10.7" x2="15.7" y2="6.3" />
+      <line x1="8.3" y1="13.3" x2="15.7" y2="17.7" />
+    </template>
+    <template v-else-if="name === 'more'">
+      <circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    </template>
+    <template v-else-if="name === 'plus'">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </template>
+    <template v-else-if="name === 'send'">
+      <line x1="21" y1="3" x2="10" y2="14" />
+      <polygon points="21,3 14,21 10,14 3,10" />
+    </template>
+    <template v-else-if="name === 'image'">
+      <rect x="3" y="4" width="18" height="16" rx="1.5" />
+      <circle cx="8.5" cy="9.5" r="1.8" />
+      <path d="M4 17l5-5 4 4 3-3 4 4" />
+    </template>
+    <template v-else-if="name === 'video'">
+      <rect x="2.5" y="6" width="13" height="12" rx="1.5" />
+      <polygon points="21.5,8.5 21.5,15.5 15.5,12" />
+    </template>
+    <template v-else-if="name === 'close'">
+      <line x1="5" y1="5" x2="19" y2="19" />
+      <line x1="19" y1="5" x2="5" y2="19" />
+    </template>
+    <template v-else-if="name === 'home'">
+      <path d="M4 11.5 12 4l8 7.5" />
+      <path d="M6 10v10h12V10" />
+    </template>
+    <template v-else-if="name === 'user'">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+    </template>
+    <template v-else-if="name === 'mail'">
+      <rect x="3" y="5" width="18" height="14" rx="1.5" />
+      <path d="M4 6.5l8 6 8-6" />
+    </template>
+    <template v-else-if="name === 'story-ring'">
+      <circle cx="12" cy="12" r="9.5" />
+    </template>
+    <template v-else-if="name === 'camera'">
+      <path d="M4 8h3l1.6-2.4h6.8L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
+      <circle cx="12" cy="14" r="3.6" />
+    </template>
+    <template v-else-if="name === 'crown'">
+      <path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8z" />
+      <line x1="5" y1="21" x2="19" y2="21" />
+    </template>
   </svg>
 </template>

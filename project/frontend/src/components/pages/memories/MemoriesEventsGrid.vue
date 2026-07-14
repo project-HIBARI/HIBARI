@@ -4,11 +4,13 @@
  * 用途: 交流イベント一覧・詳細申込
  */
 import { ref } from 'vue'
+import SectionTitle from '../../ui/SectionTitle.vue'
 import UiButton from '../../ui/UiButton.vue'
 import MemberGate from '../../common/MemberGate.vue'
 import EventApplyModal from '../../modals/EventApplyModal.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 import { useMemberAccess } from '../../../composables/useMemberAccess.js'
+import { aosAttrs } from '../../../lib/aos.js'
 
 const emit = defineEmits(['need-auth', 'navigate'])
 
@@ -54,8 +56,11 @@ function closeApply() {
 </script>
 
 <template>
-  <div class="mem-events">
-    <article v-for="ev in HIBARU_DATA.events" :key="ev.id" class="mem-events__card">
+  <section class="mem-events" aria-label="交流イベント">
+    <SectionTitle title="交流イベント" sub="Community Events" size="md" />
+
+    <div class="mem-events__grid">
+    <article v-for="(ev, i) in HIBARU_DATA.events" :key="ev.id" class="mem-events__card" v-bind="aosAttrs(i * 80)">
       <div class="mem-events__tags">
         <span
           class="mem-events__type"
@@ -108,15 +113,18 @@ function closeApply() {
       @need-auth="emit('need-auth', $event)"
       @navigate="emit('navigate', $event)"
     />
-  </div>
+    </div>
+  </section>
 </template>
 
 <style scoped>
 .mem-events {
+  margin-top: var(--sp-5);
+}
+.mem-events__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--sp-5);
-  margin-top: var(--sp-5);
 }
 .mem-events__card {
   border: 1px solid var(--site-border);
@@ -207,7 +215,7 @@ function closeApply() {
 }
 
 @media (max-width: 767px) {
-  .mem-events {
+  .mem-events__grid {
     grid-template-columns: 1fr;
   }
 }

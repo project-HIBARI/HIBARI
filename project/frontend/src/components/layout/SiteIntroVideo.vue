@@ -5,6 +5,8 @@
  */
 import { ref, onMounted, onUnmounted } from 'vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
+import { HIBARI_FANCLUB_NAME } from '../../constants/site.js'
+import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
 
 const emit = defineEmits(['complete'])
 
@@ -17,7 +19,7 @@ const videoRef = ref(null)
 const videoFailed = ref(false)
 const canSkip = ref(false)
 
-const DISPLAY_MS = 2600
+const DISPLAY_MS = 5500
 const FADE_MS = 680
 
 let displayTimer = null
@@ -51,6 +53,13 @@ onMounted(() => {
   displayTimer = window.setTimeout(finish, DISPLAY_MS)
 
   window.setTimeout(tryPlay, 60)
+
+  const el = videoRef.value
+  if (el) {
+    el.addEventListener('ended', () => {
+      window.setTimeout(finish, 400)
+    })
+  }
 })
 
 onUnmounted(() => {
@@ -83,13 +92,16 @@ onUnmounted(() => {
     />
 
     <div v-else class="site-intro__fallback" aria-hidden="true">
-      <p class="site-intro__fallback-label">Official Fan Site</p>
-      <p class="site-intro__fallback-title">美空ひばり</p>
+      <MusicMemoriesLogo variant="full" size="hero" class="site-intro__fallback-logo" />
+      <p class="site-intro__fallback-title">{{ HIBARI_FANCLUB_NAME }}</p>
     </div>
 
     <div class="site-intro__veil" aria-hidden="true" />
 
-    <p class="site-intro__brand">美空ひばり 公式ファンサイト</p>
+    <div class="site-intro__brand">
+      <MusicMemoriesLogo variant="full" size="lg" />
+    </div>
+    <p class="site-intro__brand-sub">{{ HIBARI_FANCLUB_NAME }}</p>
 
     <button
       v-if="canSkip"
@@ -170,14 +182,31 @@ onUnmounted(() => {
 }
 .site-intro__brand {
   position: absolute;
-  bottom: 48px;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.35));
+}
+
+.site-intro__brand :deep(.mm-logo--full) {
+  max-height: clamp(48px, 8vw, 72px);
+}
+
+.site-intro__fallback-logo {
+  margin-bottom: 16px;
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.35));
+}
+.site-intro__brand-sub {
+  position: absolute;
+  bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 12px;
-  letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.82);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.72);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
   white-space: nowrap;
 }
@@ -204,8 +233,12 @@ onUnmounted(() => {
 
 @media (max-width: 767px) {
   .site-intro__brand {
-    bottom: 64px;
-    font-size: 11px;
+    bottom: 72px;
+    font-size: 16px;
+  }
+  .site-intro__brand-sub {
+    bottom: 48px;
+    font-size: 10px;
   }
   .site-intro__skip {
     right: 16px;

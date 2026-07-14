@@ -8,7 +8,7 @@
 
  */
 
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 
 import SiteHeader from './SiteHeader.vue'
 
@@ -27,10 +27,9 @@ import NewsListModal from '../modals/NewsListModal.vue'
 import EventsListModal from '../modals/EventsListModal.vue'
 
 import GalleryModal from '../modals/GalleryModal.vue'
+import PremiumVideoModal from '../modals/PremiumVideoModal.vue'
 
 import AuthNoticeModal from '../modals/AuthNoticeModal.vue'
-import AccountModal from '../modals/AccountModal.vue'
-import SearchModal from '../modals/SearchModal.vue'
 
 import PageTop from '../pages/PageTop.vue'
 
@@ -46,6 +45,8 @@ import PageMemories from '../pages/PageMemories.vue'
 
 import PageMessage from '../pages/PageMessage.vue'
 
+import PageMemoryBook from '../pages/PageMemoryBook.vue'
+
 import PageFaq from '../pages/PageFaq.vue'
 
 import PageContact from '../pages/PageContact.vue'
@@ -53,10 +54,6 @@ import PageContact from '../pages/PageContact.vue'
 import PageTerms from '../pages/PageTerms.vue'
 
 import PagePrivacyPolicy from '../pages/PagePrivacyPolicy.vue'
-
-import PageLogin from '../pages/PageLogin.vue'
-
-import PageRegister from '../pages/PageRegister.vue'
 
 import PageFanclub from '../pages/PageFanclub.vue'
 
@@ -68,7 +65,15 @@ import { useSiteIntro } from '../../composables/useSiteIntro.js'
 
 import { useAuth } from '../../composables/useAuth.js'
 
-import { MEMBERSHIP, PERMISSION } from '../../constants/membership.js'
+import { MEMBERSHIP, PERMISSION, hasPermission } from '../../constants/membership.js'
+import { useOpenChatNotifications } from '../../composables/useOpenChatNotifications.js'
+import { initAos, scheduleAosRefresh, destroyAosScheduling } from '../../lib/aos.js'
+
+const props = defineProps({
+  pendingFeature: { type: String, default: null },
+})
+
+const emit = defineEmits(['exit-platform', 'need-platform-auth', 'clear-pending-feature'])
 
 
 
@@ -78,15 +83,17 @@ const navItems = [
 
   { id: 'news', label: 'ニュース' },
 
-  { id: 'profile', label: '美空ひばりについて' },
+  { id: 'profile', label: '美空ひばりについて', shortLabel: '美空ひばり' },
 
-  { id: 'disco', label: 'ディスコグラフィ' },
+  { id: 'disco', label: 'ディスコグラフィ', shortLabel: 'ディスコ' },
 
   { id: 'map', label: 'ゆかりの地' },
 
   { id: 'memories', label: '思い出' },
 
   { id: 'message', label: '献花' },
+
+  { id: 'memory-book', label: 'Music Memory Book', shortLabel: '思い出帳' },
 
   { id: 'fanclub', label: 'ファンクラブ' },
 
@@ -104,9 +111,7 @@ const modal = ref(null)
 
 const authMode = ref(null)
 
-const registerPlan = ref(MEMBERSHIP.GENERAL)
-
-/** ログイン後に戻るページ／開く特典 */
+/** プラットフォーム認証後に開く特典 */
 const postLoginRedirect = ref(null)
 
 /** ファンクラブ会員サイト内の表示セクション */
@@ -121,11 +126,37 @@ const siteReady = ref(false)
 
 const auth = useAuth()
 
-const { membership, isLoggedIn, user, setUser, refreshUser, logout } = auth
+const { membership, isLoggedIn, isFanclubMember, user, setUser, refreshUser } = auth
+
+const { startPolling: startOpenChatNotify, stopPolling: stopOpenChatNotify, setActiveRoomId } =
+  useOpenChatNotifications()
 
 
 
 useBodyScrollLock(drawerOpen)
+
+function syncOpenChatNotifications() {
+  if (isLoggedIn.value && hasPermission(membership.value, PERMISSION.OPEN_CHAT)) {
+    startOpenChatNotify()
+    return
+  }
+  stopOpenChatNotify()
+  setActiveRoomId(null)
+}
+
+watch([isLoggedIn, membership], syncOpenChatNotifications, { immediate: true })
+
+watch([page, fanclubSection], ([currentPage, currentSection]) => {
+  if (currentPage !== 'fanclub-site' || currentSection !== 'open-chat') {
+    setActiveRoomId(null)
+  }
+})
+
+onUnmounted(() => {
+  stopOpenChatNotify()
+  setActiveRoomId(null)
+  destroyAosScheduling()
+})
 
 
 
@@ -133,13 +164,47 @@ onMounted(() => {
   refreshUser()
   if (!introVisible.value) {
     siteReady.value = true
+    nextTick(() => {
+      initAos()
+      scheduleAosRefresh()
+    })
   }
 })
+
+watch(
+  () => props.pendingFeature,
+  (feature) => {
+    if (!feature) return
+    window.setTimeout(() => {
+      openMemberFeature(feature)
+      emit('clear-pending-feature')
+    }, introVisible.value ? 900 : 0)
+  },
+  { immediate: true },
+)
 
 function onIntroComplete() {
   completeIntro()
   siteReady.value = true
+  nextTick(() => {
+    initAos()
+    scheduleAosRefresh()
+  })
 }
+
+watch(siteReady, (ready) => {
+  if (!ready || introVisible.value) return
+  nextTick(() => {
+    initAos()
+    scheduleAosRefresh()
+  })
+})
+
+watch([page, pageEnterKey], () => {
+  nextTick(() => {
+    scheduleAosRefresh()
+  })
+}, { flush: 'post' })
 
 
 
@@ -157,7 +222,7 @@ function goTo(id) {
 
   pageEnterKey.value += 1
 
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
 
 }
 
@@ -183,6 +248,30 @@ function handleNav(id) {
 
 /** モーダルを開く（fanclub はページ遷移に振り替え） */
 
+const GATED_MODALS = {
+  gallery: { permission: PERMISSION.EXCLUSIVE_CONTENT, premium: true, feature: 'gallery' },
+  'premium-video': { permission: PERMISSION.PREMIUM_VIDEO, premium: true, feature: 'pv' },
+  events: { permission: PERMISSION.TICKET_PREORDER, premium: false, feature: 'events' },
+}
+
+function requestPlatformAuth(mode, extra = {}) {
+  const payload = { mode }
+  if (mode === 'register-premium') {
+    payload.plan = MEMBERSHIP.PREMIUM
+  } else if (mode === 'register') {
+    payload.plan = MEMBERSHIP.GENERAL
+  }
+  const feature = extra.feature || postLoginRedirect.value?.feature
+  const returnPage = extra.page || postLoginRedirect.value?.page
+  if (feature) {
+    payload.returnTo = { feature }
+  } else if (returnPage) {
+    payload.returnTo = { page: returnPage }
+  }
+  postLoginRedirect.value = null
+  emit('need-platform-auth', payload)
+}
+
 function openModal(kind) {
 
   if (kind === 'fanclub') {
@@ -191,6 +280,22 @@ function openModal(kind) {
 
     return
 
+  }
+
+  const gate = GATED_MODALS[kind]
+  if (gate) {
+    if (!isLoggedIn.value) {
+      requestPlatformAuth('login', { feature: gate.feature })
+      return
+    }
+    if (gate.premium && !auth.isPremium.value) {
+      requestPlatformAuth('register-premium', { feature: gate.feature })
+      return
+    }
+    if (!auth.can(gate.permission)) {
+      requestPlatformAuth(gate.premium ? 'register-premium' : 'register', { feature: gate.feature })
+      return
+    }
   }
 
   modal.value = kind
@@ -208,25 +313,32 @@ function openMemberFeature(mode) {
     return
   }
 
+  if (mode === 'board' && !auth.isFanclubMember.value) {
+    requestPlatformAuth(isLoggedIn.value ? 'register' : 'login', { feature: mode })
+    return
+  }
+
   const features = {
 
-    news: { page: 'news' },
+    news: { permission: PERMISSION.NEWSLETTER, memberPage: 'fanclub-site', section: 'newsletter', guestPage: 'fanclub' },
 
-    events: { permission: PERMISSION.TICKET_PREORDER, modal: 'events' },
+    events: { permission: PERMISSION.TICKET_PREORDER, memberPage: 'fanclub-site', section: 'events', guestPage: 'fanclub' },
 
-    gallery: { permission: PERMISSION.EXCLUSIVE_CONTENT, modal: 'gallery', premium: true },
+    'priority-events': { permission: PERMISSION.PRIORITY_DISCOUNT, memberPage: 'fanclub-site', section: 'priority-events', premium: true, guestPage: 'fanclub' },
+
+    gallery: { permission: PERMISSION.EXCLUSIVE_CONTENT, memberPage: 'fanclub-site', section: 'exclusive-content', premium: true, guestPage: 'fanclub' },
 
     ai: { permission: PERMISSION.AI_CHAT, modal: 'ai' },
 
-    memories: { permission: PERMISSION.BOARD_POST, page: 'memories' },
+    board: { permission: PERMISSION.BOARD_POST, memberPage: 'fanclub-site', section: 'board', guestPage: 'fanclub' },
 
-    board: { permission: PERMISSION.BOARD_POST, memberPage: 'fanclub-site', section: 'board' },
+    'open-chat': { permission: PERMISSION.OPEN_CHAT, memberPage: 'fanclub-site', section: 'open-chat', guestPage: 'fanclub' },
 
     fanclub: { memberPage: 'fanclub-site', guestPage: 'fanclub' },
 
-    disco: { page: 'disco' },
+    disco: { permission: PERMISSION.PREMIUM_VIDEO, memberPage: 'fanclub-site', section: 'premium-video', premium: true, guestPage: 'fanclub' },
 
-    pv: { permission: PERMISSION.PREMIUM_VIDEO, page: 'disco', premium: true },
+    pv: { permission: PERMISSION.PREMIUM_VIDEO, memberPage: 'fanclub-site', section: 'premium-video', premium: true, guestPage: 'fanclub' },
 
   }
 
@@ -261,18 +373,24 @@ function openMemberFeature(mode) {
   }
 
   if (!isLoggedIn.value) {
-
-    postLoginRedirect.value = { feature: mode }
-
-    goTo('login')
-
+    requestPlatformAuth('login', { feature: mode })
     return
-
   }
 
   if (feature.permission && !auth.can(feature.permission)) {
+    if (!auth.isFanclubMember.value) {
+      requestPlatformAuth('register', { feature: mode })
+    } else {
+      requestPlatformAuth(feature.premium ? 'register-premium' : 'register', { feature: mode })
+    }
+    return
+  }
 
-    goRegister(feature.premium ? MEMBERSHIP.PREMIUM : MEMBERSHIP.GENERAL)
+  if (feature.memberPage && feature.section) {
+
+    fanclubSection.value = feature.section
+
+    goTo(isLoggedIn.value ? feature.memberPage : (feature.guestPage || 'fanclub'))
 
     return
 
@@ -281,16 +399,6 @@ function openMemberFeature(mode) {
   if (feature.modal) {
 
     openModal(feature.modal)
-
-    return
-
-  }
-
-  if (feature.memberPage && feature.section) {
-
-    fanclubSection.value = feature.section
-
-    goTo(feature.memberPage)
 
     return
 
@@ -310,13 +418,13 @@ function openAuth(mode) {
 
   if (mode === 'login') {
 
-    if (page.value !== 'login' && page.value !== 'register' && !postLoginRedirect.value) {
+    if (!postLoginRedirect.value) {
 
       postLoginRedirect.value = { page: page.value }
 
     }
 
-    goTo('login')
+    requestPlatformAuth('login')
 
     return
 
@@ -324,7 +432,7 @@ function openAuth(mode) {
 
   if (mode === 'register') {
 
-    goRegister(MEMBERSHIP.GENERAL)
+    requestPlatformAuth('register')
 
     return
 
@@ -332,15 +440,15 @@ function openAuth(mode) {
 
   if (mode === 'register-premium') {
 
-    goRegister(MEMBERSHIP.PREMIUM)
+    requestPlatformAuth('register-premium')
 
     return
 
   }
 
-  if (mode === 'search') {
+  if (['forgot-password', 'terms', 'privacy', 'search'].includes(mode)) {
 
-    modal.value = 'search'
+    authMode.value = mode
 
     drawerOpen.value = false
 
@@ -356,129 +464,19 @@ function openAuth(mode) {
 
 
 
-async function handleLogout() {
-
-  await logout()
-
-  modal.value = null
-
-  if (page.value === 'fanclub-site') {
-
-    goTo('fanclub')
-
-  }
-
-}
-
-
-
-function openAccountModal() {
-
-  if (!isLoggedIn.value) {
-
-    openAuth('login')
-
-    return
-
-  }
-
-  modal.value = 'account'
-
-  drawerOpen.value = false
-
-}
-
-
-
-function handleAccountUserUpdated(account) {
-
-  if (account) setUser(account)
-
-}
-
-
-
 function closeAuth() {
-
   authMode.value = null
-
 }
-
-
-
-function handleLoginSuccess(user) {
-
-  setUser(user)
-
-  const redirect = postLoginRedirect.value
-
-  postLoginRedirect.value = null
-
-  if (redirect?.feature) {
-
-    openMemberFeature(redirect.feature)
-
-    return
-
-  }
-
-  const returnPage = redirect?.page
-
-  if (returnPage && !['login', 'register', 'top'].includes(returnPage)) {
-
-    goTo(returnPage)
-
-    if (redirect?.modal) openModal(redirect.modal)
-
-    return
-
-  }
-
-  goTo('fanclub-site')
-
-}
-
-
-
-function goRegister(plan = MEMBERSHIP.GENERAL) {
-
-  registerPlan.value = plan
-
-  goTo('register')
-
-}
-
-
-
-/** 新規会員登録の完了後: ファンクラブ会員サイトへ誘導 */
-
-function handleRegisterComplete(user) {
-
-  if (user) setUser(user)
-
-  goTo('fanclub-site')
-
-}
-
-
 
 function handleAiModalAuth(mode) {
-
   if (mode === 'login' && modal.value === 'ai') {
-
     postLoginRedirect.value = { feature: 'ai' }
-
   }
-
   modal.value = null
-
   openAuth(mode)
-
 }
 
 </script>
-
-
 
 <template>
 
@@ -508,21 +506,23 @@ function handleAiModalAuth(mode) {
 
       :membership="membership"
 
+      :menu-open="drawerOpen"
+
+      show-platform-back
+      auth-on-platform-only
+      :is-fanclub-member="isFanclubMember"
+
       @logo="goTo('top')"
 
       @navigate="handleNav"
 
-      @open-drawer="drawerOpen = true"
+      @toggle-drawer="drawerOpen = !drawerOpen"
 
       @open-auth="openAuth"
 
-      @open-search="openAuth('search')"
-
-      @open-account="openAccountModal"
-
-      @logout="handleLogout"
-
       @go-fanclub="goTo(isLoggedIn ? 'fanclub-site' : 'fanclub')"
+
+      @exit-platform="emit('exit-platform')"
 
     />
 
@@ -540,17 +540,16 @@ function handleAiModalAuth(mode) {
 
       :user-name="user?.name || ''"
 
-      @close="drawerOpen = false"
+      show-platform-back
+      auth-on-platform-only
 
-      @navigate="handleNav"
+      @close="drawerOpen = false"
 
       @open-modal="openModal"
 
       @open-auth="openAuth"
 
-      @open-account="openAccountModal"
-
-      @logout="handleLogout"
+      @exit-platform="emit('exit-platform')"
 
     />
 
@@ -565,9 +564,9 @@ function handleAiModalAuth(mode) {
         'motion-page-enter',
         'site-page-enter',
         {
-          'main-pad--flush': page === 'login' || page === 'register',
+          'main-pad--flush': false,
           'main-pad--top': page === 'top',
-          'site-main--flush': page === 'login' || page === 'register',
+          'site-main--flush': false,
         },
       ]"
     >
@@ -581,6 +580,8 @@ function handleAiModalAuth(mode) {
         @open-auth="openAuth"
 
         @open-modal="openModal"
+
+        @use-feature="openMemberFeature"
 
       />
 
@@ -630,11 +631,24 @@ function handleAiModalAuth(mode) {
 
       <PageMemories
         v-else-if="page === 'memories'"
-        @open-auth="openAuth"
         @navigate="goTo"
+        @open-auth="openAuth"
+        @open-modal="openModal"
       />
 
-      <PageMessage v-else-if="page === 'message'" />
+      <PageMessage
+        v-else-if="page === 'message'"
+        @navigate="goTo"
+        @open-auth="openAuth"
+        @open-modal="openModal"
+      />
+
+      <PageMemoryBook
+        v-else-if="page === 'memory-book'"
+        @navigate="goTo"
+        @open-auth="openAuth"
+        @open-modal="openModal"
+      />
 
       <PageFaq v-else-if="page === 'faq'" />
 
@@ -644,37 +658,15 @@ function handleAiModalAuth(mode) {
 
       <PagePrivacyPolicy v-else-if="page === 'privacy-policy'" />
 
-      <PageLogin
-
-        v-else-if="page === 'login'"
-
-        @open-auth="openAuth"
-
-        @login-success="handleLoginSuccess"
-
-      />
-
-      <PageRegister
-
-        v-else-if="page === 'register'"
-
-        :initial-plan="registerPlan"
-
-        @navigate="goTo"
-
-        @open-auth="openAuth"
-
-        @complete="handleRegisterComplete"
-
-      />
-
       <PageFanclub
 
         v-else-if="page === 'fanclub'"
 
         @navigate="goTo"
 
-        @register="goRegister"
+        @register="() => openAuth('register')"
+
+        @use-feature="openMemberFeature"
 
       />
 
@@ -715,23 +707,19 @@ function handleAiModalAuth(mode) {
 
     <EventsListModal v-if="modal === 'events'" @close="modal = null" @navigate="goTo" />
 
-    <GalleryModal v-if="modal === 'gallery'" @close="modal = null" />
+    <GalleryModal
+      v-if="modal === 'gallery'"
+      @close="modal = null"
+      @need-auth="(m) => { modal = null; openAuth(m) }"
+    />
+
+    <PremiumVideoModal
+      v-if="modal === 'premium-video'"
+      @close="modal = null"
+      @need-auth="(m) => { modal = null; openAuth(m) }"
+    />
 
     <AuthNoticeModal v-if="authMode" :mode="authMode" @close="closeAuth" />
-
-    <AccountModal
-      v-if="modal === 'account'"
-      @close="modal = null"
-      @need-login="modal = null; openAuth('login')"
-      @logout="handleLogout"
-      @user-updated="handleAccountUserUpdated"
-    />
-
-    <SearchModal
-      v-if="modal === 'search'"
-      @close="modal = null"
-      @navigate="goTo"
-    />
 
   </div>
 
@@ -744,7 +732,7 @@ function handleAiModalAuth(mode) {
 .site-shell {
   min-height: 100vh;
   font-family: var(--ff-serif);
-  font-size: 1rem;
+  font-size: var(--size-base);
   position: relative;
   overflow-x: clip;
 }

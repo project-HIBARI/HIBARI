@@ -2,18 +2,18 @@
 /**
  * ページ: ホーム（top）
  */
-import { ref } from 'vue'
 import TopHeroSection from './top/TopHeroSection.vue'
+import TopQuickNav from './top/TopQuickNav.vue'
+import TopSpotlight from './top/TopSpotlight.vue'
+import TopVideoPromo from './top/TopVideoPromo.vue'
+import TopEnjoyGuide from './top/TopEnjoyGuide.vue'
 import TopSubscriptionCard from './top/TopSubscriptionCard.vue'
 import TopNewsPanel from './top/TopNewsPanel.vue'
 import TopEventsPanel from './top/TopEventsPanel.vue'
 import TopCategoryCards from './top/TopCategoryCards.vue'
-import { useHomeMotion } from '../../composables/useHomeMotion.js'
+import { aosAttrs } from '../../lib/aos.js'
 
-const emit = defineEmits(['navigate', 'open-auth', 'open-modal'])
-
-const pageRoot = ref(null)
-useHomeMotion(pageRoot)
+const emit = defineEmits(['navigate', 'open-auth', 'open-modal', 'use-feature'])
 
 function scrollToEnjoy() {
   const el = document.getElementById('home-enjoy-guide')
@@ -29,34 +29,56 @@ function onComingSoon(target) {
     emit('open-auth', target)
   }
 }
+
+function onEnjoyNavigate(target) {
+  if (target === 'ai') {
+    emit('open-modal', 'ai')
+    return
+  }
+  emit('navigate', target)
+}
 </script>
 
 <template>
-  <div ref="pageRoot" class="page-top">
+  <div class="page-top">
     <TopHeroSection
       @open-auth="(m) => emit('open-auth', m)"
       @open-ai="emit('open-modal', 'ai')"
       @scroll-enjoy="scrollToEnjoy"
     />
 
+    <TopQuickNav
+      @navigate="(id) => emit('navigate', id)"
+      @open-auth="(m) => emit('open-auth', m)"
+    />
+
+    <TopSpotlight @navigate="(id) => emit('navigate', id)" />
+
+    <TopVideoPromo class="page-top__promo" v-bind="aosAttrs()" />
+
+    <TopEnjoyGuide
+      class="page-top__enjoy"
+      @navigate="onEnjoyNavigate"
+    />
+
     <div class="page-top__body">
       <section
-        class="page-top__columns home-motion-stagger"
+        class="page-top__columns"
         aria-label="おすすめと最新情報"
       >
-        <div class="page-top__panel home-motion-stagger__item">
+        <div class="page-top__panel" v-bind="aosAttrs(0)">
           <TopSubscriptionCard
             @open-detail="emit('open-modal', 'fanclub')"
-            @use-feature="(f) => emit('open-auth', f)"
+            @use-feature="(f) => emit('use-feature', f)"
           />
         </div>
-        <div class="page-top__panel home-motion-stagger__item">
+        <div class="page-top__panel" v-bind="aosAttrs(80)">
           <TopNewsPanel
             @navigate="(id) => emit('navigate', id)"
             @need-auth="(m) => emit('open-auth', m)"
           />
         </div>
-        <div class="page-top__panel home-motion-stagger__item">
+        <div class="page-top__panel" v-bind="aosAttrs(160)">
           <TopEventsPanel
             @open-all="emit('open-modal', 'events')"
             @need-auth="(m) => emit('open-auth', m)"
@@ -75,6 +97,16 @@ function onComingSoon(target) {
 <style scoped>
 .page-top__body {
   overflow-x: clip;
+}
+.page-top__promo {
+  margin-bottom: var(--sp-8);
+}
+.page-top__enjoy {
+  margin-bottom: var(--sp-7);
+  padding: 0 var(--sp-6);
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .page-top__columns {
   display: grid;

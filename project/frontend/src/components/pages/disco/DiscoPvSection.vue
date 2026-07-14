@@ -7,6 +7,7 @@ import SectionTitle from '../../ui/SectionTitle.vue'
 import UiIco from '../../ui/UiIco.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 import { useMemberAccess } from '../../../composables/useMemberAccess.js'
+import { aosAttrs } from '../../../lib/aos.js'
 
 const items = HIBARU_DATA.featuredPv
 
@@ -39,12 +40,13 @@ function onClick(pv) {
 
     <div class="disco-pv__grid">
       <button
-        v-for="pv in items"
+        v-for="(pv, i) in items"
         :key="pv.id"
         type="button"
         class="disco-pv__card"
         :class="{ 'disco-pv__card--premium': isPremiumPv(pv) && !canUse(PERMISSION.PREMIUM_VIDEO) }"
         :aria-label="pv.title + 'の PV を見る'"
+        v-bind="aosAttrs(i * 80)"
         @click="onClick(pv)"
       >
         <div class="disco-pv__thumb" aria-hidden="true">
@@ -57,6 +59,7 @@ function onClick(pv) {
             :src="`https://img.youtube.com/vi/${pv.youtubeId}/hqdefault.jpg`"
             :alt="pv.title"
             class="disco-pv__img"
+            v-bind="aosAttrs()"
           />
           <span v-if="isPremiumPv(pv)" class="disco-pv__badge">プレミアム</span>
           <span class="disco-pv__play" aria-hidden="true">

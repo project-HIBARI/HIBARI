@@ -83,7 +83,7 @@ onUnmounted(() => {
         class="header-account__btn header-account__btn--register site-cta-accent"
         @click="emit('open-auth', 'register')"
       >
-        ファンクラブ加入
+        新規会員登録
       </button>
     </div>
   </div>

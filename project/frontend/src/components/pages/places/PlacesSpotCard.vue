@@ -8,10 +8,12 @@ import Photo from '../../ui/Photo.vue'
 import UiIco from '../../ui/UiIco.vue'
 import UiButton from '../../ui/UiButton.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
+import { aosAttrs } from '../../../lib/aos.js'
 
 const props = defineProps({
   spot: { type: Object, required: true },
   isFavorite: { type: Boolean, default: false },
+  index: { type: Number, default: 0 },
 })
 
 const emit = defineEmits(['toggle-favorite', 'select'])
@@ -48,7 +50,7 @@ function onShareClick(e) {
 </script>
 
 <template>
-  <article class="places-spot-card motion-card">
+  <article class="places-spot-card motion-card" v-bind="aosAttrs(index * 80)">
     <div class="places-spot-card__photo motion-image">
       <Photo :w="320" :h="160" :caption="spot.name" variant="sepia" class="places-spot-card__ph" />
       <span class="places-spot-card__cat">{{ categoryLabel }}</span>

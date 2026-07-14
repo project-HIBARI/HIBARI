@@ -1,4 +1,4 @@
-/* Design tokens — 公式ファンサイト · ライトテーマ（和紙 × 紫 × 金） */
+/* Design tokens — Music Memories · ライトテーマ（和紙 × 紫 × 金） */
 :root {
   /* —— サイト基調（ライト） —— */
   --site-bg: #faf8f4;
@@ -101,6 +101,11 @@ html[data-text-size='l'] {
 html[data-text-size='xl'] {
   --size-base: 22px;
   font-size: 22px;
+}
+
+/* 文字サイズ — サイト全体のスケール（rem ベース要素向け） */
+.site-shell {
+  font-size: var(--size-base);
 }
 
 /* サイト全体背景 — 和紙風 */

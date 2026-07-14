@@ -7,8 +7,12 @@ export const PAGE_IMAGES = {
   disco: 'cd-image.png',
   gallery: 'misorahibari-image.png',
   events: 'misorahibari-chair.png',
-  fanclub: 'fanclub-image.png',
+  fanclub: 'fanlogo.png',
+  /** 献花ページ — 花選択ボタン用ブーケ画像 */
+  kenka: 'kenka-image.png',
   benefits: 'benefits-image.png',
+  /** Music Memory Book — ヒーロービジュアル（歩み・ディスコと同じ肖像） */
+  memoryBook: 'misorahibari-profile-hero.png',
 }
 
 /** ページヒーロー共通メインビジュアル */

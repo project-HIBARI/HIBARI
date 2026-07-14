@@ -1,5 +1,5 @@
 /**
- * 美空ひばり公式ファンサイト用ユーティリティ
+ * Music Memories / 美空ひばり ファンクラブ用ユーティリティ
  * - 日付計算・今日の一曲・共通スタイルオブジェクト
  */
 import { HIBARU_DATA } from '../data/hibaruData.js'

@@ -3,6 +3,8 @@
  * 部品名: フッター
  * 役割: 公式 SNS・各種リンク・著作権表示（全ページ共通・1行構成）
  */
+import { SITE_NAME } from '../../constants/site.js'
+
 const emit = defineEmits(['navigate'])
 
 /** @param {string} filename */
@@ -96,7 +98,7 @@ function onLinkClick(link, event) {
         </template>
       </nav>
 
-      <div class="app-footer__copy">© Misora Hibari Official Fan Site</div>
+      <div class="app-footer__copy">© {{ SITE_NAME }}</div>
     </div>
   </footer>
 </template>

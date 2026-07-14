@@ -12,7 +12,7 @@ import FanclubJoinCta from './fanclub/FanclubJoinCta.vue'
 import { MEMBERSHIP_PLANS } from '../../constants/membership.js'
 import { useScrollReveal } from '../../composables/useScrollReveal.js'
 
-const emit = defineEmits(['navigate', 'register'])
+const emit = defineEmits(['navigate', 'register', 'use-feature'])
 
 const pageRoot = ref(null)
 useScrollReveal(pageRoot)
@@ -35,7 +35,7 @@ function goRegister(plan) {
 
     <section class="page-fanclub__section site-reveal site-reveal--delay-1">
       <SectionTitle title="会員特典" sub="Member Benefits" size="md" />
-      <FanclubBenefits />
+      <FanclubBenefits @use-feature="(f) => emit('use-feature', f)" />
     </section>
 
     <section class="page-fanclub__section site-reveal site-reveal--delay-2">

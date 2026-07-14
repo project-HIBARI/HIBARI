@@ -23,6 +23,7 @@ export const PERMISSION = {
   AI_CHAT_UNLIMITED: 'ai_chat_unlimited',
   BOARD_POST_UNLIMITED: 'board_post_unlimited',
   PRIORITY_DISCOUNT: 'priority_discount',
+  OPEN_CHAT: 'open_chat',
 }
 
 /** プラン別の利用可能権限 */
@@ -32,12 +33,14 @@ export const MEMBERSHIP_PERMISSIONS = {
     PERMISSION.TICKET_PREORDER,
     PERMISSION.BOARD_POST,
     PERMISSION.AI_CHAT,
+    PERMISSION.OPEN_CHAT,
   ],
   [MEMBERSHIP.PREMIUM]: [
     PERMISSION.NEWSLETTER,
     PERMISSION.TICKET_PREORDER,
     PERMISSION.BOARD_POST,
     PERMISSION.AI_CHAT,
+    PERMISSION.OPEN_CHAT,
     PERMISSION.PREMIUM_VIDEO,
     PERMISSION.EXCLUSIVE_CONTENT,
     PERMISSION.AI_CHAT_UNLIMITED,
@@ -57,6 +60,7 @@ export const MEMBERSHIP_PLANS = [
       'チケット先行予約',
       '掲示板投稿（月10回）',
       '月10回 AIひばり対話',
+      'オープンチャット',
     ],
     locked: ['プレミアム限定映像', '限定コンテンツ', '優先申込＋会員割引'],
   },

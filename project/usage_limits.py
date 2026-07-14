@@ -77,12 +77,24 @@ def format_reset_date(dt):
 def get_usage_subject(session, get_membership_for_account):
     account_id = session.get("account_id")
     if account_id is not None:
-        membership = session.get("membership") or get_membership_for_account(account_id)
+        membership = session.get("membership")
+        if membership is None:
+            membership = get_membership_for_account(account_id)
+        if membership is not None:
+            return {
+                "subject_type": "account",
+                "subject_key": str(account_id),
+                "membership": membership,
+                "is_logged_in": True,
+                "is_fanclub_member": True,
+            }
+        guest_id = ensure_guest_id(session)
         return {
-            "subject_type": "account",
-            "subject_key": str(account_id),
-            "membership": membership,
+            "subject_type": "guest",
+            "subject_key": guest_id,
+            "membership": None,
             "is_logged_in": True,
+            "is_fanclub_member": False,
         }
     guest_id = ensure_guest_id(session)
     return {
@@ -90,6 +102,7 @@ def get_usage_subject(session, get_membership_for_account):
         "subject_key": guest_id,
         "membership": None,
         "is_logged_in": False,
+        "is_fanclub_member": False,
     }
 
 

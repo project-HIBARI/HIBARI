@@ -1,0 +1,16 @@
+/* Music Memories SNS — 共通ダークテーマトークン
+   platform-shell 配下 (ホーム/みんなの投稿・マイページ・DM・オープンチャット) にのみ適用。
+   ファンクラブサイト側 (SiteShell) のライトテーマ (tokens.css) には影響しない。 */
+.mm-sns {
+  --sns-bg: #160f18;
+  --sns-card: #211623;
+  --sns-card-strong: #2b1b31;
+  --sns-purple: var(--murasaki-600);
+  --sns-purple-light: var(--murasaki-400);
+  --sns-gold: var(--kin-500);
+  --sns-gold-pale: var(--kin-400);
+  --sns-ivory: #f6f0ea;
+  --sns-text-muted: #bdb3be;
+  --sns-border: rgba(255, 255, 255, 0.12);
+  --sns-border-soft: rgba(255, 255, 255, 0.08);
+}
