@@ -12,6 +12,8 @@ import {
   fetchDmThreads,
   fetchDmThread,
   markDmThreadRead,
+  acceptDmRequest,
+  rejectDmRequest,
   sendDmInThread,
   sendDm,
   deleteDmMessage,
@@ -63,6 +65,29 @@ async function onBlockUser() {
     threadError.value = err?.message || 'ブロックに失敗しました'
   } finally {
     blockBusy.value = false
+  }
+}
+
+async function onAcceptRequest() {
+  if (!activeThreadId.value) return
+  try {
+    await acceptDmRequest(activeThreadId.value)
+    await openThread(activeThreadId.value)
+    await loadThreads()
+  } catch (err) {
+    threadError.value = err?.message || 'リクエストの承認に失敗しました'
+  }
+}
+
+async function onRejectRequest() {
+  if (!activeThreadId.value) return
+  try {
+    await rejectDmRequest(activeThreadId.value)
+    closeThread()
+    box.value = 'requests'
+    await loadThreads()
+  } catch (err) {
+    threadError.value = err?.message || 'リクエストの削除に失敗しました'
   }
 }
 
@@ -320,6 +345,10 @@ onMounted(() => {
         <p v-if="activeThread.status === 'requested'" class="sns-dm__request-note">
           このユーザーからのメッセージリクエストです。返信すると受信一覧に追加されます。
         </p>
+        <div v-if="activeThread.status === 'requested'" class="sns-dm__request-actions">
+          <UiButton variant="gold" size="sm" @click="onAcceptRequest">承認</UiButton>
+          <UiButton variant="outline" size="sm" @click="onRejectRequest">削除</UiButton>
+        </div>
         <p v-if="activeThread.blocked" class="sns-dm__request-note sns-dm__request-note--error">
           ブロック中のためメッセージを送受信できません。
         </p>
@@ -433,7 +462,7 @@ onMounted(() => {
 .sns-dm {
   max-width: 640px;
   margin: 0 auto;
-  padding: 16px 0 96px;
+  padding: 16px 0 calc(var(--bottom-nav-height, 66px) + env(safe-area-inset-bottom, 0px) + 24px);
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 65px);
@@ -508,6 +537,7 @@ onMounted(() => {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
   text-align: left;
+  min-width: 0;
 }
 .sns-dm__avatar {
   width: 44px;
@@ -536,6 +566,9 @@ onMounted(() => {
 .sns-dm__thread-name {
   font-size: 13px;
   color: #f8f4ef;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .sns-dm__thread-preview {
   font-size: 12px;
@@ -549,6 +582,8 @@ onMounted(() => {
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  flex: 0 0 auto;
+  max-width: 76px;
 }
 .sns-dm__thread-time {
   font-size: 10px;
@@ -604,10 +639,18 @@ onMounted(() => {
   font-size: 14px;
   cursor: pointer;
   flex: 1;
+  min-width: 0;
+}
+.sns-dm__thread-author > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .sns-dm__thread-actions {
   display: flex;
   gap: 4px;
+  flex-shrink: 0;
 }
 .sns-dm__thread-actions .sns-dm__icon-btn {
   font-size: 11px;
@@ -623,6 +666,11 @@ onMounted(() => {
 }
 .sns-dm__request-note--error {
   color: #e08a8a;
+}
+.sns-dm__request-actions {
+  display: flex;
+  gap: 8px;
+  margin: 8px 16px 0;
 }
 .sns-dm__messages {
   flex: 1;
@@ -655,7 +703,7 @@ onMounted(() => {
   background: var(--murasaki-700);
 }
 .sns-dm__bubble img {
-  max-width: 220px;
+  max-width: min(220px, 68vw);
   border-radius: 10px;
   display: block;
 }
@@ -698,6 +746,7 @@ onMounted(() => {
 }
 .sns-dm__input {
   flex: 1;
+  min-width: 0;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.06);
   border-radius: 999px;
@@ -752,11 +801,53 @@ onMounted(() => {
 }
 .sns-dm__search-input {
   flex: 1;
+  min-width: 0;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.06);
   border-radius: 999px;
   padding: 8px 14px;
   font-size: 13px;
   color: #f8f4ef;
+}
+
+@media (max-width: 767px) {
+  .sns-dm {
+    min-height: calc(100vh - 112px);
+  }
+
+  .sns-dm__thread-head {
+    padding-inline: 10px;
+    gap: 6px;
+  }
+
+  .sns-dm__thread-actions .sns-dm__icon-btn {
+    padding-inline: 4px;
+  }
+
+  .sns-dm__message {
+    max-width: 86%;
+  }
+
+  .sns-dm__composer {
+    position: sticky;
+    bottom: calc(var(--bottom-nav-height, 66px) + env(safe-area-inset-bottom, 0px));
+    background: rgba(22, 15, 24, 0.98);
+    backdrop-filter: blur(10px);
+  }
+}
+
+@media (max-width: 374px) {
+  .sns-dm__thread-item {
+    gap: 8px;
+  }
+
+  .sns-dm__avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .sns-dm__thread-time {
+    display: none;
+  }
 }
 </style>

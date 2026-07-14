@@ -352,8 +352,7 @@ def register_sns_dm_routes(app, engine, **deps):
             execute(
                 """
                 UPDATE sns_dm_participants
-                SET last_read_message_id = :latest_id,
-                    status = CASE WHEN status = 'requested' THEN 'accepted' ELSE status END
+                SET last_read_message_id = :latest_id
                 WHERE thread_id = :thread_id AND account_id = :account_id
                 """,
                 {"latest_id": latest_id, "thread_id": thread_id, "account_id": account_id},
@@ -362,6 +361,50 @@ def register_sns_dm_routes(app, engine, **deps):
         except Exception as e:
             print(e)
             return jsonify({"error": "既読の更新に失敗しました"}), 500
+
+    @app.route("/api/sns/dm/threads/<int:thread_id>/accept", methods=["POST"])
+    def sns_dm_accept_request(thread_id):
+        account_id, err = _require_login()
+        if err:
+            return err
+
+        participant = _get_participant(thread_id, account_id)
+        if not participant:
+            return jsonify({"error": "スレッドが見つかりません"}), 404
+
+        latest_rows = fetch_all(
+            "SELECT MAX(message_id) AS m FROM sns_dm_messages WHERE thread_id = :thread_id",
+            {"thread_id": thread_id},
+        )
+        latest_id = _row_val(latest_rows[0], "m") or 0
+
+        execute(
+            """
+            UPDATE sns_dm_participants
+            SET status = 'accepted', last_read_message_id = :latest_id
+            WHERE thread_id = :thread_id AND account_id = :account_id
+            """,
+            {"latest_id": latest_id, "thread_id": thread_id, "account_id": account_id},
+        )
+        return jsonify({"message": "OK"})
+
+    @app.route("/api/sns/dm/threads/<int:thread_id>/reject", methods=["POST"])
+    def sns_dm_reject_request(thread_id):
+        account_id, err = _require_login()
+        if err:
+            return err
+
+        participant = _get_participant(thread_id, account_id)
+        if not participant:
+            return jsonify({"error": "スレッドが見つかりません"}), 404
+        if _row_val(participant, "status") != "requested":
+            return jsonify({"error": "メッセージリクエストではありません"}), 400
+
+        execute(
+            "DELETE FROM sns_dm_participants WHERE thread_id = :thread_id AND account_id = :account_id",
+            {"thread_id": thread_id, "account_id": account_id},
+        )
+        return jsonify({"message": "OK"})
 
     def _send_message(sender_id, recipient_id, message_type, body, media_path, shared_post_id, shared_story_id):
         if sender_id == recipient_id:
@@ -475,6 +518,12 @@ def register_sns_dm_routes(app, engine, **deps):
             return jsonify({"error": "メッセージ種別が不正です"}), 400
         if message_type == "text" and not body:
             return jsonify({"error": "メッセージを入力してください"}), 400
+        if message_type == "image" and not media_path:
+            return jsonify({"error": "画像を選択してください"}), 400
+        if message_type == "post_share" and not shared_post_id:
+            return jsonify({"error": "共有する投稿を指定してください"}), 400
+        if message_type == "story_reply" and not shared_story_id:
+            return jsonify({"error": "返信するストーリーズを指定してください"}), 400
         if len(body) > MAX_MESSAGE_LENGTH:
             return jsonify({"error": f"メッセージは{MAX_MESSAGE_LENGTH}文字以内で入力してください"}), 400
 

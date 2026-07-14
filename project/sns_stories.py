@@ -25,7 +25,7 @@ BLOCK_EXCLUSION_SQL = """
 STORY_SELECT = """
     SELECT
         s.story_id, s.account_id, s.media_type, s.file_path, s.caption,
-        s.created_at, s.expires_at,
+        s.created_at, s.published_at, s.expires_at,
         a.name AS author_name,
         pr.avatar_path AS author_avatar_path,
         EXISTS(
@@ -66,7 +66,7 @@ def register_sns_story_routes(app, engine, **deps):
     def sns_get_stories():
         try:
             viewer_id = _optional_account_id()
-            where = ["s.is_archived = FALSE", "s.expires_at > NOW()"]
+            where = ["s.is_archived = FALSE", "s.published_at <= NOW()", "s.expires_at > NOW()"]
             params = {"viewer_id": viewer_id or 0}
             if viewer_id:
                 where.append(BLOCK_EXCLUSION_SQL)
@@ -92,6 +92,7 @@ def register_sns_story_routes(app, engine, **deps):
                     "file_path": _row_val(row, "file_path"),
                     "caption": _row_val(row, "caption"),
                     "created_at": _row_val(row, "created_at").isoformat(),
+                    "published_at": _row_val(row, "published_at").isoformat(),
                     "expires_at": _row_val(row, "expires_at").isoformat(),
                     "viewed_by_viewer": bool(_row_val(row, "viewed_by_viewer")) if viewer_id else False,
                 })
@@ -137,11 +138,12 @@ def register_sns_story_routes(app, engine, **deps):
 
         try:
             now = datetime.now(timezone.utc)
-            expires_at = now + timedelta(hours=STORY_LIFETIME_HOURS)
+            published_at = now
+            expires_at = published_at + timedelta(hours=STORY_LIFETIME_HOURS)
             story_id = execute_insert(
                 """
-                INSERT INTO sns_stories (account_id, media_type, file_path, caption, expires_at)
-                VALUES (:account_id, :media_type, :file_path, :caption, :expires_at)
+                INSERT INTO sns_stories (account_id, media_type, file_path, caption, published_at, expires_at)
+                VALUES (:account_id, :media_type, :file_path, :caption, :published_at, :expires_at)
                 RETURNING story_id
                 """,
                 {
@@ -149,12 +151,14 @@ def register_sns_story_routes(app, engine, **deps):
                     "media_type": media_type,
                     "file_path": file_path,
                     "caption": caption,
+                    "published_at": published_at,
                     "expires_at": expires_at,
                 },
             )
             return jsonify({
                 "message": "ストーリーズを投稿しました",
                 "story_id": story_id,
+                "published_at": published_at.isoformat(),
                 "expires_at": expires_at.isoformat(),
                 "usage": usage_status,
             }), 201
@@ -171,8 +175,8 @@ def register_sns_story_routes(app, engine, **deps):
         try:
             rows = fetch_all(
                 """
-                SELECT story_id, media_type, file_path, caption, created_at, expires_at,
-                       (expires_at > NOW() AND is_archived = FALSE) AS is_active
+                SELECT story_id, media_type, file_path, caption, created_at, published_at, expires_at,
+                       (published_at <= NOW() AND expires_at > NOW() AND is_archived = FALSE) AS is_active
                 FROM sns_stories
                 WHERE account_id = :account_id
                 ORDER BY created_at DESC
@@ -185,6 +189,7 @@ def register_sns_story_routes(app, engine, **deps):
                 "file_path": _row_val(r, "file_path"),
                 "caption": _row_val(r, "caption"),
                 "created_at": _row_val(r, "created_at").isoformat(),
+                "published_at": _row_val(r, "published_at").isoformat(),
                 "expires_at": _row_val(r, "expires_at").isoformat(),
                 "is_active": bool(_row_val(r, "is_active")),
             } for r in rows]
@@ -223,7 +228,7 @@ def register_sns_story_routes(app, engine, **deps):
 
         rows = fetch_all(
             "SELECT account_id FROM sns_stories WHERE story_id = :story_id "
-            "AND is_archived = FALSE AND expires_at > NOW()",
+            "AND is_archived = FALSE AND published_at <= NOW() AND expires_at > NOW()",
             {"story_id": story_id},
         )
         if not rows:

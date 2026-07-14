@@ -99,13 +99,26 @@ def ensure_sns_schema(engine):
                 caption VARCHAR(300) NOT NULL DEFAULT '',
                 is_archived BOOLEAN NOT NULL DEFAULT FALSE,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                published_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                 expires_at TIMESTAMPTZ NOT NULL
             )
             """
         ))
         conn.execute(text(
+            "ALTER TABLE sns_stories ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ"
+        ))
+        conn.execute(text(
+            "UPDATE sns_stories SET published_at = created_at WHERE published_at IS NULL"
+        ))
+        conn.execute(text(
+            "ALTER TABLE sns_stories ALTER COLUMN published_at SET DEFAULT NOW()"
+        ))
+        conn.execute(text(
+            "ALTER TABLE sns_stories ALTER COLUMN published_at SET NOT NULL"
+        ))
+        conn.execute(text(
             "CREATE INDEX IF NOT EXISTS idx_sns_stories_active "
-            "ON sns_stories (is_archived, expires_at)"
+            "ON sns_stories (is_archived, published_at, expires_at)"
         ))
         conn.execute(text(
             "CREATE INDEX IF NOT EXISTS idx_sns_stories_account "

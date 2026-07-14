@@ -385,7 +385,7 @@ watch(() => props.createIntent, (value, oldValue) => {
   position: relative;
   max-width: 640px;
   margin: 0 auto;
-  padding: 24px 16px 96px;
+  padding: 24px 16px calc(var(--bottom-nav-height, 66px) + env(safe-area-inset-bottom, 0px) + 32px);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -506,6 +506,10 @@ watch(() => props.createIntent, (value, oldValue) => {
   /* モバイルでは下部ナビ中央の投稿ボタンのみを使い、FABは重複表示しない */
   .sns-feed__fab {
     display: none;
+  }
+
+  .sns-feed {
+    padding-top: 18px;
   }
 }
 

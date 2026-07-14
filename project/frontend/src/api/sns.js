@@ -119,6 +119,14 @@ export function markDmThreadRead(threadId) {
   return apiRequest(`/api/sns/dm/threads/${threadId}/read`, { method: 'POST' })
 }
 
+export function acceptDmRequest(threadId) {
+  return apiRequest(`/api/sns/dm/threads/${threadId}/accept`, { method: 'POST' })
+}
+
+export function rejectDmRequest(threadId) {
+  return apiRequest(`/api/sns/dm/threads/${threadId}/reject`, { method: 'POST' })
+}
+
 export function sendDm(payload) {
   return apiRequest('/api/sns/dm/send', {
     method: 'POST',

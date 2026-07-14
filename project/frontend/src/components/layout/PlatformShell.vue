@@ -300,6 +300,7 @@ function onUserUpdated(account) {
 .platform-shell {
   min-height: 100vh;
   background: var(--sns-bg);
+  --bottom-nav-height: 66px;
 }
 
 .platform-shell__header {
@@ -316,9 +317,10 @@ function onUserUpdated(account) {
   margin: 0 auto;
   padding: 16px 24px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
   align-items: center;
   gap: 16px;
+  min-width: 0;
 }
 
 .platform-shell__nav {
@@ -327,6 +329,7 @@ function onUserUpdated(account) {
   justify-content: center;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .platform-shell__nav-btn {
@@ -342,8 +345,10 @@ function onUserUpdated(account) {
   color: var(--sns-text-muted);
   font-family: var(--ff-sans-jp);
   font-size: 12px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
   cursor: pointer;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .platform-shell__nav-btn:hover {
@@ -361,6 +366,7 @@ function onUserUpdated(account) {
 .platform-shell__brand {
   display: inline-flex;
   align-items: center;
+  min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
@@ -370,6 +376,7 @@ function onUserUpdated(account) {
 
 .platform-shell__brand :deep(.mm-logo--full) {
   max-height: 44px;
+  max-width: 125px;
 }
 
 .platform-shell__account :deep(.header-account__btn--login) {
@@ -465,6 +472,7 @@ function onUserUpdated(account) {
   align-items: center;
   justify-content: space-around;
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  min-height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   background: rgba(22, 15, 24, 0.96);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--sns-border-soft);
@@ -484,6 +492,15 @@ function onUserUpdated(account) {
   min-height: 44px;
   min-width: 56px;
   cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.platform-shell__tab span {
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .platform-shell__tab--active {
@@ -501,5 +518,101 @@ function onUserUpdated(account) {
   transform: translateY(-8px);
   align-items: center;
   justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .platform-shell__header-inner {
+    grid-template-columns: minmax(0, 1fr) minmax(96px, auto);
+    grid-template-areas:
+      "brand account"
+      "nav nav";
+    gap: 8px 12px;
+    padding: 10px 12px 8px;
+  }
+
+  .platform-shell__brand {
+    grid-area: brand;
+  }
+
+  .platform-shell__brand :deep(.mm-logo--full) {
+    max-height: 40px;
+    max-width: 125px;
+  }
+
+  .platform-shell__account {
+    grid-area: account;
+    justify-self: end;
+    min-width: 0;
+    max-width: 120px;
+  }
+
+  .platform-shell__account :deep(.header-account__trigger),
+  .platform-shell__account :deep(.header-account__btn) {
+    max-width: 120px;
+    min-width: 0;
+  }
+
+  .platform-shell__account :deep(.header-account__name) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .platform-shell__nav {
+    grid-area: nav;
+    justify-content: space-between;
+    gap: 6px;
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+
+  .platform-shell__nav-btn {
+    flex: 1 1 0;
+    justify-content: center;
+    padding: 7px 4px;
+    min-height: 44px;
+    font-size: 12px;
+    overflow: hidden;
+  }
+
+  .platform-shell__nav-btn svg {
+    flex: 0 0 auto;
+  }
+
+  .platform-shell__auth {
+    min-height: calc(100vh - 112px);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .platform-shell__header-inner {
+    padding: 14px 18px;
+    gap: 12px;
+  }
+
+  .platform-shell__nav-btn {
+    padding-inline: 10px;
+  }
+}
+
+@media (max-width: 374px) {
+  .platform-shell__header-inner {
+    padding-inline: 10px;
+  }
+
+  .platform-shell__nav-btn {
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .platform-shell__tab {
+    min-width: 50px;
+    padding-inline: 4px;
+  }
+
+  .platform-shell__tab span {
+    max-width: 54px;
+    font-size: 9px;
+  }
 }
 </style>
