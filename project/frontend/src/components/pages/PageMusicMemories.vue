@@ -3,9 +3,12 @@
  * ページ: Music Memories プラットフォーム
  * 役割: 複数アーティストのファンクラブへの入口ハブ
  */
+import { computed } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
+import MusicConnectionsBoard from '../common/MusicConnectionsBoard.vue'
 import { MUSIC_MEMORIES_ARTISTS, PLATFORM_CHAT_ARTISTS } from '../../data/musicMemoriesData.js'
+import { CROSS_ARTIST_CONNECTIONS } from '../../data/crossArtistConnections.js'
 import { SITE_NAME, SITE_TAGLINE } from '../../constants/site.js'
 
 defineProps({
@@ -13,12 +16,16 @@ defineProps({
   embedded: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['enter-site', 'open-chat'])
+const emit = defineEmits(['enter-site', 'open-chat', 'open-connections'])
 
 function onArtistClick(artist) {
   if (artist.status !== 'open') return
   emit('enter-site', artist.siteId)
 }
+
+const featuredConnections = computed(() =>
+  CROSS_ARTIST_CONNECTIONS.filter((connection) => connection.featured)
+)
 </script>
 
 <template>
@@ -112,6 +119,32 @@ function onArtistClick(artist) {
             </article>
           </li>
         </ul>
+      </section>
+
+      <section
+        id="music-connections"
+        class="music-memories__connections"
+        aria-labelledby="mm-connections-title"
+      >
+        <p class="music-memories__connections-eyebrow">Cross-Artist Connections</p>
+        <h2 id="mm-connections-title" class="music-memories__connections-title">
+          アーティスト間の曲の繋がり
+        </h2>
+        <p class="music-memories__connections-lead">
+          同じ作詞家・作曲家が手がけた楽曲をたどることで、複数のアーティストへの関心が自然に広がります。
+          こちらは代表的な例です。
+        </p>
+
+        <MusicConnectionsBoard :connections="featuredConnections" />
+
+        <UiButton
+          variant="gold"
+          size="sm"
+          class="music-memories__connections-more"
+          @click="emit('open-connections')"
+        >
+          すべてのつながりを見る
+        </UiButton>
       </section>
     </main>
 
@@ -214,6 +247,41 @@ function onArtistClick(artist) {
 
 .music-memories__grid-head {
   margin-bottom: 28px;
+}
+
+.music-memories__connections {
+  margin-bottom: clamp(40px, 7vw, 64px);
+  text-align: center;
+}
+
+.music-memories__connections-eyebrow {
+  margin: 0 0 12px;
+  font-family: var(--ff-latin);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--kin-400);
+}
+
+.music-memories__connections-title {
+  margin: 0 0 12px;
+  font-family: var(--ff-mincho);
+  font-size: clamp(1.3rem, 3.2vw, 1.75rem);
+  letter-spacing: 0.08em;
+}
+
+.music-memories__connections-lead {
+  margin: 0 auto 28px;
+  max-width: 620px;
+  font-family: var(--ff-sans-jp);
+  font-size: 13px;
+  line-height: 1.8;
+  color: rgba(248, 244, 239, 0.68);
+}
+
+.music-memories__connections-more {
+  display: flex;
+  margin: 24px auto 0;
 }
 
 .music-memories__chat-section {

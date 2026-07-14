@@ -5,6 +5,7 @@
  */
 import { ref, watch } from 'vue'
 import PageMusicMemories from '../pages/PageMusicMemories.vue'
+import PageMusicConnections from '../pages/PageMusicConnections.vue'
 import PageLogin from '../pages/PageLogin.vue'
 import PageRegister from '../pages/PageRegister.vue'
 import PagePlatformOpenChat from '../pages/PagePlatformOpenChat.vue'
@@ -158,6 +159,15 @@ function onUserUpdated(account) {
             <UiIco name="chat" :size="14" />
             オープンチャット
           </button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'connections' }"
+            @click="setView('connections')"
+          >
+            <UiIco name="disc" :size="14" />
+            曲の繋がり
+          </button>
         </nav>
 
         <HeaderAccountMenu
@@ -178,7 +188,10 @@ function onUserUpdated(account) {
       embedded
       @enter-site="(siteId) => emit('enter-site', siteId)"
       @open-chat="setView('open-chat')"
+      @open-connections="setView('connections')"
     />
+
+    <PageMusicConnections v-else-if="view === 'connections'" />
 
     <PagePlatformOpenChat
       v-else-if="view === 'open-chat'"
