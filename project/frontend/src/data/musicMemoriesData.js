@@ -1,5 +1,10 @@
 import { pageImageUrl } from '../lib/pageImages.js'
 
+/** @param {string} filename */
+function artistImageUrl(filename) {
+  return `/images/artists/${filename}`
+}
+
 /** Music Memories プラットフォーム上のファンクラブ一覧 */
 export const MUSIC_MEMORIES_ARTISTS = [
   {
@@ -12,19 +17,67 @@ export const MUSIC_MEMORIES_ARTISTS = [
     siteId: 'hibari',
   },
   {
-    id: 'placeholder-1',
-    name: 'Coming Soon',
-    nameEn: 'Artist',
-    tagline: '新しいレジェンドのファンクラブを準備中',
-    image: null,
+    id: 'ozaki',
+    name: '尾崎豊',
+    nameEn: 'Ozaki Yutaka',
+    tagline: '十五の夜から続く、魂の叫び',
+    image: artistImageUrl('ozaki.png'),
     status: 'soon',
   },
   {
-    id: 'placeholder-2',
-    name: 'Coming Soon',
-    nameEn: 'Artist',
-    tagline: '音楽の記憶を、これからも紡いでいきます',
-    image: null,
+    id: 'yujiro',
+    name: '石原裕次郎',
+    nameEn: 'Ishihara Yujiro',
+    tagline: '太陽の男、昭和スターの記憶',
+    image: artistImageUrl('yujiro.png'),
+    status: 'soon',
+  },
+  {
+    id: 'kyu',
+    name: '坂本九',
+    nameEn: 'Sakamoto Kyu',
+    tagline: '上を向いて歩こう、世界へ届けた歌',
+    image: artistImageUrl('kyu.png'),
+    status: 'soon',
+  },
+  {
+    id: 'kiyoshiro',
+    name: '忌野清志郎',
+    nameEn: 'Imawano Kiyoshiro',
+    tagline: 'RCから続く、ロックの不滅の魂',
+    image: artistImageUrl('kiyoshiro.png'),
+    status: 'soon',
+  },
+  {
+    id: 'hideki',
+    name: '西城秀樹',
+    nameEn: 'Saijo Hideki',
+    tagline: 'ヤングマンの熱狂、永遠のアイドル',
+    image: artistImageUrl('hideki.png'),
+    status: 'soon',
+  },
+  {
+    id: 'keiko',
+    name: '藤圭子',
+    nameEn: 'Fuji Keiko',
+    tagline: '圭子の夢は夜開ける、演歌の金字塔',
+    image: artistImageUrl('keiko.png'),
+    status: 'soon',
+  },
+  {
+    id: 'hide',
+    name: 'hide',
+    nameEn: 'hide',
+    tagline: 'X JAPAN、ヴィジュアルの革命児',
+    image: artistImageUrl('hide.png'),
+    status: 'soon',
+  },
+  {
+    id: 'takajin',
+    name: 'やしきたかじん',
+    nameEn: 'Yashiki Takajin',
+    tagline: '大阪の男、魂のバラードを紡ぐ',
+    image: artistImageUrl('takajin.png'),
     status: 'soon',
   },
 ]
