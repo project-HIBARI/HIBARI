@@ -10,6 +10,7 @@ import { useAuth } from '../../composables/useAuth.js'
 import { useSnsDmUnread } from '../../composables/useSnsDmUnread.js'
 import {
   fetchDmThreads,
+  getOrCreateDmThread,
   fetchDmThread,
   markDmThreadRead,
   acceptDmRequest,
@@ -41,6 +42,8 @@ const activeThread = ref(null)
 const messages = ref([])
 const threadLoading = ref(false)
 const threadError = ref('')
+const nextBeforeId = ref(null)
+const loadingOlder = ref(false)
 const reportTarget = ref(null)
 const blockBusy = ref(false)
 
@@ -133,6 +136,7 @@ async function openThread(threadId) {
     const data = await fetchDmThread(threadId)
     activeThread.value = data
     messages.value = data.messages
+    nextBeforeId.value = data.next_before_id
     await markDmThreadRead(threadId)
     refreshUnread()
     loadThreads()
@@ -148,23 +152,40 @@ function closeThread() {
   activeThreadId.value = null
   activeThread.value = null
   messages.value = []
+  nextBeforeId.value = null
+}
+
+async function loadOlderMessages() {
+  if (!activeThreadId.value || !nextBeforeId.value || loadingOlder.value) return
+  loadingOlder.value = true
+  try {
+    const data = await fetchDmThread(activeThreadId.value, { beforeId: nextBeforeId.value })
+    messages.value = [...data.messages, ...messages.value]
+    nextBeforeId.value = data.next_before_id
+  } catch (err) {
+    threadError.value = err?.message || '過去のメッセージを読み込めませんでした'
+  } finally {
+    loadingOlder.value = false
+  }
 }
 
 async function startThreadWith(accountId) {
-  showSearch.value = false
-  const existing = threads.value.find((t) => t.other.account_id === accountId)
-  if (existing) {
-    await openThread(existing.thread_id)
+  if (!isLoggedIn.value) {
+    emit('need-auth', { mode: 'login' })
     return
   }
-  activeThreadId.value = null
-  activeThread.value = {
-    thread_id: null,
-    other: searchResults.value.find((u) => u.account_id === accountId) || { account_id: accountId, name: '', avatar_path: null },
-    status: 'accepted',
-    blocked: false,
+  showSearch.value = false
+  threadLoading.value = true
+  threadError.value = ''
+  try {
+    const data = await getOrCreateDmThread(accountId)
+    await openThread(data.thread_id)
+    await loadThreads()
+  } catch (err) {
+    threadError.value = err?.message || 'DMの開始に失敗しました'
+  } finally {
+    threadLoading.value = false
   }
-  messages.value = []
 }
 
 async function sendMessage() {
@@ -360,6 +381,15 @@ onMounted(() => {
           </template>
           <p v-else-if="!messages.length" class="sns-dm__state">まだメッセージがありません</p>
           <template v-else>
+            <button
+              v-if="nextBeforeId"
+              type="button"
+              class="sns-dm__older-btn"
+              :disabled="loadingOlder"
+              @click="loadOlderMessages"
+            >
+              {{ loadingOlder ? '読み込み中…' : '以前のメッセージ' }}
+            </button>
             <div
               v-for="m in messages"
               :key="m.message_id"
@@ -679,6 +709,20 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.sns-dm__older-btn {
+  align-self: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(248, 244, 239, 0.76);
+  font-size: 12px;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+.sns-dm__older-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 .sns-dm__message {
   display: flex;

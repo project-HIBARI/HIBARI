@@ -202,9 +202,17 @@ def ensure_sns_schema(engine):
             """
             CREATE TABLE IF NOT EXISTS sns_dm_threads (
                 thread_id SERIAL PRIMARY KEY,
+                pair_key VARCHAR(64) NULL,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
             """
+        ))
+        conn.execute(text(
+            "ALTER TABLE sns_dm_threads ADD COLUMN IF NOT EXISTS pair_key VARCHAR(64)"
+        ))
+        conn.execute(text(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_sns_dm_threads_pair_key "
+            "ON sns_dm_threads (pair_key) WHERE pair_key IS NOT NULL"
         ))
 
         conn.execute(text(
