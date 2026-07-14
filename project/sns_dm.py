@@ -9,6 +9,7 @@ import os
 import uuid
 
 from flask import jsonify, request
+from sqlalchemy import text
 from werkzeug.utils import secure_filename
 
 from sns_posts import ALLOWED_IMAGE_EXTENSIONS, MAX_IMAGE_BYTES, SNS_UPLOAD_FOLDER
@@ -22,6 +23,11 @@ SEARCH_LIMIT = 20
 def _row_val(row, key):
     mapping = row._mapping if hasattr(row, "_mapping") else row
     return mapping[key]
+
+
+def _dm_pair_key(a, b):
+    first, second = sorted((int(a), int(b)))
+    return f"{first}:{second}"
 
 
 def register_sns_dm_routes(app, engine, **deps):
@@ -70,6 +76,14 @@ def register_sns_dm_routes(app, engine, **deps):
         return rows[0] if rows else None
 
     def _find_thread_id(a, b):
+        pair_key = _dm_pair_key(a, b)
+        rows = fetch_all(
+            "SELECT thread_id FROM sns_dm_threads WHERE pair_key = :pair_key",
+            {"pair_key": pair_key},
+        )
+        if rows:
+            return _row_val(rows[0], "thread_id")
+
         rows = fetch_all(
             """
             SELECT p1.thread_id
@@ -79,7 +93,18 @@ def register_sns_dm_routes(app, engine, **deps):
             """,
             {"a": a, "b": b},
         )
-        return _row_val(rows[0], "thread_id") if rows else None
+        if not rows:
+            return None
+        thread_id = _row_val(rows[0], "thread_id")
+        execute(
+            """
+            UPDATE sns_dm_threads
+            SET pair_key = :pair_key
+            WHERE thread_id = :thread_id AND pair_key IS NULL
+            """,
+            {"thread_id": thread_id, "pair_key": pair_key},
+        )
+        return thread_id
 
     def _other_participant(thread_id, account_id):
         rows = fetch_all(
@@ -101,32 +126,92 @@ def register_sns_dm_routes(app, engine, **deps):
         }
 
     def _ensure_thread(sender_id, recipient_id):
-        thread_id = _find_thread_id(sender_id, recipient_id)
-        if thread_id:
-            return thread_id, False
+        pair_key = _dm_pair_key(sender_id, recipient_id)
 
-        thread_id = execute_insert(
-            "INSERT INTO sns_dm_threads DEFAULT VALUES RETURNING thread_id", {}
-        )
-        mutual = _is_mutual_follow(sender_id, recipient_id)
-        execute(
-            """
-            INSERT INTO sns_dm_participants (thread_id, account_id, status)
-            VALUES (:thread_id, :sender_id, 'accepted')
-            """,
-            {"thread_id": thread_id, "sender_id": sender_id},
-        )
-        execute(
-            """
-            INSERT INTO sns_dm_participants (thread_id, account_id, status)
-            VALUES (:thread_id, :recipient_id, :status)
-            """,
-            {
-                "thread_id": thread_id,
-                "recipient_id": recipient_id,
-                "status": "accepted" if mutual else "requested",
-            },
-        )
+        with engine.begin() as conn:
+            conn.execute(text("SELECT pg_advisory_xact_lock(hashtext(:pair_key))"), {"pair_key": pair_key})
+
+            row = conn.execute(
+                text("SELECT thread_id FROM sns_dm_threads WHERE pair_key = :pair_key"),
+                {"pair_key": pair_key},
+            ).fetchone()
+            if row:
+                return _row_val(row, "thread_id"), False
+
+            row = conn.execute(
+                text(
+                    """
+                    SELECT p1.thread_id
+                    FROM sns_dm_participants p1
+                    JOIN sns_dm_participants p2 ON p2.thread_id = p1.thread_id
+                    WHERE p1.account_id = :sender_id AND p2.account_id = :recipient_id
+                    ORDER BY p1.thread_id ASC
+                    LIMIT 1
+                    """
+                ),
+                {"sender_id": sender_id, "recipient_id": recipient_id},
+            ).fetchone()
+            if row:
+                thread_id = _row_val(row, "thread_id")
+                conn.execute(
+                    text(
+                        """
+                        UPDATE sns_dm_threads
+                        SET pair_key = :pair_key
+                        WHERE thread_id = :thread_id AND pair_key IS NULL
+                        """
+                    ),
+                    {"thread_id": thread_id, "pair_key": pair_key},
+                )
+                return thread_id, False
+
+            mutual_row = conn.execute(
+                text(
+                    """
+                    SELECT 1
+                    FROM sns_follows f1
+                    WHERE f1.follower_account_id = :sender_id
+                      AND f1.following_account_id = :recipient_id
+                      AND EXISTS (
+                          SELECT 1 FROM sns_follows f2
+                          WHERE f2.follower_account_id = :recipient_id
+                            AND f2.following_account_id = :sender_id
+                      )
+                    """
+                ),
+                {"sender_id": sender_id, "recipient_id": recipient_id},
+            ).fetchone()
+            recipient_status = "accepted" if mutual_row else "requested"
+
+            thread_id = conn.execute(
+                text(
+                    """
+                    INSERT INTO sns_dm_threads (pair_key)
+                    VALUES (:pair_key)
+                    RETURNING thread_id
+                    """
+                ),
+                {"pair_key": pair_key},
+            ).scalar()
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO sns_dm_participants (thread_id, account_id, status)
+                    VALUES (:thread_id, :sender_id, 'accepted')
+                    """
+                ),
+                {"thread_id": thread_id, "sender_id": sender_id},
+            )
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO sns_dm_participants (thread_id, account_id, status)
+                    VALUES (:thread_id, :recipient_id, :status)
+                    """
+                ),
+                {"thread_id": thread_id, "recipient_id": recipient_id, "status": recipient_status},
+            )
+
         return thread_id, True
 
     def _serialize_message(row, viewer_id):
@@ -271,6 +356,39 @@ def register_sns_dm_routes(app, engine, **deps):
         threads.sort(key=lambda t: t["updated_at"] or "", reverse=True)
         return jsonify({"threads": threads})
 
+    @app.route("/api/sns/dm/threads", methods=["POST"])
+    def sns_dm_get_or_create_thread():
+        account_id, err = _require_login()
+        if err:
+            return err
+
+        data = request.get_json(silent=True) or {}
+        recipient_id = data.get("recipient_id")
+        if not isinstance(recipient_id, int):
+            return jsonify({"error": "送信先を指定してください"}), 400
+        if recipient_id == account_id:
+            return jsonify({"error": "自分自身にはメッセージを送信できません"}), 400
+        if not fetch_account_row(recipient_id):
+            return jsonify({"error": "送信先ユーザーが見つかりません"}), 404
+        if _is_blocked(account_id, recipient_id):
+            return jsonify({"error": "ブロック中のユーザーとはメッセージを送受信できません"}), 403
+
+        try:
+            thread_id, created = _ensure_thread(account_id, recipient_id)
+            participant = _get_participant(thread_id, account_id)
+            other = _other_participant(thread_id, account_id)
+            blocked = _is_blocked(account_id, recipient_id)
+            return jsonify({
+                "thread_id": thread_id,
+                "created": created,
+                "status": _row_val(participant, "status") if participant else "accepted",
+                "other": other,
+                "blocked": blocked,
+            }), 201 if created else 200
+        except Exception as e:
+            print(e)
+            return jsonify({"error": "DMスレッドの作成に失敗しました"}), 500
+
     @app.route("/api/sns/dm/threads/<int:thread_id>", methods=["GET"])
     def sns_dm_get_thread(thread_id):
         account_id, err = _require_login()
@@ -412,7 +530,44 @@ def register_sns_dm_routes(app, engine, **deps):
         if _is_blocked(sender_id, recipient_id):
             raise PermissionError("ブロック中のユーザーとはメッセージを送受信できません")
 
+        if message_type == "image" and (not media_path or not str(media_path).startswith("/uploads/sns/")):
+            raise ValueError("画像の参照が不正です")
+        if message_type == "post_share":
+            post_rows = fetch_all(
+                "SELECT 1 FROM sns_posts WHERE post_id = :post_id AND is_deleted = FALSE",
+                {"post_id": shared_post_id},
+            )
+            if not post_rows:
+                raise ValueError("共有する投稿が見つかりません")
+        if message_type == "story_reply":
+            story_rows = fetch_all(
+                """
+                SELECT 1
+                FROM sns_stories
+                WHERE story_id = :story_id
+                  AND account_id = :recipient_id
+                  AND is_archived = FALSE
+                """,
+                {"story_id": shared_story_id, "recipient_id": recipient_id},
+            )
+            if not story_rows:
+                raise ValueError("返信するストーリーズが見つかりません")
+
         thread_id, _created = _ensure_thread(sender_id, recipient_id)
+        recipient_participant = _get_participant(thread_id, recipient_id)
+        if recipient_participant and _row_val(recipient_participant, "status") == "requested":
+            existing_rows = fetch_all(
+                """
+                SELECT COUNT(*) AS c
+                FROM sns_dm_messages
+                WHERE thread_id = :thread_id
+                  AND sender_account_id = :sender_id
+                  AND deleted_at IS NULL
+                """,
+                {"thread_id": thread_id, "sender_id": sender_id},
+            )
+            if int(_row_val(existing_rows[0], "c")) > 0:
+                raise PermissionError("メッセージリクエストの承認待ちです")
 
         message_id = execute_insert(
             """
@@ -532,6 +687,8 @@ def register_sns_dm_routes(app, engine, **deps):
                 account_id, other["account_id"], message_type, body, media_path, shared_post_id, shared_story_id
             )
             return jsonify({"thread_id": thread_id, "message_id": message_id}), 201
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
         except PermissionError as e:
             return jsonify({"error": str(e)}), 403
         except Exception as e:

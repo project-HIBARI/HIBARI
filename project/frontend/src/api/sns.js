@@ -108,6 +108,13 @@ export function fetchDmThreads(box = 'inbox') {
   return apiRequest(`/api/sns/dm/threads?box=${box}`)
 }
 
+export function getOrCreateDmThread(recipientId) {
+  return apiRequest('/api/sns/dm/threads', {
+    method: 'POST',
+    body: JSON.stringify({ recipient_id: recipientId }),
+  })
+}
+
 export function fetchDmThread(threadId, { beforeId = null } = {}) {
   const params = new URLSearchParams()
   if (beforeId) params.set('before_id', String(beforeId))

@@ -205,6 +205,7 @@ function onUserUpdated(account) {
     <PageSnsDm
       v-else-if="view === 'dm'"
       :target-account-id="dmTargetAccountId"
+      @need-auth="onSnsNeedAuth"
       @open-chat="setView('open-chat')"
       @open-profile="openProfile"
     />
@@ -275,11 +276,16 @@ function onUserUpdated(account) {
       <button
         type="button"
         class="platform-shell__tab"
-        :class="{ 'platform-shell__tab--active': view === 'open-chat' }"
-        @click="setView('open-chat')"
+        :class="{ 'platform-shell__tab--active': view === 'dm' }"
+        @click="openDm()"
       >
-        <UiIco name="chat" :size="20" />
-        <span>チャット</span>
+        <span class="platform-shell__tab-icon">
+          <UiIco name="mail" :size="20" />
+          <span v-if="dmUnreadCount > 0" class="platform-shell__tab-badge">
+            {{ dmUnreadCount > 9 ? '9+' : dmUnreadCount }}
+          </span>
+        </span>
+        <span>DM</span>
       </button>
       <button
         type="button"
@@ -501,6 +507,30 @@ function onUserUpdated(account) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.platform-shell__tab-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.platform-shell__tab-badge {
+  position: absolute;
+  top: -7px;
+  right: -10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--beni-600);
+  color: #fff;
+  font-size: 9px;
+  line-height: 16px;
+  text-align: center;
+  border: 2px solid var(--sns-bg);
 }
 
 .platform-shell__tab--active {
