@@ -2,6 +2,7 @@
 /**
  * 部品名: モーダル共通シェル
  * 役割: オーバーレイ＋枠＋閉じるボタン。ESC で閉じる
+ * 備考: body へ Teleport し、親の transform/overflow に影響されず常に画面中央へ表示する
  */
 import { onMounted, onUnmounted } from 'vue'
 
@@ -16,43 +17,59 @@ function onKey(e) {
   if (e.key === 'Escape') emit('close')
 }
 
-onMounted(() => window.addEventListener('keydown', onKey))
-onUnmounted(() => window.removeEventListener('keydown', onKey))
+onMounted(() => {
+  window.addEventListener('keydown', onKey)
+  document.body.style.overflow = 'hidden'
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKey)
+  document.body.style.overflow = ''
+})
 </script>
 
 <template>
-  <div
-    role="dialog"
-    aria-modal="true"
-    :aria-label="title"
-    class="modal-shell"
-  >
-    <div class="modal-shell__overlay" @click="emit('close')" />
-    <div class="modal-shell__panel" :class="{ 'modal-shell__panel--wide': wide }">
-      <button
-        type="button"
-        class="modal-shell__close"
-        aria-label="閉じる"
-        @click="emit('close')"
-      >
-        ✕
-      </button>
-      <div class="modal-shell__title">{{ title }}</div>
-      <hr class="hr-gold modal-shell__rule" />
-      <slot />
+  <Teleport to="body">
+    <div
+      role="dialog"
+      aria-modal="true"
+      :aria-label="title"
+      class="modal-shell"
+    >
+      <div class="modal-shell__overlay" @click="emit('close')" />
+      <div class="modal-shell__panel" :class="{ 'modal-shell__panel--wide': wide }">
+        <button
+          type="button"
+          class="modal-shell__close"
+          aria-label="閉じる"
+          @click="emit('close')"
+        >
+          ✕
+        </button>
+        <div class="modal-shell__title">{{ title }}</div>
+        <hr class="hr-gold modal-shell__rule" />
+        <slot />
+      </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <style scoped>
 .modal-shell {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-height: 100vh;
   z-index: 400;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  box-sizing: border-box;
+  pointer-events: auto;
 }
 .modal-shell__panel {
   position: relative;
@@ -108,12 +125,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 @media (max-width: 480px) {
   .modal-shell {
     padding: 12px;
-    align-items: flex-end;
+    align-items: center;
   }
   .modal-shell__panel {
     padding: 24px 20px;
     max-height: 90vh;
-    border-radius: var(--site-radius-lg) var(--site-radius-lg) 0 0;
   }
   .modal-shell__title {
     font-size: 18px;
