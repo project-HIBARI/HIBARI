@@ -1,30 +1,57 @@
 <script setup>
 /**
  * 部品名: Music Memory Book — アルバム表紙ビジュアル
+ * 表紙デザイン（透明PNG）をモックアップの表紙面に重ねて表示
  */
-defineProps({
+import { computed } from 'vue'
+import { getCoverDesignImage, normalizeCoverDesignId } from '../../../lib/memoryBookCoverDesigns.js'
+
+const props = defineProps({
   year: { type: [Number, String], default: 2026 },
   subtitle: { type: String, default: 'Music Memories' },
-  /** purple | blue | green | brown */
+  /** purple | blue | green | brown — designId 未指定時のフォールバック */
   tone: { type: String, default: 'purple' },
   size: { type: String, default: 'lg' },
+  /** 1〜9: hyousi-design 透明PNG */
+  designId: { type: Number, default: 1 },
 })
+
+const normalizedDesignId = computed(() => normalizeCoverDesignId(props.designId))
+const coverImage = computed(() => getCoverDesignImage(normalizedDesignId.value))
+const useDesignOverlay = computed(() => normalizedDesignId.value >= 1)
 </script>
 
 <template>
-  <div class="mmb-cover" :class="[`mmb-cover--${tone}`, `mmb-cover--${size}`]" aria-hidden="true">
+  <div
+    class="mmb-cover"
+    :class="[
+      `mmb-cover--${size}`,
+      useDesignOverlay ? 'mmb-cover--with-design' : `mmb-cover--${tone}`,
+    ]"
+    aria-hidden="true"
+  >
     <div class="mmb-cover__spine" />
     <div class="mmb-cover__face">
-      <div class="mmb-cover__ornament mmb-cover__ornament--top">♪</div>
-      <p class="mmb-cover__subtitle">{{ subtitle }}</p>
-      <p class="mmb-cover__year">{{ year }}</p>
-      <div class="mmb-cover__flowers">
-        <span>✿</span>
-        <span class="mmb-cover__note">♫</span>
-        <span>✿</span>
-      </div>
-      <div class="mmb-cover__line" />
-      <p class="mmb-cover__brand">MISORA HIBARI</p>
+      <img
+        v-if="useDesignOverlay"
+        :src="coverImage"
+        alt=""
+        class="mmb-cover__design"
+        decoding="async"
+      />
+
+      <template v-else>
+        <div class="mmb-cover__ornament mmb-cover__ornament--top">♪</div>
+        <p class="mmb-cover__subtitle">{{ subtitle }}</p>
+        <p class="mmb-cover__year">{{ year }}</p>
+        <div class="mmb-cover__flowers">
+          <span>✿</span>
+          <span class="mmb-cover__note">♫</span>
+          <span>✿</span>
+        </div>
+        <div class="mmb-cover__line" />
+        <p class="mmb-cover__brand">MISORA HIBARI</p>
+      </template>
     </div>
   </div>
 </template>
@@ -33,6 +60,9 @@ defineProps({
 .mmb-cover {
   position: relative;
   perspective: 800px;
+}
+
+.mmb-cover:not(.mmb-cover--with-design) {
   filter: drop-shadow(0 18px 40px rgba(61, 36, 80, 0.28));
 }
 
@@ -75,6 +105,22 @@ defineProps({
   overflow: hidden;
 }
 
+.mmb-cover--with-design .mmb-cover__face {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.mmb-cover__design {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 4px 12px 12px 4px;
+}
+
 .mmb-cover__face::before {
   content: '';
   position: absolute;
@@ -83,6 +129,10 @@ defineProps({
     radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.12) 0%, transparent 45%),
     radial-gradient(circle at 80% 85%, rgba(0, 0, 0, 0.12) 0%, transparent 50%);
   pointer-events: none;
+}
+
+.mmb-cover--with-design .mmb-cover__face::before {
+  display: none;
 }
 
 .mmb-cover--purple .mmb-cover__face {
