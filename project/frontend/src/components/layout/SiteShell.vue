@@ -78,7 +78,7 @@ const navItems = [
 
   { id: 'news', label: 'ニュース' },
 
-  { id: 'profile', label: '美空ひばりについて', shortLabel: '美空ひばり' },
+  { id: 'profile', label: '美空ひばりについて', shortLabel: '歩み' },
 
   { id: 'disco', label: 'ディスコグラフィ', shortLabel: 'ディスコ' },
 
