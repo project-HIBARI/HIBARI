@@ -196,14 +196,23 @@ export const MUSIC_MEMORIES_ARTISTS = [
 
 /**
  * 今日のアーティスト（日替わり紹介枠・新規集客用）
- * 暫定: 美空ひばりを固定表示。後日ローテーションに差し替え予定。
+ * 日付（年内通算日）に応じてロースター内をローテーション表示する。
+ * 同じ日であれば誰が見ても同じアーティストになるよう、日付だけで決定する
+ * （ユーザーごとのランダム表示にはしない）。
  */
-export const TODAYS_ARTIST = {
-  ...MUSIC_MEMORIES_ARTISTS.find((a) => a.id === 'hibari'),
-  headline: '昭和の歌姫を、いま改めて知る',
-  blurb:
-    '可憐さと力強さをあわせ持つ歌声で、時代を超えて愛され続ける美空ひばり。ファンクラブでは楽曲・映像・思い出の記録にふれられます。',
+function pickTodaysArtist() {
+  const now = new Date()
+  const startOfYear = new Date(now.getFullYear(), 0, 0)
+  const dayOfYear = Math.floor((now - startOfYear) / 86400000)
+  const artist = MUSIC_MEMORIES_ARTISTS[dayOfYear % MUSIC_MEMORIES_ARTISTS.length]
+  return {
+    ...artist,
+    headline: artist.resultCatchphrase,
+    blurb: artist.recommendationText,
+  }
 }
+
+export const TODAYS_ARTIST = pickTodaysArtist()
 
 /** Music Memory Book 紹介帯 — 複数アーティスト対応を見せるサムネイル */
 export const MEMORY_BOOK_SHOWCASE_ARTISTS = MUSIC_MEMORIES_ARTISTS.slice(0, 6)
