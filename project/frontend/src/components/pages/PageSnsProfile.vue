@@ -39,7 +39,7 @@ const props = defineProps({
 
 const emit = defineEmits(['need-auth', 'open-dm', 'open-profile'])
 
-const { user, isLoggedIn } = useAuth()
+const { user, isLoggedIn, setUser } = useAuth()
 const { remainingMessage, nextResetLabel, isUnlimited, refreshUsage } = useSnsUsage()
 const { showToast } = useToast()
 
@@ -338,7 +338,12 @@ async function onDelete(post) {
 
 function onProfileUpdated({ bio, avatarPath }) {
   profile.value.bio = bio
-  if (avatarPath) profile.value.avatar_path = avatarPath
+  if (avatarPath) {
+    profile.value.avatar_path = avatarPath
+    if (isSelf.value && user.value) {
+      setUser({ ...user.value, avatar_path: avatarPath })
+    }
+  }
   showEditModal.value = false
   showToast('プロフィールを更新しました')
 }

@@ -416,6 +416,36 @@ function onForgotPassword() {
   color: rgba(248, 244, 239, 0.38);
 }
 
+.login-card--platform .login-card__checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(248, 244, 239, 0.72);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.login-card--platform .login-card__checkbox:hover {
+  border-color: rgba(248, 244, 239, 0.95);
+  background: rgba(255, 255, 255, 0.16);
+}
+.login-card--platform .login-card__checkbox:checked {
+  border-color: var(--kin-400);
+  background: var(--murasaki-600);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpolyline points='3.5 8.5 6.5 11.5 12.5 4.5' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 12px 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.login-card--platform .login-card__checkbox:focus-visible {
+  outline: 2px solid var(--kin-400);
+  outline-offset: 2px;
+}
+
 .login-card--platform .login-card__forgot {
   color: var(--kin-400);
 }

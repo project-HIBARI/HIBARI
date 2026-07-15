@@ -1,5 +1,3 @@
-import { pageImageUrl } from '../lib/pageImages.js'
-
 /** @param {string} filename */
 function artistImageUrl(filename) {
   return `/images/artists/${filename}`
@@ -13,26 +11,24 @@ function artistImageUrl(filename) {
  */
 export const MUSIC_MEMORIES_ARTISTS = [
   {
-    id: 'hibari',
-    name: '美空ひばり',
-    nameEn: 'Misora Hibari',
-    tagline: '昭和の歌姫、その声と軌跡をたどる',
-    image: pageImageUrl('misorahibari-profile-hero.png'),
-    status: 'open',
-    siteId: 'hibari',
-    gender: 'female',
+    id: 'kyu',
+    name: '坂本九',
+    nameEn: 'Sakamoto Kyu',
+    tagline: '上を向いて歩こう、世界へ届けた歌',
+    image: artistImageUrl('kyu.png'),
+    status: 'soon',
+    gender: 'male',
     activeDecades: [1950, 1960, 1970, 1980],
-    activeStartYear: 1949,
-    genres: ['歌謡曲', '演歌'],
+    activeStartYear: 1959,
+    genres: ['ポップス', '歌謡曲'],
     featuredOrder: 1,
     recommendationTags: [
-      'healing', 'warm', 'powerful', 'hope', 'emotional', 'gentle',
-      'traditional', 'enka', 'kayokyoku', 'legend', 'timeless',
-      '1940s', '1950s', '1960s', '1970s', '1980s', 'classic', 'elegant', 'entertainment',
+      'hope', 'uplifting', 'entertainment', 'classic', 'timeless', 'emotional',
+      'kayokyoku', '1950s', '1960s', '1970s', '1980s', 'warm', 'gentle',
     ],
-    resultCatchphrase: '時代を越えて心を照らす、永遠の歌声',
+    resultCatchphrase: '世界へ届いた希望の歌を、いま聴きなおす',
     recommendationText:
-      '温かさと力強さをあわせ持つ歌声が、あなたの心に寄り添ってくれるでしょう。',
+      '明るい響きと希望のメッセージが、背中をやさしく押してくれます。',
   },
   {
     id: 'ozaki',
@@ -75,24 +71,26 @@ export const MUSIC_MEMORIES_ARTISTS = [
       '歌とスクリーンで輝いたスターの世界が、大人の気分に寄り添います。',
   },
   {
-    id: 'kyu',
-    name: '坂本九',
-    nameEn: 'Sakamoto Kyu',
-    tagline: '上を向いて歩こう、世界へ届けた歌',
-    image: artistImageUrl('kyu.png'),
-    status: 'soon',
-    gender: 'male',
+    id: 'hibari',
+    name: '美空ひばり',
+    nameEn: 'Misora Hibari',
+    tagline: '昭和の歌姫、その声と軌跡をたどる',
+    image: artistImageUrl('hibari.png'),
+    status: 'open',
+    siteId: 'hibari',
+    gender: 'female',
     activeDecades: [1950, 1960, 1970, 1980],
-    activeStartYear: 1959,
-    genres: ['ポップス', '歌謡曲'],
+    activeStartYear: 1949,
+    genres: ['歌謡曲', '演歌'],
     featuredOrder: 4,
     recommendationTags: [
-      'hope', 'uplifting', 'entertainment', 'classic', 'timeless', 'emotional',
-      'kayokyoku', '1950s', '1960s', '1970s', '1980s', 'warm', 'gentle',
+      'healing', 'warm', 'powerful', 'hope', 'emotional', 'gentle',
+      'traditional', 'enka', 'kayokyoku', 'legend', 'timeless',
+      '1940s', '1950s', '1960s', '1970s', '1980s', 'classic', 'elegant', 'entertainment',
     ],
-    resultCatchphrase: '世界へ届いた希望の歌を、いま聴きなおす',
+    resultCatchphrase: '時代を越えて心を照らす、永遠の歌声',
     recommendationText:
-      '明るい響きと希望のメッセージが、背中をやさしく押してくれます。',
+      '温かさと力強さをあわせ持つ歌声が、あなたの心に寄り添ってくれるでしょう。',
   },
   {
     id: 'kiyoshiro',

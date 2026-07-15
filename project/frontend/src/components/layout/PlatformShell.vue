@@ -319,6 +319,7 @@ function onUserUpdated(account) {
           :is-logged-in="isLoggedIn"
           :user-name="userName"
           :membership="membership || 'general'"
+          :avatar-path="authUser?.avatar_path || ''"
           @open-auth="onOpenAuth"
           @open-account="modal = 'account'"
           @logout="onLogout"

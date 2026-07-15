@@ -3,7 +3,6 @@
  * 部品名: Music Memories アーティストカード
  * 用途: ホームのファンクラブ一覧・アーティスト図鑑の共通カード
  */
-import UiButton from '../../ui/UiButton.vue'
 import { decadeLabel, genderLabel, statusLabel } from '../../../data/musicMemoriesData.js'
 
 const props = defineProps({
@@ -35,6 +34,12 @@ const metaTags = [
       'mm-artist-card--open': artist.status === 'open',
       'mm-artist-card--soon': artist.status === 'soon',
     }"
+    :role="artist.status === 'open' ? 'link' : undefined"
+    :tabindex="artist.status === 'open' ? 0 : undefined"
+    :aria-label="artist.status === 'open' ? `${artist.name}のファンクラブへ` : undefined"
+    @click="onEnter"
+    @keydown.enter.prevent="onEnter"
+    @keydown.space.prevent="onEnter"
   >
     <div class="mm-artist-card__visual" aria-hidden="true">
       <img
@@ -59,24 +64,20 @@ const metaTags = [
         <li v-for="tag in metaTags" :key="tag" class="mm-artist-card__meta-tag">{{ tag }}</li>
       </ul>
 
-      <UiButton
+      <span
         v-if="artist.status === 'open'"
-        variant="gold"
-        size="md"
         class="mm-artist-card__cta"
-        @click="onEnter"
+        aria-hidden="true"
       >
         ファンクラブへ
-      </UiButton>
-      <button
+      </span>
+      <span
         v-else
-        type="button"
         class="mm-artist-card__badge"
-        disabled
         aria-disabled="true"
       >
         準備中
-      </button>
+      </span>
     </div>
   </article>
 </template>
@@ -93,10 +94,19 @@ const metaTags = [
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s, border-color 0.35s;
 }
 
-.mm-artist-card--open:hover {
+.mm-artist-card:hover {
   transform: translateY(-4px);
   border-color: rgba(201, 169, 97, 0.45);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.mm-artist-card--open {
+  cursor: pointer;
+}
+
+.mm-artist-card--open:focus-visible {
+  outline: 2px solid var(--kin-400);
+  outline-offset: 3px;
 }
 
 .mm-artist-card--soon {
@@ -105,7 +115,7 @@ const metaTags = [
 
 .mm-artist-card__visual {
   aspect-ratio: 16 / 10;
-  background: linear-gradient(145deg, rgba(90, 58, 107, 0.35), rgba(26, 20, 24, 0.6));
+  background: #1e161e;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,6 +127,7 @@ const metaTags = [
   height: 100%;
   object-fit: cover;
   object-position: center top;
+  background: #1e161e;
 }
 
 .mm-artist-card__placeholder {
@@ -181,6 +192,20 @@ const metaTags = [
 
 .mm-artist-card__cta {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  min-height: 40px;
+  border-radius: var(--site-radius-sm);
+  border: 1px solid var(--kin-600);
+  background: linear-gradient(180deg, var(--kin-400) 0%, var(--kin-500) 100%);
+  font-family: var(--ff-sans-jp);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--ink-900);
+  white-space: nowrap;
 }
 
 .mm-artist-card__badge {
@@ -194,10 +219,5 @@ const metaTags = [
   font-size: 11px;
   letter-spacing: 0.12em;
   color: rgba(248, 244, 239, 0.5);
-  cursor: not-allowed;
-}
-
-.mm-artist-card__badge:disabled {
-  opacity: 1;
 }
 </style>

@@ -112,6 +112,13 @@ const common = computed(() => ({
       <line x1="5" y1="5" x2="19" y2="19" />
       <line x1="19" y1="5" x2="5" y2="19" />
     </template>
+    <template v-else-if="name === 'trash'">
+      <polyline points="3,6 5,6 21,6" />
+      <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </template>
     <template v-else-if="name === 'home'">
       <path d="M4 11.5 12 4l8 7.5" />
       <path d="M6 10v10h12V10" />
