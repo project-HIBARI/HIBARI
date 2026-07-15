@@ -186,6 +186,11 @@ const common = computed(() => ({
     <template v-else-if="name === 'energized'">
       <polygon points="13,2 4,14 11,14 10,22 20,9 13,9" />
     </template>
+    <template v-else-if="name === 'quiz'">
+      <path d="M12 21a9 9 0 1 0-9-9 9 9 0 0 0 9 9z" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </template>
     <template v-else-if="name === 'special-moment'">
       <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18" />
       <circle cx="12" cy="12" r="3" />
