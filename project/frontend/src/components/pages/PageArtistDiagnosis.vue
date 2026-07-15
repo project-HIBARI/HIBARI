@@ -3,13 +3,17 @@
  * ページ: Music Memories アーティスト診断
  * 役割: 5問の回答タグとアーティスト特徴タグを照合し、1人をおすすめする
  */
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import UiIco from '../ui/UiIco.vue'
+import SnsUsageCard from './sns/SnsUsageCard.vue'
 import { MUSIC_MEMORIES_ARTISTS } from '../../data/musicMemoriesData.js'
 import { DIAGNOSIS_QUESTIONS } from '../../data/artistDiagnosisData.js'
 import { getRecommendedArtist } from '../../lib/artistDiagnosis.js'
+import { consumeUsage, fetchUsage } from '../../api/usage.js'
 import { SITE_NAME } from '../../constants/site.js'
+
+const USAGE_FEATURE = 'artist-diagnosis'
 
 const emit = defineEmits(['enter-site', 'open-encyclopedia'])
 
@@ -19,6 +23,8 @@ const questionIndex = ref(0)
 /** @type {import('vue').Ref<Record<number, string>>} */
 const selectedAnswerIds = ref({})
 const result = ref(null)
+const usageStatus = ref(null)
+const usageLoading = ref(true)
 let loadingTimer = null
 
 const totalQuestions = DIAGNOSIS_QUESTIONS.length
@@ -28,7 +34,37 @@ const currentAnswerId = computed(() => selectedAnswerIds.value[questionIndex.val
 const isLastQuestion = computed(() => questionIndex.value >= totalQuestions - 1)
 const canGoNext = computed(() => Boolean(currentAnswerId.value))
 
+const isUnlimited = computed(() => usageStatus.value != null && usageStatus.value.limit === null)
+const canUse = computed(() => {
+  if (usageLoading.value) return false
+  if (usageStatus.value == null) return true
+  return Boolean(usageStatus.value.can_use)
+})
+const remainingMessage = computed(() => {
+  if (usageLoading.value || usageStatus.value == null) return '利用状況を確認しています…'
+  if (isUnlimited.value) return '無制限に診断できます'
+  if ((usageStatus.value.remaining ?? 0) > 0) return `残り${usageStatus.value.remaining}回`
+  return '制限に達しました'
+})
+const nextResetLabel = computed(() => {
+  if (isUnlimited.value) return ''
+  if ((usageStatus.value?.remaining ?? 0) > 0) return ''
+  return usageStatus.value?.reset_label || ''
+})
+
+async function refreshUsage() {
+  usageLoading.value = true
+  try {
+    usageStatus.value = await fetchUsage(USAGE_FEATURE)
+  } catch {
+    usageStatus.value = null
+  } finally {
+    usageLoading.value = false
+  }
+}
+
 function startDiagnosis() {
+  if (!canUse.value) return
   selectedAnswerIds.value = {}
   questionIndex.value = 0
   result.value = null
@@ -67,7 +103,7 @@ function runDiagnosis() {
   step.value = 'loading'
   result.value = null
   if (loadingTimer) clearTimeout(loadingTimer)
-  loadingTimer = setTimeout(() => {
+  loadingTimer = setTimeout(async () => {
     try {
       if (!MUSIC_MEMORIES_ARTISTS.length) {
         step.value = 'error'
@@ -83,6 +119,18 @@ function runDiagnosis() {
         step.value = 'error'
         return
       }
+
+      try {
+        usageStatus.value = await consumeUsage(USAGE_FEATURE)
+      } catch (err) {
+        if (err?.status === 429 && err.data) {
+          usageStatus.value = err.data
+          step.value = 'intro'
+          return
+        }
+        // サーバー未接続時などは結果表示を優先しつつ、次回は再確認
+      }
+
       result.value = recommended
       step.value = 'result'
     } catch {
@@ -100,6 +148,7 @@ function resetAll() {
   questionIndex.value = 0
   selectedAnswerIds.value = {}
   result.value = null
+  refreshUsage()
 }
 
 function onFanclub() {
@@ -107,6 +156,10 @@ function onFanclub() {
   if (!artist || artist.status !== 'open' || !artist.siteId) return
   emit('enter-site', artist.siteId)
 }
+
+onMounted(() => {
+  refreshUsage()
+})
 
 onBeforeUnmount(() => {
   if (loadingTimer) clearTimeout(loadingTimer)
@@ -125,8 +178,21 @@ onBeforeUnmount(() => {
           深く考えず、今の気持ちに近いものを選んでください。
         </p>
         <p class="artist-match__meta">全5問・所要時間約1分</p>
-        <UiButton variant="gold" size="lg" @click="startDiagnosis">
-          診断をはじめる
+
+        <SnsUsageCard
+          class="artist-match__usage"
+          :message="remainingMessage"
+          :next-reset-label="nextResetLabel"
+          :unlimited="isUnlimited"
+        />
+
+        <UiButton
+          variant="gold"
+          size="lg"
+          :disabled="!canUse"
+          @click="startDiagnosis"
+        >
+          {{ canUse ? '診断をはじめる' : '制限に達しました' }}
         </UiButton>
       </section>
 
@@ -262,8 +328,20 @@ onBeforeUnmount(() => {
                 アーティスト図鑑へ戻る
               </UiButton>
 
-              <button type="button" class="artist-match__retry" @click="resetAll">
-                もう一度診断する
+              <SnsUsageCard
+                class="artist-match__usage artist-match__usage--result"
+                :message="remainingMessage"
+                :next-reset-label="nextResetLabel"
+                :unlimited="isUnlimited"
+              />
+
+              <button
+                type="button"
+                class="artist-match__retry"
+                :disabled="!canUse"
+                @click="resetAll"
+              >
+                {{ canUse ? 'もう一度診断する' : '制限に達しました' }}
               </button>
             </div>
           </div>
@@ -302,6 +380,22 @@ onBeforeUnmount(() => {
   margin: 0 auto;
   padding: clamp(32px, 6vw, 56px) 24px 64px;
   box-sizing: border-box;
+}
+
+.artist-match__usage {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 20px;
+  text-align: left;
+}
+
+.artist-match__usage--result {
+  margin: 8px auto 4px;
+}
+
+.artist-match__retry:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .artist-match__panel {

@@ -14,10 +14,19 @@ from sqlalchemy import text
 
 FEATURE_AI_CHAT = "ai_chat"
 FEATURE_BOARD_POST = "board_post"
+FEATURE_ARTIST_DIAGNOSIS = "artist_diagnosis"
 
 GUEST_LIMIT = 10
 MEMBER_GENERAL_LIMIT = 10
 GUEST_LOCK_DAYS = 7
+
+# 機能別上限（未指定時は GUEST_LIMIT / MEMBER_GENERAL_LIMIT）
+FEATURE_GUEST_LIMITS = {
+    FEATURE_ARTIST_DIAGNOSIS: 5,
+}
+FEATURE_MEMBER_LIMITS = {
+    FEATURE_ARTIST_DIAGNOSIS: 5,
+}
 
 JST = timezone(timedelta(hours=9))
 
@@ -72,6 +81,13 @@ def format_reset_date(dt):
         dt = dt.replace(tzinfo=JST)
     local = dt.astimezone(JST)
     return f"{local.year}年{local.month}月{local.day}日"
+
+
+def next_month_start(dt=None):
+    local = (dt or datetime.now(JST)).astimezone(JST)
+    if local.month == 12:
+        return datetime(local.year + 1, 1, 1, 0, 0, 0, tzinfo=JST)
+    return datetime(local.year, local.month + 1, 1, 0, 0, 0, tzinfo=JST)
 
 
 def get_usage_subject(session, get_membership_for_account):
@@ -168,7 +184,7 @@ def _upsert_row(engine, subject_type, subject_key, feature, usage_count, period_
         )
 
 
-def _normalize_row(subject, row, now=None):
+def _normalize_row(subject, row, now=None, limit=None):
     now = now or datetime.now(timezone.utc)
     if row is None:
         return {
@@ -180,6 +196,7 @@ def _normalize_row(subject, row, now=None):
     usage_count = row["usage_count"]
     period_start = row["period_start"]
     locked_until = row["locked_until"]
+    cap = limit if limit is not None else GUEST_LIMIT
 
     if period_start is not None and period_start.tzinfo is None:
         period_start = period_start.replace(tzinfo=timezone.utc)
@@ -190,7 +207,7 @@ def _normalize_row(subject, row, now=None):
     if subject["subject_type"] == "guest":
         if locked_until and now < locked_until:
             return {
-                "usage_count": GUEST_LIMIT,
+                "usage_count": cap,
                 "period_start": period_start or now,
                 "locked_until": locked_until,
             }
@@ -222,16 +239,18 @@ def _normalize_row(subject, row, now=None):
     }
 
 
-def _limit_for_subject(subject):
+def _limit_for_subject(subject, feature=None):
     if subject["subject_type"] == "account" and subject.get("membership") == "premium":
         return None
-    return GUEST_LIMIT if subject["subject_type"] == "guest" else MEMBER_GENERAL_LIMIT
+    if subject["subject_type"] == "guest":
+        return FEATURE_GUEST_LIMITS.get(feature, GUEST_LIMIT)
+    return FEATURE_MEMBER_LIMITS.get(feature, MEMBER_GENERAL_LIMIT)
 
 
 def build_usage_status(subject, feature, engine, persist_normalized=True):
+    limit = _limit_for_subject(subject, feature)
     row = _fetch_row(engine, subject["subject_type"], subject["subject_key"], feature)
-    normalized = _normalize_row(subject, row)
-    limit = _limit_for_subject(subject)
+    normalized = _normalize_row(subject, row, limit=limit)
 
     if persist_normalized and row is not None:
         row_locked = row.get("locked_until")
@@ -282,9 +301,11 @@ def build_usage_status(subject, feature, engine, persist_normalized=True):
     if subject["subject_type"] == "guest":
         period = "weekly_after_limit"
         reset_at = locked_until if locked_until and not can_use else None
+        locked_payload = reset_at.isoformat() if reset_at else None
     else:
         period = "monthly"
-        reset_at = None
+        reset_at = next_month_start()
+        locked_payload = None
 
     return {
         "feature": feature,
@@ -295,7 +316,7 @@ def build_usage_status(subject, feature, engine, persist_normalized=True):
         "used": normalized["usage_count"],
         "remaining": remaining,
         "can_use": can_use,
-        "locked_until": reset_at.isoformat() if reset_at else None,
+        "locked_until": locked_payload,
         "reset_label": format_reset_date(reset_at) if reset_at else None,
         "period": period,
     }
@@ -304,24 +325,34 @@ def build_usage_status(subject, feature, engine, persist_normalized=True):
 def consume_usage(subject, feature, engine):
     status = build_usage_status(subject, feature, engine, persist_normalized=True)
     if not status["can_use"]:
+        limit = status.get("limit") or (
+            FEATURE_GUEST_LIMITS.get(feature, GUEST_LIMIT)
+            if status["is_guest"]
+            else FEATURE_MEMBER_LIMITS.get(feature, MEMBER_GENERAL_LIMIT)
+        )
         message = (
-            f"非会員の利用上限（{GUEST_LIMIT}回）に達しました。"
+            f"非会員の利用上限（{limit}回）に達しました。"
             f"{status['reset_label']} に解除されます。"
             if status["is_guest"]
-            else f"今月の利用上限（{MEMBER_GENERAL_LIMIT}回）に達しました。"
+            else f"今月の利用上限（{limit}回）に達しました。"
         )
         raise UsageLimitError(message, status=status, locked_until=status.get("locked_until"))
 
     if status["limit"] is None:
         return status
 
-    row = _normalize_row(subject, _fetch_row(engine, subject["subject_type"], subject["subject_key"], feature))
+    limit = status["limit"]
+    row = _normalize_row(
+        subject,
+        _fetch_row(engine, subject["subject_type"], subject["subject_key"], feature),
+        limit=limit,
+    )
     now = datetime.now(timezone.utc)
     period_start = row["period_start"] if row["usage_count"] > 0 else now
     new_count = row["usage_count"] + 1
     locked_until = row["locked_until"]
 
-    if subject["subject_type"] == "guest" and new_count >= GUEST_LIMIT:
+    if subject["subject_type"] == "guest" and new_count >= limit:
         locked_until = now + timedelta(days=GUEST_LOCK_DAYS)
 
     _upsert_row(

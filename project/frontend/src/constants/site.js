@@ -12,5 +12,5 @@ export const SITE_DOCUMENT_TITLE = SITE_NAME
 /** ブランドアセット（public/ 配下） */
 export const SITE_LOGO_SRC = '/images/music-memories-logo.png'
 export const SITE_ICON_SRC = '/images/music-memories-icon.png'
-export const SITE_FAVICON_SRC = '/favicon.svg'
+export const SITE_FAVICON_SRC = '/images/music-memories-icon.png'
 export const SITE_LOGO_ALT = `${SITE_NAME} — ${SITE_TAGLINE}`

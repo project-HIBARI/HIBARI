@@ -9,7 +9,27 @@ defineProps({
   items: { type: Array, required: true },
 })
 
-const emit = defineEmits(['like'])
+const emit = defineEmits(['like', 'edit', 'delete'])
+
+function onImageError(event) {
+  const img = event?.target
+  if (!img) return
+  img.style.display = 'none'
+  const wrap = img.closest('.mem-board__media')
+  if (!wrap) return
+  const hasVisibleImage = [...wrap.querySelectorAll('img')].some((el) => el.style.display !== 'none')
+  const hasVideo = wrap.querySelector('video')
+  if (!hasVisibleImage && !hasVideo) {
+    wrap.style.display = 'none'
+  }
+}
+
+function authorLine(m) {
+  const parts = []
+  if (m.age != null && m.age !== '' && m.age !== '—') parts.push(`${m.age}歳`)
+  if (m.location) parts.push(m.location)
+  return parts.length ? `${m.author}（${parts.join('・')}）` : m.author
+}
 </script>
 
 <template>
@@ -25,6 +45,7 @@ const emit = defineEmits(['like'])
           :alt="`${m.title}の添付画像`"
           class="mem-board__image"
           loading="lazy"
+          @error="onImageError"
         />
         <video
           v-if="m.videoUrl"
@@ -36,8 +57,14 @@ const emit = defineEmits(['like'])
         />
       </div>
       <footer class="mem-board__foot">
-        <span class="mem-board__author">{{ m.author }}（{{ m.age }}歳・{{ m.location }}）</span>
+        <span class="mem-board__author">{{ authorLine(m) }}</span>
         <div class="mem-board__actions">
+          <template v-if="m.isOwn">
+            <button type="button" class="mem-board__manage" @click="emit('edit', m)">編集</button>
+            <button type="button" class="mem-board__manage mem-board__manage--danger" @click="emit('delete', m)">
+              削除
+            </button>
+          </template>
           <button type="button" class="mem-board__like" aria-label="いいね" @click="emit('like', m.id)">
             ♡ {{ m.displayLikes }}
           </button>
@@ -121,8 +148,30 @@ const emit = defineEmits(['like'])
 }
 .mem-board__actions {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
+}
+.mem-board__manage {
+  padding: 4px 10px;
+  border: 1px solid var(--site-border-strong, var(--site-border));
+  border-radius: var(--site-radius-sm);
+  background: #fff;
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  color: var(--murasaki-700);
+  cursor: pointer;
+}
+.mem-board__manage:hover {
+  border-color: var(--murasaki-400);
+  background: var(--murasaki-100, #f7f0fa);
+}
+.mem-board__manage--danger {
+  color: var(--beni-600, #9b2c2c);
+}
+.mem-board__manage--danger:hover {
+  border-color: rgba(155, 44, 44, 0.45);
+  background: #fff5f5;
 }
 .mem-board__like {
   background: transparent;

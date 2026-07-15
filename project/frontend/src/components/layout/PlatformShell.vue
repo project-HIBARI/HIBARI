@@ -3,22 +3,6 @@
  * 部品名: Music Memories プラットフォームシェル
  * 役割: ハブ・ログイン・新規登録・アカウント設定を束ねる
  */
-import { computed, ref, watch } from 'vue'
-import PageMusicMemories from '../pages/PageMusicMemories.vue'
-import PageMusicConnections from '../pages/PageMusicConnections.vue'
-import PageArtistEncyclopedia from '../pages/PageArtistEncyclopedia.vue'
-import PageArtistDiagnosis from '../pages/PageArtistDiagnosis.vue'
-import PageLogin from '../pages/PageLogin.vue'
-import PageRegister from '../pages/PageRegister.vue'
-import PagePlatformOpenChat from '../pages/PagePlatformOpenChat.vue'
-import PagePlatformMemoryBook from '../pages/PagePlatformMemoryBook.vue'
-import PageSnsFeed from '../pages/PageSnsFeed.vue'
-import PageSnsDiscover from '../pages/PageSnsDiscover.vue'
-import PageSnsProfile from '../pages/PageSnsProfile.vue'
-import PageSnsDm from '../pages/PageSnsDm.vue'
-import PageQuiz from '../pages/PageQuiz.vue'
-import PageNotifications from '../pages/PageNotifications.vue'
-import SnsStoryViewer from '../pages/sns/SnsStoryViewer.vue'
 import { computed, ref, watch, defineAsyncComponent } from 'vue'
 import HeaderAccountMenu from './HeaderAccountMenu.vue'
 import PlatformDrawerNav from './PlatformDrawerNav.vue'
@@ -46,6 +30,7 @@ const PageSnsFeed = defineAsyncComponent(() => import('../pages/PageSnsFeed.vue'
 const PageSnsDiscover = defineAsyncComponent(() => import('../pages/PageSnsDiscover.vue'))
 const PageSnsProfile = defineAsyncComponent(() => import('../pages/PageSnsProfile.vue'))
 const PageSnsDm = defineAsyncComponent(() => import('../pages/PageSnsDm.vue'))
+const PageQuiz = defineAsyncComponent(() => import('../pages/PageQuiz.vue'))
 const PageNotifications = defineAsyncComponent(() => import('../pages/PageNotifications.vue'))
 const SnsStoryViewer = defineAsyncComponent(() => import('../pages/sns/SnsStoryViewer.vue'))
 const AccountModal = defineAsyncComponent(() => import('../modals/AccountModal.vue'))

@@ -7,6 +7,7 @@ import { ref, watch, nextTick } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
 import HeaderSearch from './HeaderSearch.vue'
+import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
 import { SITE_NAME } from '../../constants/site.js'
 
 const props = defineProps({
@@ -69,7 +70,8 @@ watch(
             :style="{ '--drawer-i': 0.5 }"
             @click="emit('exit-platform'); emit('close')"
           >
-            ← {{ SITE_NAME }} へ戻る
+            <MusicMemoriesLogo variant="mark" size="sm" class="drawer__platform-back-icon" />
+            {{ SITE_NAME }} へ戻る
           </button>
 
           <nav class="drawer__nav" aria-label="モバイルナビゲーション">
@@ -198,6 +200,9 @@ watch(
 
 .drawer__platform-back {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin: -12px 0 clamp(16px, 3vh, 24px);
   padding: 8px 14px;
   border: 1px solid var(--site-border);
@@ -208,6 +213,14 @@ watch(
   font-size: 12px;
   letter-spacing: 0.06em;
   cursor: pointer;
+}
+
+.drawer__platform-back-icon,
+.drawer__platform-back :deep(.mm-logo--mark.mm-logo--sm) {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
 }
 
 .drawer__nav {
