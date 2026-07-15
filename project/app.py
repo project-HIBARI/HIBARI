@@ -428,12 +428,21 @@ def fetch_account_row(account_id):
 ### パス
 ############################################################################
 
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_vue(path):
+    full_path = os.path.join(app.static_folder, path)
+    if path and os.path.exists(full_path):
+        return send_from_directory(app.static_folder, path)
+    return send_from_directory(app.static_folder, "index.html")
+
+
 ############################################################################
 ### デバッグページ
 ############################################################################
 
 # デバッグ用 AI美空ひばり
-@app.route("/")
+@app.route("/debug/hibari")
 def index():
     try:
         current_user = get_current_user_from_session()
