@@ -14,8 +14,11 @@ import PageSnsFeed from '../pages/PageSnsFeed.vue'
 import PageSnsDiscover from '../pages/PageSnsDiscover.vue'
 import PageSnsProfile from '../pages/PageSnsProfile.vue'
 import PageSnsDm from '../pages/PageSnsDm.vue'
+import PageNotifications from '../pages/PageNotifications.vue'
+import SnsStoryViewer from '../pages/sns/SnsStoryViewer.vue'
 import HeaderAccountMenu from './HeaderAccountMenu.vue'
 import PlatformDrawerNav from './PlatformDrawerNav.vue'
+import NotificationButton from './NotificationButton.vue'
 import AccountModal from '../modals/AccountModal.vue'
 import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
 import UiIco from '../ui/UiIco.vue'
@@ -23,6 +26,8 @@ import ToastHost from '../ui/ToastHost.vue'
 import { useAuth } from '../../composables/useAuth.js'
 import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
 import { useSnsDmUnread } from '../../composables/useSnsDmUnread.js'
+import { useSnsNotifications } from '../../composables/useSnsNotifications.js'
+import { useSnsStoryPresence } from '../../composables/useSnsStoryPresence.js'
 import { MEMBERSHIP } from '../../constants/membership.js'
 import { SITE_NAME } from '../../constants/site.js'
 
@@ -49,6 +54,8 @@ const drawerOpen = ref(false)
 const snsCreateIntent = ref(0)
 const profileAccountId = ref(null)
 const dmTargetAccountId = ref(null)
+const dmTargetThreadId = ref(null)
+const pendingPostId = ref(null)
 
 const navItems = [
   { id: 'hub', label: 'ホーム' },
@@ -63,12 +70,28 @@ const drawerPage = computed(() => (props.view === 'profile' ? 'sns' : props.view
 
 const { user: authUser, isLoggedIn: authIsLoggedIn } = useAuth()
 const { unreadCount: dmUnreadCount, startPolling: startDmPolling, stopPolling: stopDmPolling } = useSnsDmUnread()
+const {
+  unreadCount: notificationUnreadCount,
+  startPolling: startNotificationPolling,
+  stopPolling: stopNotificationPolling,
+} = useSnsNotifications()
+const {
+  activeGroups: storyViewerGroups,
+  activeStartIndex: storyViewerStartIndex,
+  closeViewer: closeStoryViewer,
+  removeStory: onStoryDeleted,
+} = useSnsStoryPresence()
 
 useBodyScrollLock(drawerOpen)
 
 watch(authIsLoggedIn, (loggedIn) => {
-  if (loggedIn) startDmPolling()
-  else stopDmPolling()
+  if (loggedIn) {
+    startDmPolling()
+    startNotificationPolling()
+  } else {
+    stopDmPolling()
+    stopNotificationPolling()
+  }
 }, { immediate: true })
 
 function setView(next) {
@@ -100,6 +123,27 @@ function openMyProfile() {
     return
   }
   openProfile(authUser.value.account_id)
+}
+
+function openNotifications() {
+  if (!authUser.value) {
+    onOpenAuth('login')
+    return
+  }
+  setView('notifications')
+}
+
+function onNotificationNavigate(target) {
+  if (!target) return
+  if (target.view === 'post') {
+    pendingPostId.value = target.postId
+    setView('sns')
+  } else if (target.view === 'profile') {
+    openProfile(target.accountId)
+  } else if (target.view === 'dm') {
+    dmTargetThreadId.value = target.threadId
+    setView('dm')
+  }
 }
 
 function onOpenAuth(mode) {
@@ -242,6 +286,20 @@ function onUserUpdated(account) {
           <button
             type="button"
             class="platform-shell__quick-btn"
+            :class="{ 'platform-shell__quick-btn--active': view === 'notifications' }"
+            @click="openNotifications"
+          >
+            <span class="platform-shell__quick-icon">
+              <UiIco name="bell" :size="16" />
+              <span v-if="notificationUnreadCount > 0" class="platform-shell__quick-badge">
+                {{ notificationUnreadCount > 99 ? '99+' : notificationUnreadCount }}
+              </span>
+            </span>
+            <span>通知</span>
+          </button>
+          <button
+            type="button"
+            class="platform-shell__quick-btn"
             :class="{ 'platform-shell__quick-btn--active': view === 'profile' }"
             @click="openMyProfile"
           >
@@ -249,6 +307,12 @@ function onUserUpdated(account) {
             <span>マイページ</span>
           </button>
         </nav>
+
+        <NotificationButton
+          class="platform-shell__notify sp-only"
+          :unread-count="notificationUnreadCount"
+          @click="openNotifications"
+        />
 
         <HeaderAccountMenu
           class="platform-shell__account"
@@ -308,10 +372,12 @@ function onUserUpdated(account) {
     <PageSnsFeed
       v-else-if="view === 'sns'"
       :create-intent="snsCreateIntent"
+      :open-post-id="pendingPostId"
       @need-auth="onSnsNeedAuth"
       @open-chat="setView('open-chat')"
       @open-dm="openDm()"
       @open-profile="openProfile"
+      @post-opened="pendingPostId = null"
     />
 
     <PageSnsDiscover
@@ -331,9 +397,15 @@ function onUserUpdated(account) {
     <PageSnsDm
       v-else-if="view === 'dm'"
       :target-account-id="dmTargetAccountId"
+      :target-thread-id="dmTargetThreadId"
       @need-auth="onSnsNeedAuth"
       @open-chat="setView('open-chat')"
       @open-profile="openProfile"
+    />
+
+    <PageNotifications
+      v-else-if="view === 'notifications'"
+      @navigate="onNotificationNavigate"
     />
 
     <div v-else-if="view === 'login'" class="platform-shell__auth">
@@ -423,6 +495,16 @@ function onUserUpdated(account) {
         <span>マイページ</span>
       </button>
     </nav>
+
+    <SnsStoryViewer
+      v-if="storyViewerGroups"
+      :groups="storyViewerGroups"
+      :initial-group-index="storyViewerStartIndex"
+      @close="closeStoryViewer"
+      @open-profile="openProfile"
+      @deleted="onStoryDeleted"
+      @need-auth="(payload) => onOpenAuth(payload?.mode || 'login')"
+    />
 
     <ToastHost />
   </div>
@@ -572,6 +654,15 @@ function onUserUpdated(account) {
   border: 0;
   background: transparent;
   cursor: pointer;
+}
+
+.platform-shell__notify {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--sns-ivory);
+  justify-self: end;
 }
 
 .platform-shell__brand :deep(.mm-logo--full) {
@@ -862,7 +953,7 @@ function onUserUpdated(account) {
 
 @media (max-width: 767px) {
   .platform-shell__header-inner {
-    grid-template-columns: minmax(0, 1fr) minmax(0, auto) auto;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, auto) auto;
     gap: 8px 10px;
     padding: 10px 12px;
   }
