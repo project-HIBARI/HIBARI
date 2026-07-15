@@ -15,8 +15,8 @@ import DiscoDetailDialog from './disco/DiscoDetailDialog.vue'
 import DiscoDownloadDialog from './disco/DiscoDownloadDialog.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
 import { refreshAosHard } from '../../lib/aos.js'
+import { loadDiscoFavoriteIdSet, toggleDiscoFavorite } from '../../lib/discoFavorites.js'
 
-const FAV_KEY = 'hbr-disco-favorites'
 const PAGE_SIZE = 8
 
 const emit = defineEmits(['navigate', 'open-auth', 'open-modal'])
@@ -33,31 +33,12 @@ const downloadSong = ref(null)
 const favorites = ref(new Set())
 
 onMounted(() => {
-  try {
-    const raw = localStorage.getItem(FAV_KEY)
-    if (raw) {
-      const ids = JSON.parse(raw)
-      if (Array.isArray(ids)) favorites.value = new Set(ids)
-    }
-  } catch {
-    /* ignore */
-  }
+  favorites.value = loadDiscoFavoriteIdSet()
 })
 
-function saveFavorites() {
-  try {
-    localStorage.setItem(FAV_KEY, JSON.stringify([...favorites.value]))
-  } catch {
-    /* ignore */
-  }
-}
-
 function toggleFavorite(id) {
-  const next = new Set(favorites.value)
-  if (next.has(id)) next.delete(id)
-  else next.add(id)
-  favorites.value = next
-  saveFavorites()
+  const result = toggleDiscoFavorite(id)
+  favorites.value = result.ids
 }
 
 const filteredItems = computed(() => {

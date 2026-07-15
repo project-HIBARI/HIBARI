@@ -189,6 +189,36 @@ def ensure_post_media_schema():
         print("post media schema:", e)
 
 
+def ensure_memory_book_owner_schema():
+    """献花・掲示板投稿に account_id を追加（Memory Book 本人フィルタ用）"""
+    try:
+        execute(
+            """
+            ALTER TABLE posts
+            ADD COLUMN IF NOT EXISTS account_id INTEGER REFERENCES accounts(account_id)
+            """
+        )
+        execute(
+            """
+            ALTER TABLE flower_offerings
+            ADD COLUMN IF NOT EXISTS account_id INTEGER REFERENCES accounts(account_id)
+            """
+        )
+    except Exception as e:
+        print("memory book owner schema:", e)
+
+
+def get_optional_session_account_id():
+    return session.get("account_id")
+
+
+def can_modify_owned_record(record_account_id):
+    account_id = get_optional_session_account_id()
+    if record_account_id is None:
+        return True
+    return account_id is not None and record_account_id == account_id
+
+
 def get_post_media_type(filename):
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     if ext in ALLOWED_IMAGE_EXTENSIONS:
@@ -226,6 +256,7 @@ def save_post_media_file(file_storage):
 
 
 ensure_post_media_schema()
+ensure_memory_book_owner_schema()
 ensure_usage_schema(engine)
 ensure_account_settings_schema(engine)
 ensure_event_applications_schema(engine)
@@ -309,7 +340,48 @@ def build_prompt_hibari(history, user_input):
 
         assistant:
     """
-    
+
+
+def build_demo_hibari_reply(user_input):
+    """Gemini 未設定・障害時の簡易応答"""
+    text = (user_input or "").strip()
+    if not text:
+        return "こんにちは。いつも歌を聴いてくださって、ありがとうございます。今日はどんなお話をしましょうか。"
+    if any(k in text for k in ("こんにちは", "こんばんは", "こんばんわ", "おはよう", "はじめまして")):
+        return "こんにちは。いつも歌を聴いてくださって、ありがとうございます。今日はどんなお話をしましょうか。"
+    if any(k in text for k in ("歌", "曲", "うた", "シングル", "名曲")):
+        return "「川の流れのように」「いつでも夢を」… 皆さんに愛された曲がたくさんありますね。どの曲がお好きですか。"
+    if any(k in text for k in ("ありがとう", "感謝", "お礼")):
+        return "こちらこそ、温かいお言葉をありがとうございます。あなたの想いが、とてもうれしいです。"
+    if any(k in text for k in ("さようなら", "ばいばい", "またね")):
+        return "はい、またお話ししましょう。いつでも、ここでお待ちしていますね。"
+    return (
+        f"「{text}」ですね。ありがとうございます。"
+        "あなたの言葉を大切に受け止めました。いつもひばりを想ってくださる心が、とてもうれしいです。"
+    )
+
+
+def build_room_title_from_input(user_input):
+    text = (user_input or "").strip().replace("\n", " ")
+    if not text:
+        return "新しいチャット"
+    return text[:20] + ("…" if len(text) > 20 else "")
+
+
+def generate_gemini_text(prompt, fallback_text):
+    try:
+        genai_client = get_genai_client()
+        response = genai_client.models.generate_content(
+            model="gemini-3.1-flash-lite",
+            contents=prompt,
+        )
+        text = (response.text or "").strip()
+        if text:
+            return text
+    except Exception as e:
+        print(f"Gemini fallback ({type(e).__name__}): {e}")
+    return fallback_text
+
 
 # UTCを日本時間に変換する関数
 def utc_to_jst(utc_dt):
@@ -1161,13 +1233,10 @@ def chat():
                 {user_input}
             """
 
-            genai_client = get_genai_client()
-            title_response = genai_client.models.generate_content(
-                model="gemini-3.1-flash-lite",
-                contents=title_prompt
+            room_name = generate_gemini_text(
+                title_prompt,
+                build_room_title_from_input(user_input),
             )
-
-            room_name = (title_response.text or "").strip() or "新しいチャット"
 
             room_id = execute_insert(
                 """
@@ -1263,16 +1332,11 @@ def chat():
             }
         )
 
-        # AI応答生成（Client 参照を保持してから呼ぶ）
-        genai_client = get_genai_client()
-        response = genai_client.models.generate_content(
-            model="gemini-3.1-flash-lite",
-            contents=prompt
+        # AI応答生成（Gemini 障害時は簡易応答にフォールバック）
+        ai_text = generate_gemini_text(
+            prompt,
+            build_demo_hibari_reply(user_input),
         )
-
-        ai_text = (response.text or "").strip()
-        if not ai_text:
-            raise RuntimeError("Gemini から空の応答が返りました")
 
         # assistantメッセージ保存
         execute(
@@ -1359,8 +1423,19 @@ def consume_feature_usage(feature_slug):
 @app.route("/api/posts")
 def get_posts():
     try:
+        mine_only = request.args.get("mine") in ("1", "true", "yes")
+        account_id = get_optional_session_account_id()
+        params = {}
+        where = ""
+
+        if mine_only:
+            if account_id is None:
+                return jsonify([])
+            where = "WHERE p.account_id = :account_id"
+            params["account_id"] = account_id
+
         rows = fetch_all(
-            """
+            f"""
             SELECT
                 p.post_id,
                 p.song_id,
@@ -1372,14 +1447,17 @@ def get_posts():
                 p.location,
                 p.image_path,
                 p.video_path,
+                p.account_id,
                 (
                     SELECT COUNT(*)
                     FROM likes l
                     WHERE l.post_id = p.post_id
                 ) AS like_count
             FROM posts p
+            {where}
             ORDER BY p.created_at DESC
-            """
+            """,
+            params,
         )
         post_list = []
 
@@ -1502,6 +1580,7 @@ def create_post():
             }), 429
 
         data = request.get_json()
+        account_id = get_optional_session_account_id()
         post_id = execute_insert(
             """
             INSERT INTO posts (
@@ -1512,7 +1591,8 @@ def create_post():
                 age,
                 location,
                 image_path,
-                video_path
+                video_path,
+                account_id
             )
             VALUES (
                 :song_id,
@@ -1522,7 +1602,8 @@ def create_post():
                 :age,
                 :location,
                 :image_path,
-                :video_path
+                :video_path,
+                :account_id
             )
             RETURNING post_id
             """,
@@ -1535,6 +1616,7 @@ def create_post():
                 "location": data.get("location"),
                 "image_path": data.get("image_path"),
                 "video_path": data.get("video_path"),
+                "account_id": account_id,
             }
         )
 
@@ -1550,6 +1632,100 @@ def create_post():
         return jsonify({
             "error": "投稿作成エラー"
         }), 500
+
+
+# 投稿更新
+@app.route("/api/posts/<int:post_id>", methods=["PUT"])
+def update_post(post_id):
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "JSONデータが空です"}), 400
+
+        rows = fetch_all(
+            "SELECT post_id, account_id FROM posts WHERE post_id = :post_id",
+            {"post_id": post_id},
+        )
+        if not rows:
+            return jsonify({"error": "投稿が見つかりません"}), 404
+        if not can_modify_owned_record(getattr(rows[0], "account_id", None)):
+            return jsonify({"error": "この投稿を編集する権限がありません"}), 403
+
+        title = data.get("title")
+        content = data.get("content")
+        if title is not None and not str(title).strip():
+            return jsonify({"error": "タイトルを入力してください"}), 400
+        if content is not None and not str(content).strip():
+            return jsonify({"error": "本文を入力してください"}), 400
+
+        execute(
+            """
+            UPDATE posts
+            SET
+                title = COALESCE(:title, title),
+                content = COALESCE(:content, content),
+                name = :name,
+                age = :age,
+                location = :location
+            WHERE post_id = :post_id
+            """,
+            {
+                "post_id": post_id,
+                "title": title.strip() if title is not None else None,
+                "content": content.strip() if content is not None else None,
+                "name": data.get("name"),
+                "age": data.get("age"),
+                "location": data.get("location"),
+            },
+        )
+
+        return jsonify({"message": "投稿を更新しました", "post_id": post_id})
+
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "投稿更新エラー"}), 500
+
+
+# 投稿削除
+@app.route("/api/posts/<int:post_id>", methods=["DELETE"])
+def delete_post(post_id):
+    try:
+        rows = fetch_all(
+            "SELECT post_id, account_id FROM posts WHERE post_id = :post_id",
+            {"post_id": post_id},
+        )
+        if not rows:
+            return jsonify({"error": "投稿が見つかりません"}), 404
+        if not can_modify_owned_record(getattr(rows[0], "account_id", None)):
+            return jsonify({"error": "この投稿を削除する権限がありません"}), 403
+
+        execute(
+            """
+            DELETE FROM likes
+            WHERE reply_id IN (
+                SELECT reply_id FROM replies WHERE parent_post_id = :post_id
+            )
+            """,
+            {"post_id": post_id},
+        )
+        execute(
+            "DELETE FROM likes WHERE post_id = :post_id",
+            {"post_id": post_id},
+        )
+        execute(
+            "DELETE FROM replies WHERE parent_post_id = :post_id",
+            {"post_id": post_id},
+        )
+        execute(
+            "DELETE FROM posts WHERE post_id = :post_id",
+            {"post_id": post_id},
+        )
+
+        return jsonify({"message": "投稿を削除しました", "post_id": post_id})
+
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "投稿削除エラー"}), 500
 
 
 # リプライ作成
@@ -1791,8 +1967,19 @@ def toggle_reply_like(reply_id):
 @app.route("/api/flower-offerings", methods=["GET"])
 def get_flower_offerings():
     try:
+        mine_only = request.args.get("mine") in ("1", "true", "yes")
+        account_id = get_optional_session_account_id()
+        params = {}
+        where = ""
+
+        if mine_only:
+            if account_id is None:
+                return jsonify([])
+            where = "WHERE f.account_id = :account_id"
+            params["account_id"] = account_id
+
         rows = fetch_all(
-            """
+            f"""
             SELECT
                 f.flower_offering_id,
                 f.content,
@@ -1800,10 +1987,13 @@ def get_flower_offerings():
                 f.name,
                 f.age,
                 f.location,
-                f.flower_type
+                f.flower_type,
+                f.account_id
             FROM flower_offerings f
+            {where}
             ORDER BY f.offered_at DESC
-            """
+            """,
+            params,
         )
         offering_list = []
 
@@ -1847,6 +2037,7 @@ def create_flower_offering():
         name_val = name.strip() if name and name.strip() else "匿名希望"
         age_val = int(age) if age else None
         location_val = location.strip() if location and location.strip() else None
+        account_id = get_optional_session_account_id()
 
         flower_offering_id = execute_insert(
             """
@@ -1856,7 +2047,8 @@ def create_flower_offering():
                 name,
                 age,
                 location,
-                flower_type
+                flower_type,
+                account_id
             )
             VALUES (
                 :content,
@@ -1864,7 +2056,8 @@ def create_flower_offering():
                 :name,
                 :age,
                 :location,
-                :flower_type
+                :flower_type,
+                :account_id
             )
             RETURNING flower_offering_id
             """,
@@ -1873,7 +2066,8 @@ def create_flower_offering():
                 "name": name_val,
                 "age": age_val,
                 "location": location_val,
-                "flower_type": flower_type
+                "flower_type": flower_type,
+                "account_id": account_id,
             }
         )
 
@@ -1889,6 +2083,167 @@ def create_flower_offering():
         return jsonify({
             "error": "献花登録エラー"
         }), 500
+
+
+# 献花更新
+@app.route("/api/flower-offerings/<int:flower_offering_id>", methods=["PUT"])
+def update_flower_offering(flower_offering_id):
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "JSONデータが空です"}), 400
+
+        rows = fetch_all(
+            """
+            SELECT flower_offering_id, account_id
+            FROM flower_offerings
+            WHERE flower_offering_id = :flower_offering_id
+            """,
+            {"flower_offering_id": flower_offering_id},
+        )
+        if not rows:
+            return jsonify({"error": "献花が見つかりません"}), 404
+        if not can_modify_owned_record(getattr(rows[0], "account_id", None)):
+            return jsonify({"error": "この献花を編集する権限がありません"}), 403
+
+        content = data.get("content")
+        flower_type = data.get("flower_type")
+        if content is not None and not str(content).strip():
+            return jsonify({"error": "メッセージを入力してください"}), 400
+        if flower_type is not None and not str(flower_type).strip():
+            return jsonify({"error": "花の種類を選択してください"}), 400
+
+        name = data.get("name")
+        age = data.get("age")
+        location = data.get("location")
+        name_val = name.strip() if isinstance(name, str) and name.strip() else None
+        age_val = int(age) if age not in (None, '') else None
+        location_val = location.strip() if isinstance(location, str) and location.strip() else None
+
+        execute(
+            """
+            UPDATE flower_offerings
+            SET
+                content = COALESCE(:content, content),
+                flower_type = COALESCE(:flower_type, flower_type),
+                name = COALESCE(:name, name),
+                age = :age,
+                location = :location
+            WHERE flower_offering_id = :flower_offering_id
+            """,
+            {
+                "flower_offering_id": flower_offering_id,
+                "content": content.strip() if content is not None else None,
+                "flower_type": flower_type.strip() if flower_type is not None else None,
+                "name": name_val,
+                "age": age_val,
+                "location": location_val,
+            },
+        )
+
+        return jsonify({
+            "message": "献花を更新しました",
+            "flower_offering_id": flower_offering_id,
+        })
+
+    except ValueError:
+        return jsonify({"error": "年齢には数値を入力してください"}), 400
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "献花更新エラー"}), 500
+
+
+# 献花削除
+@app.route("/api/flower-offerings/<int:flower_offering_id>", methods=["DELETE"])
+def delete_flower_offering(flower_offering_id):
+    try:
+        rows = fetch_all(
+            """
+            SELECT flower_offering_id, account_id
+            FROM flower_offerings
+            WHERE flower_offering_id = :flower_offering_id
+            """,
+            {"flower_offering_id": flower_offering_id},
+        )
+        if not rows:
+            return jsonify({"error": "献花が見つかりません"}), 404
+        if not can_modify_owned_record(getattr(rows[0], "account_id", None)):
+            return jsonify({"error": "この献花を削除する権限がありません"}), 403
+
+        execute(
+            """
+            DELETE FROM flower_offerings
+            WHERE flower_offering_id = :flower_offering_id
+            """,
+            {"flower_offering_id": flower_offering_id},
+        )
+
+        return jsonify({
+            "message": "献花を削除しました",
+            "flower_offering_id": flower_offering_id,
+        })
+
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "献花削除エラー"}), 500
+
+
+# Music Memory Book — 年別AI振り返り
+@app.route("/api/memory-book/year-recap", methods=["POST"])
+def memory_book_year_recap():
+    try:
+        data = request.get_json() or {}
+        year = data.get("year")
+        summary = data.get("summary") or {}
+        timeline = data.get("timeline") or []
+
+        if not year:
+            return jsonify({"error": "年が指定されていません"}), 400
+
+        if not timeline:
+            return jsonify({
+                "recap": (
+                    f"{year}年の思い出はまだ記録されていません。"
+                    "献花や思い出投稿を送ると、ここに1年の振り返りが表示されます。"
+                ),
+                "source": "template",
+            })
+
+        items_text = "\n".join(
+            f"- {item.get('date', '')} [{item.get('categoryLabel', '')}] "
+            f"{item.get('title', '')}: {(item.get('description') or '')[:120]}"
+            for item in timeline[:40]
+        )
+
+        prompt = f"""
+あなたは美空ひばりのファン向け思い出帳「Music Memory Book」の案内役です。
+{year}年のユーザーの思い出データをもとに、温かく詩的な「1年の振り返り」文章を
+日本語で300〜500文字程度書いてください。
+敬体（です・ます）で、箇条書きは使わず段落形式で書いてください。
+
+【{year}年の統計】
+献花: {summary.get('flowers', 0)}件
+思い出投稿: {summary.get('posts', 0)}件
+合計: {summary.get('total', 0)}件
+
+【思い出一覧】
+{items_text}
+"""
+
+        genai_client = get_genai_client()
+        response = genai_client.models.generate_content(
+            model="gemini-3.1-flash-lite",
+            contents=prompt,
+        )
+        recap = (response.text or "").strip()
+        if not recap:
+            raise ValueError("AI応答が空です")
+
+        return jsonify({"recap": recap, "source": "ai"})
+
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "AI振り返りの生成に失敗しました"}), 503
 
 
 # ファンクラブ登録

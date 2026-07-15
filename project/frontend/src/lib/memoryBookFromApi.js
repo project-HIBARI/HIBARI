@@ -1,9 +1,27 @@
 /**
  * Music Memory Book — 既存APIデータを思い出帳形式へ変換
  */
-import { fetchFlowerOfferings } from '../api/flowers.js'
-import { fetchPosts } from '../api/posts.js'
+import { fetchMyFlowerOfferings } from '../api/flowers.js'
+import { fetchMyPosts } from '../api/posts.js'
+import { fetchRooms, fetchMessages } from '../lib/chatApi.js'
+import { HIBARU_DATA } from '../data/hibaruData.js'
 import { flowerImage } from './flowers.js'
+import { getDiscoFavoriteAddedAt, loadDiscoFavoriteIds } from './discoFavorites.js'
+import { HIBARI_AVATAR_SRC } from './hibariAvatar.js'
+
+export function parseMemoryItemRef(id) {
+  if (!id) return null
+  const match = String(id).match(/^(flower|post)-(\d+)$/)
+  if (!match) return null
+  return {
+    category: match[1] === 'flower' ? 'flowers' : 'posts',
+    sourceId: Number(match[2]),
+  }
+}
+
+export function isMemoryItemManageable(item) {
+  return item?.category === 'flowers' || item?.category === 'posts'
+}
 
 const WEEKDAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 const YEAR_THEME_COLORS = ['purple', 'blue', 'green', 'brown']
@@ -99,6 +117,116 @@ function mapPostToItem(row) {
   }
 }
 
+function mapSongToItem(song) {
+  const occurredAt = getDiscoFavoriteAddedAt(song.id)
+  const d = parseDate(occurredAt)
+  const month = d ? d.getMonth() + 1 : null
+  const bodyLines = [
+    song.note ? `解説：${song.note}` : '',
+    `作詞：${song.lyric} / 作曲：${song.music}`,
+    song.label ? `レーベル：${song.label}` : '',
+    `リリース年：${song.year}年`,
+  ].filter(Boolean)
+
+  return {
+    id: `song-${song.id}`,
+    category: 'songs',
+    categoryLabel: CATEGORY_LABELS.songs,
+    icon: CATEGORY_ICONS.songs,
+    occurredAt,
+    year: d?.getFullYear() ?? null,
+    month,
+    monthLabel: month ? `${month}月` : '',
+    title: `「${song.title}」をお気に入りに追加`,
+    date: formatDateDot(occurredAt),
+    dateDisplay: formatDateDisplay(occurredAt),
+    description: song.note || `${song.year}年発売の${song.type || '楽曲'}`,
+    location: song.label || '—',
+    visibility: 'プライベート',
+    body: bodyLines.join('\n'),
+    mainImage: '/images/page/misorahibari-chair.png',
+    photos: [],
+    aiMessage: `「${song.title}」は、あなたのMusic Memory Bookに残された大切な一曲です。`,
+    memo: song.title,
+    raw: song,
+  }
+}
+
+function formatChatSender(sender) {
+  if (sender === 'user') return 'あなた'
+  if (sender === 'assistant') return 'AI美空ひばり'
+  return sender || '—'
+}
+
+function mapAiRoomToItem(room, messages) {
+  const occurredAt = messages.length
+    ? messages[messages.length - 1].created_at
+    : room.created_at
+  const d = parseDate(occurredAt)
+  const month = d ? d.getMonth() + 1 : null
+  const preview = messages
+    .slice(-6)
+    .map((m) => `${formatChatSender(m.sender)}：${m.content}`)
+    .join('\n\n')
+  const firstAi = messages.find((m) => m.sender === 'assistant')
+
+  return {
+    id: `ai-${room.ai_chat_room_id}`,
+    category: 'ai',
+    categoryLabel: CATEGORY_LABELS.ai,
+    icon: CATEGORY_ICONS.ai,
+    occurredAt,
+    year: d?.getFullYear() ?? null,
+    month,
+    monthLabel: month ? `${month}月` : '',
+    title: `AIとの会話「${room.room_name || '新しいチャット'}」`,
+    date: formatDateDot(occurredAt),
+    dateDisplay: formatDateDisplay(occurredAt),
+    description: messages.length
+      ? `${messages.length}件のメッセージ`
+      : '会話を開始しました',
+    location: 'オンライン',
+    visibility: 'プライベート',
+    body: preview || 'この会話の記録はまだありません。',
+    mainImage: HIBARI_AVATAR_SRC,
+    photos: [],
+    aiMessage: firstAi?.content || 'AI美空ひばりとの会話が記録されています。',
+    memo: room.room_name || '—',
+    raw: { room, messages },
+  }
+}
+
+function loadFavoriteSongItems() {
+  const favoriteIds = new Set(loadDiscoFavoriteIds())
+  if (!favoriteIds.size) return []
+
+  return HIBARU_DATA.discography
+    .filter((song) => favoriteIds.has(song.id))
+    .map(mapSongToItem)
+}
+
+async function loadAiChatItems() {
+  try {
+    const rooms = await fetchRooms()
+    if (!Array.isArray(rooms) || !rooms.length) return []
+
+    const results = await Promise.all(
+      rooms.map(async (room) => {
+        try {
+          const messages = await fetchMessages(room.ai_chat_room_id)
+          return mapAiRoomToItem(room, Array.isArray(messages) ? messages : [])
+        } catch {
+          return mapAiRoomToItem(room, [])
+        }
+      }),
+    )
+
+    return results
+  } catch {
+    return []
+  }
+}
+
 function sortItemsNewestFirst(items) {
   return [...items].sort((a, b) => {
     const da = parseDate(a.occurredAt)?.getTime() ?? 0
@@ -176,20 +304,24 @@ function buildCategories(counts) {
 
 function buildYears(items) {
   const currentYear = new Date().getFullYear()
-  const yearsWithData = new Set(items.map((i) => i.year).filter(Boolean))
-  if (!yearsWithData.size) yearsWithData.add(currentYear)
-  const minYear = Math.min(...yearsWithData, currentYear)
-  const years = []
-  for (let y = currentYear; y >= minYear; y -= 1) {
-    const yearItems = items.filter((i) => i.year === y)
-    const idx = currentYear - y
-    years.push({
-      year: y,
-      total: yearItems.length,
-      tone: YEAR_THEME_COLORS[idx % YEAR_THEME_COLORS.length],
-    })
+  const yearCounts = new Map()
+
+  for (const item of items) {
+    if (!item.year) continue
+    yearCounts.set(item.year, (yearCounts.get(item.year) || 0) + 1)
   }
-  return years
+
+  if (!yearCounts.size) {
+    return [{ year: currentYear, total: 0, tone: 'purple' }]
+  }
+
+  return [...yearCounts.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([year, total]) => ({
+      year,
+      total,
+      tone: YEAR_THEME_COLORS[(currentYear - year) % YEAR_THEME_COLORS.length],
+    }))
 }
 
 function buildSummary(items) {
@@ -221,18 +353,126 @@ function buildYearDetail(items, year) {
       aiChats: counts.aiChats,
       total: yearItems.length,
     },
-    timeline: yearItems.map((item) => ({
-      id: item.id,
-      month: item.month,
-      monthLabel: item.monthLabel,
-      category: item.category,
-      categoryLabel: item.categoryLabel,
-      title: item.title,
-      date: item.date,
-      dateDisplay: item.dateDisplay,
-      description: item.description,
-      icon: item.icon,
-    })),
+    timeline: yearItems.map(itemToTimelineEntry),
+  }
+}
+
+function itemToTimelineEntry(item) {
+  return {
+    id: item.id,
+    month: item.month,
+    monthLabel: item.monthLabel,
+    category: item.category,
+    categoryLabel: item.categoryLabel,
+    title: item.title,
+    date: item.date,
+    dateDisplay: item.dateDisplay,
+    description: item.description,
+    icon: item.icon,
+  }
+}
+
+export const FILTER_MODES = {
+  SAME_DAY: 'same-day',
+  SAME_PLACE: 'same-place',
+  SAME_CATEGORY: 'same-category',
+}
+
+function getRelatedItems(items, mode, memory) {
+  if (!memory) return []
+
+  if (mode === FILTER_MODES.SAME_DAY) {
+    const key = formatDateDot(memory.occurredAt)
+    if (key === '—') return []
+    return sortItemsNewestFirst(items.filter((i) => formatDateDot(i.occurredAt) === key))
+  }
+
+  if (mode === FILTER_MODES.SAME_PLACE) {
+    const loc = (memory.location || '').trim()
+    if (!loc || loc === '—') return []
+    return sortItemsNewestFirst(items.filter((i) => (i.location || '').trim() === loc))
+  }
+
+  if (mode === FILTER_MODES.SAME_CATEGORY) {
+    return sortItemsNewestFirst(items.filter((i) => i.category === memory.category))
+  }
+
+  return []
+}
+
+export function buildFilterViewData(items, mode, memory) {
+  if (!memory) return null
+
+  const related = getRelatedItems(items, mode, memory)
+  const titles = {
+    [FILTER_MODES.SAME_DAY]: `${memory.dateDisplay}の思い出`,
+    [FILTER_MODES.SAME_PLACE]: `${memory.location}の思い出`,
+    [FILTER_MODES.SAME_CATEGORY]: `${memory.categoryLabel}の思い出`,
+  }
+  const leads = {
+    [FILTER_MODES.SAME_DAY]: '同じ日に記録された思い出を一覧で確認できます。',
+    [FILTER_MODES.SAME_PLACE]: '同じ場所に関連する思い出を一覧で確認できます。',
+    [FILTER_MODES.SAME_CATEGORY]: '同じカテゴリの思い出を一覧で確認できます。',
+  }
+  const emptyMessages = {
+    [FILTER_MODES.SAME_DAY]: '同じ日の思い出は見つかりませんでした。',
+    [FILTER_MODES.SAME_PLACE]: '同じ場所の思い出は見つかりませんでした。',
+    [FILTER_MODES.SAME_CATEGORY]: '同じカテゴリの思い出は見つかりませんでした。',
+  }
+
+  return {
+    mode,
+    title: titles[mode] || '関連する思い出',
+    lead: leads[mode] || '',
+    emptyMessage: emptyMessages[mode] || '思い出が見つかりませんでした。',
+    timeline: related.map(itemToTimelineEntry),
+    total: related.length,
+  }
+}
+
+const CATEGORY_VIEW_CONFIG = {
+  flowers: {
+    lead: 'あなたが捧げた献花の記録を一覧で確認できます。',
+    emptyMessage: '献花の記録はまだありません。',
+    emptyActionLabel: '献花ページへ',
+    emptyAction: 'message',
+  },
+  posts: {
+    lead: 'あなたが投稿した思い出を一覧で確認できます。',
+    emptyMessage: '思い出の投稿はまだありません。',
+    emptyActionLabel: '思い出投稿ページへ',
+    emptyAction: 'memories',
+  },
+  songs: {
+    lead: 'お気に入りに登録した楽曲を一覧で確認できます。',
+    emptyMessage: 'お気に入り楽曲はまだありません。ディスコグラフィでハートをタップして追加できます。',
+    emptyActionLabel: 'ディスコグラフィへ',
+    emptyAction: 'disco',
+  },
+  ai: {
+    lead: 'AI美空ひばりとの会話履歴を一覧で確認できます。',
+    emptyMessage: 'AIとの会話履歴はまだありません。ログインして会話を始めると、ここに記録されます。',
+    emptyActionLabel: 'AIチャットを開く',
+    emptyAction: 'ai',
+  },
+}
+
+export function buildCategoryViewData(items, categoryId) {
+  const config = CATEGORY_VIEW_CONFIG[categoryId]
+  if (!config) return null
+
+  const related = sortItemsNewestFirst(items.filter((item) => item.category === categoryId))
+
+  return {
+    mode: 'category',
+    categoryId,
+    title: CATEGORY_LABELS[categoryId] || 'カテゴリ',
+    lead: config.lead,
+    emptyMessage: config.emptyMessage,
+    emptyActionLabel: config.emptyActionLabel,
+    emptyAction: config.emptyAction,
+    timeline: related.map(itemToTimelineEntry),
+    total: related.length,
   }
 }
 
@@ -252,9 +492,10 @@ function enrichMonthPosition(item, allItems) {
  * 既存API（献花・思い出投稿）から思い出帳データを構築
  */
 export async function loadMemoryBookFromApi() {
-  const [flowersResult, postsResult] = await Promise.allSettled([
-    fetchFlowerOfferings(),
-    fetchPosts(),
+  const [flowersResult, postsResult, aiResult] = await Promise.allSettled([
+    fetchMyFlowerOfferings(),
+    fetchMyPosts(),
+    loadAiChatItems(),
   ])
 
   const flowers = flowersResult.status === 'fulfilled' && Array.isArray(flowersResult.value)
@@ -265,7 +506,13 @@ export async function loadMemoryBookFromApi() {
     ? postsResult.value.map(mapPostToItem)
     : []
 
-  const items = attachPrevNext([...flowers, ...posts])
+  const songs = loadFavoriteSongItems()
+
+  const aiChats = aiResult.status === 'fulfilled' && Array.isArray(aiResult.value)
+    ? aiResult.value
+    : []
+
+  const items = attachPrevNext([...flowers, ...posts, ...songs, ...aiChats])
   const itemMap = Object.fromEntries(items.map((i) => [i.id, i]))
 
   return {
@@ -280,9 +527,16 @@ export async function loadMemoryBookFromApi() {
       if (!item) return null
       return enrichMonthPosition(item, items)
     },
+    getFilterViewData: (mode, memoryId) => {
+      const memory = itemMap[memoryId]
+      if (!memory) return null
+      return buildFilterViewData(items, mode, memory)
+    },
+    getCategoryViewData: (categoryId) => buildCategoryViewData(items, categoryId),
     errors: {
       flowers: flowersResult.status === 'rejected' ? flowersResult.reason : null,
       posts: postsResult.status === 'rejected' ? postsResult.reason : null,
+      ai: aiResult.status === 'rejected' ? aiResult.reason : null,
     },
   }
 }
