@@ -4,6 +4,7 @@
  */
 import { ref, computed } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
+import StoryAvatar from '../../ui/StoryAvatar.vue'
 
 const props = defineProps({
   post: { type: Object, required: true },
@@ -40,16 +41,19 @@ function onMenuAction(action) {
 <template>
   <article class="sns-card" :class="{ 'sns-card--light': !dark }">
     <header class="sns-card__head">
-      <button type="button" class="sns-card__author" @click="emit('open-profile', post.account_id)">
-        <span class="sns-card__avatar" aria-hidden="true">
-          <img v-if="post.author_avatar_path" :src="post.author_avatar_path" :alt="post.author_name" />
-          <span v-else>{{ (post.author_name || '?').charAt(0) }}</span>
-        </span>
-        <span class="sns-card__author-meta">
+      <div class="sns-card__author">
+        <StoryAvatar
+          :account-id="post.account_id"
+          :name="post.author_name"
+          :avatar-path="post.author_avatar_path"
+          :size="36"
+          @open-profile="emit('open-profile', post.account_id)"
+        />
+        <button type="button" class="sns-card__author-meta" @click="emit('open-profile', post.account_id)">
           <span class="sns-card__name">{{ post.author_name }}</span>
           <span class="sns-card__time">{{ formatDate(post.created_at) }}</span>
-        </span>
-      </button>
+        </button>
+      </div>
 
       <div class="sns-card__menu-wrap">
         <button type="button" class="sns-card__menu-btn" aria-label="メニュー" @click="toggleMenu">
@@ -156,34 +160,15 @@ function onMenuAction(action) {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+.sns-card__author-meta {
+  display: flex;
+  flex-direction: column;
   background: transparent;
   border: 0;
   padding: 0;
   cursor: pointer;
   text-align: left;
-}
-.sns-card__avatar {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--sns-purple, var(--murasaki-700));
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--ff-sans-jp);
-  font-size: 14px;
-}
-.sns-card__avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.sns-card__author-meta {
-  display: flex;
-  flex-direction: column;
 }
 .sns-card__name {
   font-family: var(--ff-sans-jp);

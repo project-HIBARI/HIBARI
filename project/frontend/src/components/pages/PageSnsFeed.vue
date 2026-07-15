@@ -11,7 +11,6 @@ import SnsPostCard from './sns/SnsPostCard.vue'
 import SnsCreatePostModal from './sns/SnsCreatePostModal.vue'
 import SnsPostDetailModal from './sns/SnsPostDetailModal.vue'
 import SnsStoryBar from './sns/SnsStoryBar.vue'
-import SnsStoryViewer from './sns/SnsStoryViewer.vue'
 import SnsShareModal from './sns/SnsShareModal.vue'
 import SnsUsageLimitModal from '../modals/SnsUsageLimitModal.vue'
 import SnsReportModal from '../modals/SnsReportModal.vue'
@@ -21,19 +20,23 @@ import SnsSkeletonCard from './sns/SnsSkeletonCard.vue'
 import { useAuth } from '../../composables/useAuth.js'
 import { useSnsUsage } from '../../composables/useSnsUsage.js'
 import { useSnsDmUnread } from '../../composables/useSnsDmUnread.js'
+import { useSnsStoryPresence } from '../../composables/useSnsStoryPresence.js'
 import { useToast } from '../../composables/useToast.js'
-import { fetchSnsFeed, toggleSnsLike, toggleSnsSave, deleteSnsPost, fetchSnsStories, toggleSnsBlock } from '../../api/sns.js'
+import { fetchSnsFeed, toggleSnsLike, toggleSnsSave, deleteSnsPost, fetchSnsPost, toggleSnsBlock } from '../../api/sns.js'
 
 const props = defineProps({
   /** 外部（下部ナビの投稿ボタン等）からの投稿作成トリガー。値が変化すると作成モーダルを開く */
   createIntent: { type: Number, default: 0 },
+  /** 通知等、外部から特定の投稿詳細を開くためのトリガー */
+  openPostId: { type: Number, default: null },
 })
 
-const emit = defineEmits(['open-chat', 'need-auth', 'open-dm', 'open-profile'])
+const emit = defineEmits(['open-chat', 'need-auth', 'open-dm', 'open-profile', 'post-opened'])
 
 const { isLoggedIn, membership } = useAuth()
 const { usageStatus, remainingMessage, nextResetLabel, isUnlimited, refreshUsage } = useSnsUsage()
 const { unreadCount: dmUnreadCount } = useSnsDmUnread()
+const storyPresence = useSnsStoryPresence()
 const { showToast } = useToast()
 
 const TABS = [
@@ -97,74 +100,8 @@ async function onBlock(post) {
   }
 }
 
-const storyGroups = ref([])
-const storiesLoading = ref(false)
-const storiesError = ref('')
-const viewerGroups = ref(null)
-const viewerStartIndex = ref(0)
-let storiesRequestId = 0
-let storiesInFlight = null
-let storiesFetchedAt = 0
-const STORIES_CACHE_TTL_MS = 30_000
-
-function syncStoryViewedFlags() {
-  for (const group of storyGroups.value) {
-    group.has_unviewed = group.stories.some((s) => !s.viewed_by_viewer)
-  }
-}
-
-async function loadStories({ force = false } = {}) {
-  const now = Date.now()
-  if (!force && storiesFetchedAt && now - storiesFetchedAt < STORIES_CACHE_TTL_MS && storyGroups.value.length) {
-    return
-  }
-  if (storiesInFlight) {
-    return storiesInFlight
-  }
-
-  const requestId = ++storiesRequestId
-  storiesLoading.value = true
-  storiesError.value = ''
-  storiesInFlight = (async () => {
-    try {
-      const data = await fetchSnsStories()
-      if (requestId !== storiesRequestId) return
-      storyGroups.value = data.groups || []
-      storiesFetchedAt = Date.now()
-    } catch {
-      if (requestId !== storiesRequestId) return
-      storiesError.value = 'ストーリーズの取得に失敗しました'
-      if (!storyGroups.value.length) storyGroups.value = []
-    } finally {
-      if (requestId === storiesRequestId) {
-        storiesLoading.value = false
-        storiesInFlight = null
-      }
-    }
-  })()
-  return storiesInFlight
-}
-
-function openStoryViewer(group) {
-  const index = storyGroups.value.findIndex((g) => g.account_id === group.account_id)
-  viewerGroups.value = storyGroups.value
-  viewerStartIndex.value = index >= 0 ? index : 0
-}
-
-function closeStoryViewer() {
-  viewerGroups.value = null
-  // 全件再取得せず、閲覧済みフラグだけ反映してリング表示を更新する
-  syncStoryViewedFlags()
-}
-
-function onStoryDeleted(storyId) {
-  for (const group of storyGroups.value) {
-    group.stories = group.stories.filter((s) => s.story_id !== storyId)
-  }
-  storyGroups.value = storyGroups.value.filter((g) => g.stories.length > 0)
-  syncStoryViewedFlags()
-  storiesFetchedAt = 0
-}
+const { groups: storyGroups, loading: storiesLoading, ensureLoaded: loadStories, openGroup: openStoryViewer } =
+  storyPresence
 
 async function loadFeed({ reset = true } = {}) {
   errorMessage.value = ''
@@ -281,14 +218,30 @@ function openDetail(post) {
   detailPost.value = post
 }
 
+async function openPostById(postId) {
+  try {
+    const data = await fetchSnsPost(postId)
+    detailPost.value = data.post
+  } catch {
+    showToast('投稿の取得に失敗しました', { tone: 'error' })
+  } finally {
+    emit('post-opened')
+  }
+}
+
 onMounted(() => {
   loadFeed()
   loadStories()
   if (isLoggedIn.value) refreshUsage()
+  if (props.openPostId) openPostById(props.openPostId)
 })
 
 watch(() => props.createIntent, (value, oldValue) => {
   if (value !== oldValue && value > 0) openCreateModal()
+})
+
+watch(() => props.openPostId, (value) => {
+  if (value) openPostById(value)
 })
 </script>
 
@@ -403,16 +356,6 @@ watch(() => props.createIntent, (value, oldValue) => {
       :next-reset-label="limitStatus?.next_reset_label || nextResetLabel"
       @close="showLimitModal = false"
       @view-plans="onViewPlans"
-    />
-
-    <SnsStoryViewer
-      v-if="viewerGroups"
-      :groups="viewerGroups"
-      :initial-group-index="viewerStartIndex"
-      @close="closeStoryViewer"
-      @open-profile="(id) => emit('open-profile', id)"
-      @deleted="onStoryDeleted"
-      @need-auth="(payload) => emit('need-auth', payload)"
     />
   </div>
 </template>

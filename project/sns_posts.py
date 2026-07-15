@@ -16,6 +16,13 @@ from sqlalchemy import text
 from werkzeug.utils import secure_filename
 
 from sns import SnsUsageLimitError, build_sns_usage_status, consume_sns_post_usage
+from notification_service import (
+    NOTIFICATION_TYPE_POST_COMMENT,
+    NOTIFICATION_TYPE_POST_LIKE,
+    create_notification,
+    delete_toggle_notification_if_unread,
+    upsert_toggle_notification,
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 SNS_UPLOAD_FOLDER = BASE_DIR / "uploads" / "sns"
@@ -456,6 +463,14 @@ def register_sns_post_routes(app, engine, **deps):
             return err
 
         try:
+            post_rows = fetch_all(
+                "SELECT account_id FROM sns_posts WHERE post_id = :post_id AND is_deleted = FALSE",
+                {"post_id": post_id},
+            )
+            if not post_rows:
+                return jsonify({"error": "投稿が見つかりません"}), 404
+            post_owner_id = post_rows[0]._mapping["account_id"] if hasattr(post_rows[0], "_mapping") else post_rows[0]["account_id"]
+
             rows = fetch_all(
                 "SELECT like_id FROM sns_likes WHERE account_id = :account_id AND post_id = :post_id",
                 {"account_id": account_id, "post_id": post_id},
@@ -471,6 +486,18 @@ def register_sns_post_routes(app, engine, **deps):
                     {"account_id": account_id, "post_id": post_id},
                 )
                 liked = True
+
+            try:
+                if liked:
+                    upsert_toggle_notification(
+                        engine, post_owner_id, account_id, NOTIFICATION_TYPE_POST_LIKE, post_id=post_id
+                    )
+                else:
+                    delete_toggle_notification_if_unread(
+                        engine, post_owner_id, account_id, NOTIFICATION_TYPE_POST_LIKE, post_id=post_id
+                    )
+            except Exception as notify_err:
+                print(notify_err)
 
             count_row = fetch_all(
                 "SELECT COUNT(*) AS c FROM sns_likes WHERE post_id = :post_id", {"post_id": post_id}
@@ -564,12 +591,14 @@ def register_sns_post_routes(app, engine, **deps):
             return jsonify({"error": f"コメントは{MAX_COMMENT_LENGTH}文字以内で入力してください"}), 400
 
         post_rows = fetch_all(
-            "SELECT comments_enabled FROM sns_posts WHERE post_id = :post_id AND is_deleted = FALSE",
+            "SELECT account_id, comments_enabled FROM sns_posts WHERE post_id = :post_id AND is_deleted = FALSE",
             {"post_id": post_id},
         )
         if not post_rows:
             return jsonify({"error": "投稿が見つかりません"}), 404
-        enabled = post_rows[0]._mapping["comments_enabled"] if hasattr(post_rows[0], "_mapping") else post_rows[0]["comments_enabled"]
+        post_row = post_rows[0]
+        post_owner_id = post_row._mapping["account_id"] if hasattr(post_row, "_mapping") else post_row["account_id"]
+        enabled = post_row._mapping["comments_enabled"] if hasattr(post_row, "_mapping") else post_row["comments_enabled"]
         if not enabled:
             return jsonify({"error": "この投稿はコメントが許可されていません"}), 403
 
@@ -582,6 +611,13 @@ def register_sns_post_routes(app, engine, **deps):
                 """,
                 {"post_id": post_id, "account_id": account_id, "body": body},
             )
+            try:
+                create_notification(
+                    engine, post_owner_id, account_id, NOTIFICATION_TYPE_POST_COMMENT,
+                    post_id=post_id, comment_id=comment_id,
+                )
+            except Exception as notify_err:
+                print(notify_err)
             return jsonify({"message": "コメントしました", "comment_id": comment_id}), 201
         except Exception as e:
             print(e)

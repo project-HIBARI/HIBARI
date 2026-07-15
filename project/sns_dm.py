@@ -13,11 +13,20 @@ from sqlalchemy import text
 from werkzeug.utils import secure_filename
 
 from sns_posts import ALLOWED_IMAGE_EXTENSIONS, MAX_IMAGE_BYTES, SNS_UPLOAD_FOLDER
+from notification_service import (
+    NOTIFICATION_TYPE_DM_MESSAGE,
+    NOTIFICATION_TYPE_DM_REQUEST,
+    NOTIFICATION_TYPE_STORY_REACTION,
+    NOTIFICATION_TYPE_STORY_REPLY,
+    STORY_REACTION_EMOJI,
+    create_notification,
+)
 
 MAX_MESSAGE_LENGTH = 2000
 THREADS_PAGE_SIZE = 30
 MESSAGES_PAGE_SIZE = 40
 SEARCH_LIMIT = 20
+MESSAGE_TYPES = ("text", "image", "post_share", "story_reply", "story_reaction")
 
 
 def _row_val(row, key):
@@ -225,6 +234,10 @@ def register_sns_dm_routes(app, engine, **deps):
             "media_path": m["media_path"],
             "shared_post_id": m["shared_post_id"],
             "shared_story_id": m["shared_story_id"],
+            "reaction_emoji": m["reaction_emoji"] if "reaction_emoji" in m else None,
+            "story_file_path": m["story_file_path"] if "story_file_path" in m else None,
+            "story_media_type": m["story_media_type"] if "story_media_type" in m else None,
+            "story_is_expired": bool(m["story_is_expired"]) if "story_is_expired" in m and m["shared_story_id"] else None,
             "created_at": m["created_at"].isoformat(),
             "is_mine": m["sender_account_id"] == viewer_id,
         }
@@ -317,7 +330,7 @@ def register_sns_dm_routes(app, engine, **deps):
 
             last_msg_rows = fetch_all(
                 """
-                SELECT message_id, body, message_type, created_at, sender_account_id
+                SELECT message_id, body, message_type, reaction_emoji, created_at, sender_account_id
                 FROM sns_dm_messages
                 WHERE thread_id = :thread_id AND deleted_at IS NULL
                 ORDER BY message_id DESC LIMIT 1
@@ -341,6 +354,7 @@ def register_sns_dm_routes(app, engine, **deps):
                 last_message = {
                     "body": _row_val(lm, "body"),
                     "message_type": _row_val(lm, "message_type"),
+                    "reaction_emoji": _row_val(lm, "reaction_emoji"),
                     "is_mine": _row_val(lm, "sender_account_id") == account_id,
                 }
                 updated_at = _row_val(lm, "created_at").isoformat()
@@ -401,19 +415,23 @@ def register_sns_dm_routes(app, engine, **deps):
 
         other = _other_participant(thread_id, account_id)
         before_id = request.args.get("before_id", type=int)
-        where = ["thread_id = :thread_id"]
+        where = ["dm.thread_id = :thread_id"]
         params = {"thread_id": thread_id, "limit": MESSAGES_PAGE_SIZE}
         if before_id:
-            where.append("message_id < :before_id")
+            where.append("dm.message_id < :before_id")
             params["before_id"] = before_id
 
         rows = fetch_all(
             f"""
-            SELECT message_id, thread_id, sender_account_id, message_type, body,
-                   media_path, shared_post_id, shared_story_id, created_at, deleted_at
-            FROM sns_dm_messages
+            SELECT dm.message_id, dm.thread_id, dm.sender_account_id, dm.message_type, dm.body,
+                   dm.media_path, dm.shared_post_id, dm.shared_story_id, dm.reaction_emoji,
+                   dm.created_at, dm.deleted_at,
+                   s.file_path AS story_file_path, s.media_type AS story_media_type,
+                   (s.story_id IS NULL OR s.is_archived OR s.expires_at <= NOW()) AS story_is_expired
+            FROM sns_dm_messages dm
+            LEFT JOIN sns_stories s ON s.story_id = dm.shared_story_id
             WHERE {' AND '.join(where)}
-            ORDER BY message_id DESC
+            ORDER BY dm.message_id DESC
             LIMIT :limit
             """,
             params,
@@ -524,7 +542,8 @@ def register_sns_dm_routes(app, engine, **deps):
         )
         return jsonify({"message": "OK"})
 
-    def _send_message(sender_id, recipient_id, message_type, body, media_path, shared_post_id, shared_story_id):
+    def _send_message(sender_id, recipient_id, message_type, body, media_path, shared_post_id, shared_story_id,
+                       reaction_emoji=None):
         if sender_id == recipient_id:
             raise ValueError("自分自身にはメッセージを送信できません")
         if _is_blocked(sender_id, recipient_id):
@@ -539,7 +558,7 @@ def register_sns_dm_routes(app, engine, **deps):
             )
             if not post_rows:
                 raise ValueError("共有する投稿が見つかりません")
-        if message_type == "story_reply":
+        if message_type in ("story_reply", "story_reaction"):
             story_rows = fetch_all(
                 """
                 SELECT 1
@@ -547,15 +566,21 @@ def register_sns_dm_routes(app, engine, **deps):
                 WHERE story_id = :story_id
                   AND account_id = :recipient_id
                   AND is_archived = FALSE
+                  AND expires_at > NOW()
                 """,
                 {"story_id": shared_story_id, "recipient_id": recipient_id},
             )
             if not story_rows:
                 raise ValueError("返信するストーリーズが見つかりません")
+        if message_type == "story_reaction" and reaction_emoji not in STORY_REACTION_EMOJI:
+            raise ValueError("リアクションが不正です")
 
         thread_id, _created = _ensure_thread(sender_id, recipient_id)
         recipient_participant = _get_participant(thread_id, recipient_id)
-        if recipient_participant and _row_val(recipient_participant, "status") == "requested":
+        recipient_was_requested = bool(
+            recipient_participant and _row_val(recipient_participant, "status") == "requested"
+        )
+        if recipient_was_requested:
             existing_rows = fetch_all(
                 """
                 SELECT COUNT(*) AS c
@@ -573,9 +598,10 @@ def register_sns_dm_routes(app, engine, **deps):
             """
             INSERT INTO sns_dm_messages (
                 thread_id, sender_account_id, message_type, body,
-                media_path, shared_post_id, shared_story_id
+                media_path, shared_post_id, shared_story_id, reaction_emoji
             )
-            VALUES (:thread_id, :sender_id, :message_type, :body, :media_path, :shared_post_id, :shared_story_id)
+            VALUES (:thread_id, :sender_id, :message_type, :body, :media_path, :shared_post_id, :shared_story_id,
+                    :reaction_emoji)
             RETURNING message_id
             """,
             {
@@ -586,6 +612,7 @@ def register_sns_dm_routes(app, engine, **deps):
                 "media_path": media_path,
                 "shared_post_id": shared_post_id,
                 "shared_story_id": shared_story_id,
+                "reaction_emoji": reaction_emoji,
             },
         )
 
@@ -599,6 +626,20 @@ def register_sns_dm_routes(app, engine, **deps):
             """,
             {"message_id": message_id, "thread_id": thread_id, "sender_id": sender_id},
         )
+
+        try:
+            if message_type == "story_reply":
+                notification_type = NOTIFICATION_TYPE_STORY_REPLY
+            elif message_type == "story_reaction":
+                notification_type = NOTIFICATION_TYPE_STORY_REACTION
+            else:
+                notification_type = NOTIFICATION_TYPE_DM_REQUEST if recipient_was_requested else NOTIFICATION_TYPE_DM_MESSAGE
+            create_notification(
+                engine, recipient_id, sender_id, notification_type,
+                story_id=shared_story_id, message_id=message_id, thread_id=thread_id,
+            )
+        except Exception as notify_err:
+            print(notify_err)
 
         return thread_id, message_id
 
@@ -615,10 +656,11 @@ def register_sns_dm_routes(app, engine, **deps):
         media_path = data.get("media_path")
         shared_post_id = data.get("shared_post_id")
         shared_story_id = data.get("shared_story_id")
+        reaction_emoji = data.get("reaction_emoji")
 
         if not isinstance(recipient_id, int):
             return jsonify({"error": "送信先を指定してください"}), 400
-        if message_type not in ("text", "image", "post_share", "story_reply"):
+        if message_type not in MESSAGE_TYPES:
             return jsonify({"error": "メッセージ種別が不正です"}), 400
         if message_type == "text" and not body:
             return jsonify({"error": "メッセージを入力してください"}), 400
@@ -626,8 +668,10 @@ def register_sns_dm_routes(app, engine, **deps):
             return jsonify({"error": "画像を選択してください"}), 400
         if message_type == "post_share" and not shared_post_id:
             return jsonify({"error": "共有する投稿を指定してください"}), 400
-        if message_type == "story_reply" and not shared_story_id:
-            return jsonify({"error": "返信するストーリーズを指定してください"}), 400
+        if message_type in ("story_reply", "story_reaction") and not shared_story_id:
+            return jsonify({"error": "対象のストーリーズを指定してください"}), 400
+        if message_type == "story_reaction" and reaction_emoji not in STORY_REACTION_EMOJI:
+            return jsonify({"error": "リアクションが不正です"}), 400
         if len(body) > MAX_MESSAGE_LENGTH:
             return jsonify({"error": f"メッセージは{MAX_MESSAGE_LENGTH}文字以内で入力してください"}), 400
 
@@ -637,7 +681,8 @@ def register_sns_dm_routes(app, engine, **deps):
 
         try:
             thread_id, message_id = _send_message(
-                account_id, recipient_id, message_type, body, media_path, shared_post_id, shared_story_id
+                account_id, recipient_id, message_type, body, media_path, shared_post_id, shared_story_id,
+                reaction_emoji=reaction_emoji,
             )
             return jsonify({"thread_id": thread_id, "message_id": message_id}), 201
         except ValueError as e:
@@ -668,8 +713,9 @@ def register_sns_dm_routes(app, engine, **deps):
         media_path = data.get("media_path")
         shared_post_id = data.get("shared_post_id")
         shared_story_id = data.get("shared_story_id")
+        reaction_emoji = data.get("reaction_emoji")
 
-        if message_type not in ("text", "image", "post_share", "story_reply"):
+        if message_type not in MESSAGE_TYPES:
             return jsonify({"error": "メッセージ種別が不正です"}), 400
         if message_type == "text" and not body:
             return jsonify({"error": "メッセージを入力してください"}), 400
@@ -677,14 +723,17 @@ def register_sns_dm_routes(app, engine, **deps):
             return jsonify({"error": "画像を選択してください"}), 400
         if message_type == "post_share" and not shared_post_id:
             return jsonify({"error": "共有する投稿を指定してください"}), 400
-        if message_type == "story_reply" and not shared_story_id:
-            return jsonify({"error": "返信するストーリーズを指定してください"}), 400
+        if message_type in ("story_reply", "story_reaction") and not shared_story_id:
+            return jsonify({"error": "対象のストーリーズを指定してください"}), 400
+        if message_type == "story_reaction" and reaction_emoji not in STORY_REACTION_EMOJI:
+            return jsonify({"error": "リアクションが不正です"}), 400
         if len(body) > MAX_MESSAGE_LENGTH:
             return jsonify({"error": f"メッセージは{MAX_MESSAGE_LENGTH}文字以内で入力してください"}), 400
 
         try:
             _thread_id, message_id = _send_message(
-                account_id, other["account_id"], message_type, body, media_path, shared_post_id, shared_story_id
+                account_id, other["account_id"], message_type, body, media_path, shared_post_id, shared_story_id,
+                reaction_emoji=reaction_emoji,
             )
             return jsonify({"thread_id": thread_id, "message_id": message_id}), 201
         except ValueError as e:
