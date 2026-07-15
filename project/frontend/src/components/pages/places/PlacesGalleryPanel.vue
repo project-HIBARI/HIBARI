@@ -14,6 +14,10 @@ const { canUse, isLoggedIn, PERMISSION } = useMemberAccess()
 const items = HIBARU_DATA.placeGallery
 const unlocked = () => canUse(PERMISSION.EXCLUSIVE_CONTENT)
 
+function placeImage(placeId) {
+  return HIBARU_DATA.places.find((p) => p.id === placeId)?.image || ''
+}
+
 function onLinkClick() {
   if (unlocked()) emit('open-gallery')
   else if (!isLoggedIn.value) emit('need-auth', 'login')
@@ -45,7 +49,15 @@ function onCardClick() {
         :aria-label="item.title + (unlocked() ? 'の写真' : '（プレミアム限定）')"
         @click="onCardClick"
       >
-        <Photo :w="200" :h="140" :caption="item.title" variant="sepia" class="places-gallery__ph" />
+        <img
+          v-if="placeImage(item.placeId)"
+          :src="placeImage(item.placeId)"
+          :alt="item.title"
+          class="places-gallery__img"
+          loading="lazy"
+          decoding="async"
+        />
+        <Photo v-else :w="200" :h="140" :caption="item.title" variant="sepia" class="places-gallery__ph" />
         <div class="places-gallery__body">
           <h3 class="places-gallery__title">{{ item.title }}</h3>
           <p class="places-gallery__caption">{{ item.caption }}</p>
@@ -86,6 +98,16 @@ function onCardClick() {
 .places-gallery__ph {
   width: 100% !important;
   height: 140px !important;
+}
+.places-gallery__img {
+  display: block;
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  object-position: center;
+}
+.places-gallery__card--locked .places-gallery__img {
+  filter: grayscale(0.55) brightness(0.88);
 }
 .places-gallery__body {
   padding: var(--sp-3) var(--sp-4) var(--sp-4);
