@@ -3,7 +3,7 @@
  * 部品名: Music Memories プラットフォームシェル
  * 役割: ハブ・ログイン・新規登録・アカウント設定を束ねる
  */
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import PageMusicMemories from '../pages/PageMusicMemories.vue'
 import PageMusicConnections from '../pages/PageMusicConnections.vue'
 import PageArtistEncyclopedia from '../pages/PageArtistEncyclopedia.vue'
@@ -16,16 +16,18 @@ import PageSnsDiscover from '../pages/PageSnsDiscover.vue'
 import PageSnsProfile from '../pages/PageSnsProfile.vue'
 import PageSnsDm from '../pages/PageSnsDm.vue'
 import HeaderAccountMenu from './HeaderAccountMenu.vue'
+import PlatformDrawerNav from './PlatformDrawerNav.vue'
 import AccountModal from '../modals/AccountModal.vue'
 import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
 import UiIco from '../ui/UiIco.vue'
 import ToastHost from '../ui/ToastHost.vue'
 import { useAuth } from '../../composables/useAuth.js'
+import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
 import { useSnsDmUnread } from '../../composables/useSnsDmUnread.js'
 import { MEMBERSHIP } from '../../constants/membership.js'
 import { SITE_NAME } from '../../constants/site.js'
 
-defineProps({
+const props = defineProps({
   view: { type: String, default: 'hub' },
   isLoggedIn: { type: Boolean, default: false },
   userName: { type: String, default: '' },
@@ -44,12 +46,26 @@ const emit = defineEmits([
 ])
 
 const modal = ref(null)
+const drawerOpen = ref(false)
 const snsCreateIntent = ref(0)
 const profileAccountId = ref(null)
 const dmTargetAccountId = ref(null)
 
+const navItems = [
+  { id: 'hub', label: 'ホーム' },
+  { id: 'sns', label: 'みんなの投稿' },
+  { id: 'discover', label: '検索' },
+  { id: 'open-chat', label: 'オープンチャット' },
+  { id: 'artist-encyclopedia', label: 'アーティスト図鑑' },
+  { id: 'artist-diagnosis', label: 'アーティスト診断' },
+]
+
+const drawerPage = computed(() => (props.view === 'profile' ? 'sns' : props.view))
+
 const { user: authUser, isLoggedIn: authIsLoggedIn } = useAuth()
 const { unreadCount: dmUnreadCount, startPolling: startDmPolling, stopPolling: stopDmPolling } = useSnsDmUnread()
+
+useBodyScrollLock(drawerOpen)
 
 watch(authIsLoggedIn, (loggedIn) => {
   if (loggedIn) startDmPolling()
@@ -57,7 +73,12 @@ watch(authIsLoggedIn, (loggedIn) => {
 }, { immediate: true })
 
 function setView(next) {
+  drawerOpen.value = false
   emit('update:view', next)
+}
+
+function onDrawerNavigate(id) {
+  setView(id)
 }
 
 function openProfile(accountId) {
@@ -112,6 +133,7 @@ function onRegisterComplete(user) {
 }
 
 function onLogout() {
+  drawerOpen.value = false
   modal.value = null
   emit('logout')
 }
@@ -123,7 +145,11 @@ function onUserUpdated(account) {
 
 <template>
   <div class="platform-shell mm-sns">
-    <header class="platform-shell__header" role="banner">
+    <header
+      class="platform-shell__header"
+      :class="{ 'platform-shell__header--menu-open': drawerOpen }"
+      role="banner"
+    >
       <div class="platform-shell__header-inner">
         <button
           type="button"
@@ -244,8 +270,27 @@ function onUserUpdated(account) {
           @logout="onLogout"
           @go-fanclub="emit('enter-site', 'hibari')"
         />
+
+        <button
+          type="button"
+          class="platform-shell__menu sp-only"
+          :class="{ 'platform-shell__menu--open': drawerOpen }"
+          :aria-label="drawerOpen ? 'メニューを閉じる' : 'メニューを開く'"
+          :aria-expanded="drawerOpen"
+          @click="drawerOpen = !drawerOpen"
+        >
+          <span v-for="i in 3" :key="i" class="platform-shell__menu-line" />
+        </button>
       </div>
     </header>
+
+    <PlatformDrawerNav
+      :open="drawerOpen"
+      :items="navItems"
+      :page="drawerPage"
+      @close="drawerOpen = false"
+      @navigate="onDrawerNavigate"
+    />
 
     <PageMusicMemories
       v-if="view === 'hub'"
@@ -364,15 +409,6 @@ function onUserUpdated(account) {
       </button>
       <button
         type="button"
-        class="platform-shell__tab"
-        :class="{ 'platform-shell__tab--active': view === 'hub' }"
-        @click="setView('hub')"
-      >
-        <UiIco name="disc" :size="20" />
-        <span>Music Memories</span>
-      </button>
-      <button
-        type="button"
         class="platform-shell__tab platform-shell__tab--post"
         aria-label="投稿する"
         @click="setView('sns'); snsCreateIntent++"
@@ -419,15 +455,17 @@ function onUserUpdated(account) {
   position: sticky;
   top: 0;
   z-index: 40;
+  width: 100%;
   border-bottom: 1px solid var(--sns-border-soft);
   background: rgba(22, 15, 24, 0.92);
   backdrop-filter: blur(10px);
 }
 
 .platform-shell__header-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px 24px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 14px 20px;
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto) minmax(0, auto);
   align-items: center;
@@ -440,8 +478,14 @@ function onUserUpdated(account) {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.platform-shell__nav::-webkit-scrollbar {
+  display: none;
 }
 
 .platform-shell__nav-btn {
@@ -537,6 +581,7 @@ function onUserUpdated(account) {
 .platform-shell__brand {
   display: inline-flex;
   align-items: center;
+  justify-self: start;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -547,7 +592,91 @@ function onUserUpdated(account) {
 
 .platform-shell__brand :deep(.mm-logo--full) {
   max-height: 44px;
-  max-width: 125px;
+  max-width: 140px;
+  width: auto;
+  object-position: left center;
+}
+
+.platform-shell__menu {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  z-index: 220;
+}
+
+.platform-shell__menu-line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--sns-ivory);
+  border-radius: 1px;
+  transform-origin: center;
+  transition:
+    transform 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.32s ease,
+    background 0.25s ease;
+}
+
+.platform-shell__menu--open .platform-shell__menu-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.platform-shell__menu--open .platform-shell__menu-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.platform-shell__menu--open .platform-shell__menu-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.platform-shell__header--menu-open {
+  z-index: 250;
+  background: transparent;
+  border-color: transparent;
+  backdrop-filter: none;
+}
+
+.platform-shell__header--menu-open .platform-shell__brand,
+.platform-shell__header--menu-open .platform-shell__nav,
+.platform-shell__header--menu-open .platform-shell__desktop-actions,
+.platform-shell__header--menu-open .platform-shell__account {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.platform-shell__header--menu-open .platform-shell__menu {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  padding: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .platform-shell__menu-line {
+    transition: none !important;
+  }
+
+  .platform-shell__menu--open .platform-shell__menu-line:nth-child(1),
+  .platform-shell__menu--open .platform-shell__menu-line:nth-child(2),
+  .platform-shell__menu--open .platform-shell__menu-line:nth-child(3) {
+    transform: none;
+    opacity: 1;
+  }
 }
 
 .platform-shell__account :deep(.header-account__btn--login) {
@@ -635,50 +764,69 @@ function onUserUpdated(account) {
 }
 
 .platform-shell__tabbar {
+  /* .sp-only の display:flex !important を上書きし、画面幅に対する均等5列にする */
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 50;
-  align-items: center;
-  justify-content: space-around;
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
   min-height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   background: rgba(22, 15, 24, 0.96);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--sns-border-soft);
+  overflow: visible;
 }
 
 .platform-shell__tab {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  height: 100%;
+  margin: 0;
+  padding: 4px 2px;
   background: transparent;
   border: 0;
   color: var(--sns-text-muted);
   font-family: var(--ff-sans-jp);
   font-size: 10px;
-  padding: 4px 4px;
-  min-height: 44px;
-  min-width: 46px;
+  line-height: 1.2;
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
-.platform-shell__tab span {
-  max-width: 54px;
+.platform-shell__tab > span:not(.platform-shell__tab-icon) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .platform-shell__tab-icon {
   position: relative;
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
+  width: 20px;
+  height: 20px;
   overflow: visible;
 }
 
@@ -702,31 +850,41 @@ function onUserUpdated(account) {
   color: var(--sns-gold);
 }
 
+.platform-shell__tab :deep(svg) {
+  display: block;
+  flex-shrink: 0;
+}
+
 .platform-shell__tab--post {
-  min-width: 48px;
   width: 48px;
   height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  justify-self: center;
   border-radius: 50%;
   background: var(--sns-purple);
   border: 1px solid rgba(228, 190, 99, 0.4);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  /* 水平は Grid 3列目の中央。浮きは縦方向のみ */
   transform: translateY(-8px);
   align-items: center;
   justify-content: center;
+  line-height: 0;
+  overflow: visible;
 }
 
 @media (max-width: 767px) {
   .platform-shell__header-inner {
-    grid-template-columns: minmax(0, 1fr) minmax(96px, auto);
-    grid-template-areas:
-      "brand account"
-      "nav nav";
-    gap: 8px 12px;
-    padding: 10px 12px 8px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto) auto;
+    gap: 8px 10px;
+    padding: 10px 12px;
   }
 
   .platform-shell__brand {
-    grid-area: brand;
+    justify-self: start;
   }
 
   .platform-shell__brand :deep(.mm-logo--full) {
@@ -734,16 +892,17 @@ function onUserUpdated(account) {
     max-width: 125px;
   }
 
-  .platform-shell__account {
-    grid-area: account;
-    justify-self: end;
-    min-width: 0;
-    max-width: 120px;
+  .platform-shell__nav {
+    display: none;
   }
 
-  .platform-shell__account :deep(.header-account__trigger),
-  .platform-shell__account :deep(.header-account__btn) {
-    max-width: 120px;
+  .platform-shell__account {
+    justify-self: end;
+    min-width: 0;
+  }
+
+  .platform-shell__account :deep(.header-account__trigger) {
+    max-width: 112px;
     min-width: 0;
   }
 
@@ -753,25 +912,13 @@ function onUserUpdated(account) {
     white-space: nowrap;
   }
 
-  .platform-shell__nav {
-    grid-area: nav;
-    justify-content: flex-start;
-    gap: 6px;
-    flex-wrap: wrap;
-    width: 100%;
+  .platform-shell__account :deep(.header-account__btn) {
+    padding: 6px 10px;
+    font-size: 11px;
   }
 
-  .platform-shell__nav-btn {
-    flex: 1 1 calc(50% - 6px);
-    justify-content: center;
-    padding: 7px 4px;
-    min-height: 44px;
-    font-size: 12px;
-    overflow: hidden;
-  }
-
-  .platform-shell__nav-btn svg {
-    flex: 0 0 auto;
+  .platform-shell__account :deep(.header-account__btn--register) {
+    display: none;
   }
 
   .platform-shell__desktop-actions {
@@ -779,7 +926,7 @@ function onUserUpdated(account) {
   }
 
   .platform-shell__auth {
-    min-height: calc(100vh - 112px);
+    min-height: calc(100vh - 65px);
   }
 }
 
@@ -812,14 +959,20 @@ function onUserUpdated(account) {
     gap: 4px;
   }
 
-  .platform-shell__tab {
-    min-width: 40px;
+  .platform-shell__tabbar {
     padding-inline: 2px;
   }
 
-  .platform-shell__tab span {
-    max-width: 44px;
+  .platform-shell__tab {
+    padding-inline: 1px;
     font-size: 8.5px;
+  }
+
+  .platform-shell__tab--post {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 </style>

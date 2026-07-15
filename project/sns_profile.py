@@ -78,8 +78,11 @@ def register_sns_profile_routes(app, engine, **deps):
         if not file or not file.filename:
             return jsonify({"error": "ファイルがありません"}), 400
 
-        original_name = secure_filename(file.filename)
-        ext = original_name.rsplit(".", 1)[-1].lower() if "." in original_name else ""
+        # 日本語ファイル名でも拡張子を失わないよう、元名から先に判定する
+        ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+        if ext not in ALLOWED_IMAGE_EXTENSIONS:
+            safe_name = secure_filename(file.filename)
+            ext = safe_name.rsplit(".", 1)[-1].lower() if "." in safe_name else ""
         if ext not in ALLOWED_IMAGE_EXTENSIONS:
             return jsonify({"error": "画像形式（jpg/png/gif/webp）のみアップロードできます"}), 400
 
@@ -146,42 +149,41 @@ def register_sns_profile_routes(app, engine, **deps):
             if _is_blocked(viewer_id, target_id) and viewer_id != target_id:
                 return jsonify({"error": "このプロフィールは表示できません"}), 403
 
-            profile_rows = fetch_all(
-                "SELECT bio, avatar_path FROM sns_profiles WHERE account_id = :account_id",
-                {"account_id": target_id},
+            # プロフィール本文と各種カウントを1クエリにまとめ、往復回数を削減する
+            stats_rows = fetch_all(
+                """
+                SELECT
+                    pr.bio,
+                    pr.avatar_path,
+                    (SELECT COUNT(*)::int FROM sns_posts
+                     WHERE account_id = :target_id AND is_deleted = FALSE) AS post_count,
+                    (SELECT COUNT(*)::int FROM sns_follows
+                     WHERE following_account_id = :target_id) AS follower_count,
+                    (SELECT COUNT(*)::int FROM sns_follows
+                     WHERE follower_account_id = :target_id) AS following_count,
+                    EXISTS(
+                        SELECT 1 FROM sns_follows
+                        WHERE follower_account_id = :viewer_id
+                          AND following_account_id = :target_id
+                    ) AS is_following
+                FROM (SELECT 1) AS _
+                LEFT JOIN sns_profiles pr ON pr.account_id = :target_id
+                """,
+                {"target_id": target_id, "viewer_id": viewer_id or 0},
             )
-            bio = _row_val(profile_rows[0], "bio") if profile_rows else ""
-            avatar_path = _row_val(profile_rows[0], "avatar_path") if profile_rows else None
-
-            post_count = _row_val(fetch_all(
-                "SELECT COUNT(*) AS c FROM sns_posts WHERE account_id = :id AND is_deleted = FALSE",
-                {"id": target_id},
-            )[0], "c")
-            follower_count = _row_val(fetch_all(
-                "SELECT COUNT(*) AS c FROM sns_follows WHERE following_account_id = :id",
-                {"id": target_id},
-            )[0], "c")
-            following_count = _row_val(fetch_all(
-                "SELECT COUNT(*) AS c FROM sns_follows WHERE follower_account_id = :id",
-                {"id": target_id},
-            )[0], "c")
-
-            is_following = False
-            if viewer_id and viewer_id != target_id:
-                rows = fetch_all(
-                    "SELECT 1 FROM sns_follows WHERE follower_account_id = :v AND following_account_id = :t",
-                    {"v": viewer_id, "t": target_id},
-                )
-                is_following = bool(rows)
+            stats = stats_rows[0] if stats_rows else None
+            bio = _row_val(stats, "bio") if stats and _row_val(stats, "bio") is not None else ""
+            avatar_path = _row_val(stats, "avatar_path") if stats else None
+            is_following = bool(_row_val(stats, "is_following")) if (viewer_id and viewer_id != target_id and stats) else False
 
             return jsonify({
                 "account_id": target_id,
                 "name": account.get("name"),
-                "bio": bio,
+                "bio": bio or "",
                 "avatar_path": avatar_path,
-                "post_count": int(post_count),
-                "follower_count": int(follower_count),
-                "following_count": int(following_count),
+                "post_count": int(_row_val(stats, "post_count") or 0) if stats else 0,
+                "follower_count": int(_row_val(stats, "follower_count") or 0) if stats else 0,
+                "following_count": int(_row_val(stats, "following_count") or 0) if stats else 0,
                 "is_self": viewer_id == target_id,
                 "is_following": is_following,
                 "membership": get_membership_for_account(target_id),

@@ -13,6 +13,9 @@ from sns import SnsUsageLimitError, consume_sns_post_usage
 
 MAX_CAPTION_LENGTH = 300
 STORY_LIFETIME_HOURS = 24
+# アクティブストーリーズの1回あたり取得上限（アカウント横断）
+STORIES_FEED_LIMIT = 120
+STORY_ARCHIVE_LIMIT = 60
 
 BLOCK_EXCLUSION_SQL = """
     NOT EXISTS (
@@ -28,13 +31,12 @@ STORY_SELECT = """
         s.created_at, s.published_at, s.expires_at,
         a.name AS author_name,
         pr.avatar_path AS author_avatar_path,
-        EXISTS(
-            SELECT 1 FROM sns_story_views v
-            WHERE v.story_id = s.story_id AND v.viewer_account_id = :viewer_id
-        ) AS viewed_by_viewer
+        (v.view_id IS NOT NULL) AS viewed_by_viewer
     FROM sns_stories s
     JOIN accounts a ON a.account_id = s.account_id
     LEFT JOIN sns_profiles pr ON pr.account_id = s.account_id
+    LEFT JOIN sns_story_views v
+        ON v.story_id = s.story_id AND v.viewer_account_id = :viewer_id
 """
 
 
@@ -67,12 +69,17 @@ def register_sns_story_routes(app, engine, **deps):
         try:
             viewer_id = _optional_account_id()
             where = ["s.is_archived = FALSE", "s.published_at <= NOW()", "s.expires_at > NOW()"]
-            params = {"viewer_id": viewer_id or 0}
+            params = {"viewer_id": viewer_id or 0, "limit": STORIES_FEED_LIMIT}
             if viewer_id:
                 where.append(BLOCK_EXCLUSION_SQL)
 
-            sql = f"{STORY_SELECT} WHERE {' AND '.join(where)} ORDER BY s.account_id, s.created_at ASC"
+            # 新しいもの優先で上限をかけたあと、表示用に時系列へ戻す
+            sql = (
+                f"{STORY_SELECT} WHERE {' AND '.join(where)} "
+                "ORDER BY s.created_at DESC LIMIT :limit"
+            )
             rows = fetch_all(sql, params)
+            rows = list(reversed(rows))
 
             groups = {}
             order = []
@@ -180,8 +187,9 @@ def register_sns_story_routes(app, engine, **deps):
                 FROM sns_stories
                 WHERE account_id = :account_id
                 ORDER BY created_at DESC
+                LIMIT :limit
                 """,
-                {"account_id": account_id},
+                {"account_id": account_id, "limit": STORY_ARCHIVE_LIMIT},
             )
             stories = [{
                 "story_id": _row_val(r, "story_id"),

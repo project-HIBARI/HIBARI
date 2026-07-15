@@ -230,8 +230,15 @@ onUnmounted(() => {
         @touchstart="onPointerDown"
         @touchend="onPointerUp"
       >
-        <img v-if="currentStory.media_type === 'image'" :src="currentStory.file_path" :alt="currentStory.caption || 'ストーリーズ'" />
-        <video v-else :src="currentStory.file_path" autoplay playsinline @ended="goNext" />
+        <img v-if="currentStory.media_type === 'image'" :src="currentStory.file_path" :alt="currentStory.caption || 'ストーリーズ'" loading="eager" />
+        <video
+          v-else
+          :src="currentStory.file_path"
+          autoplay
+          playsinline
+          preload="metadata"
+          @ended="goNext"
+        />
 
         <button type="button" class="sns-story-viewer__zone sns-story-viewer__zone--prev" aria-label="前へ" @click="onZoneClick('prev')" />
         <button type="button" class="sns-story-viewer__zone sns-story-viewer__zone--next" aria-label="次へ" @click="onZoneClick('next')" />

@@ -33,6 +33,11 @@ const errorMessage = ref('')
 const MAX_TEXT = 300
 const MAX_PHOTO_BODY = 2200
 const MAX_STORY_CAPTION = 300
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024
+const ALLOWED_IMAGE_EXT = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp'])
+const ALLOWED_VIDEO_EXT = new Set(['mp4', 'webm', 'mov'])
+
 const MAX_LEN = computed(() => {
   if (postType.value === 'text') return MAX_TEXT
   if (postType.value === 'story') return MAX_STORY_CAPTION
@@ -40,6 +45,34 @@ const MAX_LEN = computed(() => {
 })
 
 const hasVideo = computed(() => files.value.some((f) => f.kind === 'video'))
+
+function fileExtension(name) {
+  if (!name || !name.includes('.')) return ''
+  return name.split('.').pop().toLowerCase()
+}
+
+function detectMediaKind(file) {
+  const ext = fileExtension(file.name)
+  if (file.type?.startsWith('video/') || ALLOWED_VIDEO_EXT.has(ext)) return 'video'
+  if (file.type?.startsWith('image/') || ALLOWED_IMAGE_EXT.has(ext)) return 'image'
+  return null
+}
+
+function validateMediaFile(file, kind) {
+  if (kind === 'image') {
+    if (!ALLOWED_IMAGE_EXT.has(fileExtension(file.name)) && !file.type?.startsWith('image/')) {
+      return '対応していない形式です（画像: jpg/png/gif/webp）'
+    }
+    if (file.size > MAX_IMAGE_BYTES) return '画像ファイルは10MB以下にしてください'
+  } else if (kind === 'video') {
+    if (!ALLOWED_VIDEO_EXT.has(fileExtension(file.name)) && !file.type?.startsWith('video/')) {
+      return '対応していない形式です（動画: mp4/webm/mov）'
+    }
+    if (file.size > MAX_VIDEO_BYTES) return '動画ファイルは50MB以下にしてください'
+  }
+  if (!file.size) return 'ファイルが空です'
+  return ''
+}
 
 function pickType(type) {
   postType.value = type
@@ -54,11 +87,19 @@ function onFileChange(e) {
 
   const maxImages = postType.value === 'photo' ? 4 : 1
   for (const file of picked) {
-    const isVideo = file.type.startsWith('video/')
-    const isImage = file.type.startsWith('image/')
-    if (!isVideo && !isImage) continue
+    const kind = detectMediaKind(file)
+    if (!kind) {
+      errorMessage.value = '対応していない形式です（画像: jpg/png/gif/webp、動画: mp4/webm/mov）'
+      continue
+    }
 
-    if (isVideo) {
+    const validationError = validateMediaFile(file, kind)
+    if (validationError) {
+      errorMessage.value = validationError
+      continue
+    }
+
+    if (kind === 'video') {
       if (postType.value === 'text') {
         errorMessage.value = 'ひとこと投稿に動画は添付できません'
         continue
@@ -91,6 +132,24 @@ function parseHashtags() {
     .slice(0, 10)
 }
 
+function formatUploadError(err) {
+  if (!err) return '投稿に失敗しました。もう一度お試しください。'
+  if (err.status === 401) return 'ログインの有効期限が切れました。再度ログインしてください。'
+  if (err.status === 0) return '通信に失敗しました。ネットワーク接続を確認してください。'
+  if (err.status === 413) return 'ファイルサイズが大きすぎます。'
+  if (err.status === 415) return '対応していない形式です。'
+  if (err.status === 500) return err.message || 'サーバーへの保存に失敗しました。'
+  return err.message || '投稿に失敗しました。もう一度お試しください。'
+}
+
+function toPostMedia(uploaded) {
+  const filePath = uploaded?.file_path || uploaded?.path
+  return {
+    file_path: filePath,
+    media_type: uploaded?.media_type,
+  }
+}
+
 async function submit() {
   if (submitting.value) return
   errorMessage.value = ''
@@ -116,16 +175,26 @@ async function submit() {
   try {
     const media = []
     for (const item of files.value) {
+      const localError = validateMediaFile(item.file, item.kind)
+      if (localError) {
+        errorMessage.value = localError
+        return
+      }
       uploadingLabel.value = `アップロード中（${media.length + 1}/${files.value.length}）…`
       const uploaded = await uploadSnsMedia(item.file)
-      media.push(uploaded)
+      const mapped = toPostMedia(uploaded)
+      if (!mapped.file_path || !mapped.media_type) {
+        errorMessage.value = 'サーバーへの保存に失敗しました'
+        return
+      }
+      media.push(mapped)
     }
-    uploadingLabel.value = ''
+    uploadingLabel.value = '投稿を公開しています…'
 
     if (postType.value === 'story') {
       await createSnsStory({
         media_type: media[0].media_type,
-        file_path: media[0].path,
+        file_path: media[0].file_path,
         caption: body.value.trim(),
       })
     } else {
@@ -145,8 +214,9 @@ async function submit() {
       emit('limit-reached', err.data)
       return
     }
-    errorMessage.value = err?.message || '投稿に失敗しました。もう一度お試しください。'
+    errorMessage.value = formatUploadError(err)
   } finally {
+    uploadingLabel.value = ''
     submitting.value = false
   }
 }
@@ -180,16 +250,23 @@ async function submit() {
         <label class="sns-create__file-btn">
           <UiIco name="image" :size="18" />
           画像・動画を選択
-          <input type="file" accept="image/*,video/*" :multiple="postType === 'photo'" hidden @change="onFileChange" />
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov"
+            :multiple="postType === 'photo'"
+            hidden
+            :disabled="submitting"
+            @change="onFileChange"
+          />
         </label>
         <p class="sns-create__media-hint">
-          {{ postType === 'story' ? '画像または動画を1件選択してください（投稿から24時間で自動的に非表示になります）' : '画像は最大4枚、または動画1件までです' }}
+          {{ postType === 'story' ? '画像または動画を1件選択してください（投稿から24時間で自動的に非表示になります）' : '画像は最大4枚、または動画1件までです（画像10MB / 動画50MBまで）' }}
         </p>
         <div v-if="files.length" class="sns-create__previews">
           <div v-for="(item, i) in files" :key="i" class="sns-create__preview">
             <img v-if="item.kind === 'image'" :src="item.previewUrl" alt="添付プレビュー" />
-            <video v-else :src="item.previewUrl" muted playsinline />
-            <button type="button" class="sns-create__preview-remove" aria-label="削除" @click="removeFile(i)">
+            <video v-else :src="item.previewUrl" muted playsinline preload="metadata" />
+            <button type="button" class="sns-create__preview-remove" aria-label="削除" :disabled="submitting" @click="removeFile(i)">
               <UiIco name="close" :size="12" />
             </button>
           </div>
@@ -201,6 +278,7 @@ async function submit() {
         class="sns-create__textarea"
         :maxlength="MAX_LEN"
         :placeholder="postType === 'text' ? '今の気持ちをひとことで（最大300文字）' : postType === 'story' ? 'キャプション（任意）' : '思い出について書く（任意）'"
+        :disabled="submitting"
         rows="4"
       />
       <p class="sns-create__count">{{ body.length }} / {{ MAX_LEN }}</p>
@@ -209,12 +287,18 @@ async function submit() {
         <label class="sns-create__file-btn">
           <UiIco name="image" :size="18" />
           画像を1枚添付（任意）
-          <input type="file" accept="image/*" hidden @change="onFileChange" />
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp"
+            hidden
+            :disabled="submitting"
+            @change="onFileChange"
+          />
         </label>
         <div v-if="files.length" class="sns-create__previews">
           <div v-for="(item, i) in files" :key="i" class="sns-create__preview">
             <img :src="item.previewUrl" alt="添付プレビュー" />
-            <button type="button" class="sns-create__preview-remove" aria-label="削除" @click="removeFile(i)">
+            <button type="button" class="sns-create__preview-remove" aria-label="削除" :disabled="submitting" @click="removeFile(i)">
               <UiIco name="close" :size="12" />
             </button>
           </div>
@@ -222,10 +306,10 @@ async function submit() {
       </div>
 
       <template v-if="postType !== 'story'">
-        <input v-model="hashtagsInput" type="text" class="sns-create__hashtags" placeholder="ハッシュタグ（スペース区切り、任意）" />
+        <input v-model="hashtagsInput" type="text" class="sns-create__hashtags" placeholder="ハッシュタグ（スペース区切り、任意）" :disabled="submitting" />
 
         <label class="sns-create__toggle">
-          <input v-model="commentsEnabled" type="checkbox" />
+          <input v-model="commentsEnabled" type="checkbox" :disabled="submitting" />
           コメントを許可する
         </label>
       </template>
@@ -234,7 +318,7 @@ async function submit() {
         第三者が権利を持つ画像・動画や、個人情報を含む内容を、許可なく投稿しないでください。
       </p>
 
-      <p v-if="errorMessage" class="sns-create__error">{{ errorMessage }}</p>
+      <p v-if="errorMessage" class="sns-create__error" role="alert">{{ errorMessage }}</p>
       <p v-if="uploadingLabel" class="sns-create__uploading">{{ uploadingLabel }}</p>
 
       <div class="sns-create__actions">

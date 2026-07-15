@@ -4,6 +4,7 @@
  */
 import { computed } from 'vue'
 import UiIco from '../../ui/UiIco.vue'
+import SnsSkeletonCard from './SnsSkeletonCard.vue'
 import { useAuth } from '../../../composables/useAuth.js'
 
 const props = defineProps({
@@ -35,7 +36,9 @@ function onSelfAvatarClick() {
 
 <template>
   <section class="sns-story-bar" aria-label="ストーリーズ">
-    <div v-if="loading" class="sns-story-bar__loading">読み込み中…</div>
+    <div v-if="loading" class="sns-story-bar__loading" aria-busy="true">
+      <SnsSkeletonCard variant="story" :count="6" />
+    </div>
 
     <div v-else class="sns-story-bar__row">
       <div v-if="isLoggedIn" class="sns-story-bar__item">
@@ -96,7 +99,9 @@ function onSelfAvatarClick() {
   gap: 14px;
   padding: 4px 2px;
 }
-.sns-story-bar__loading,
+.sns-story-bar__loading {
+  padding: 4px 2px;
+}
 .sns-story-bar__empty {
   margin: 0;
   padding: 14px 4px;

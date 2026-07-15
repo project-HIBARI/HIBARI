@@ -99,19 +99,50 @@ async function onBlock(post) {
 
 const storyGroups = ref([])
 const storiesLoading = ref(false)
+const storiesError = ref('')
 const viewerGroups = ref(null)
 const viewerStartIndex = ref(0)
+let storiesRequestId = 0
+let storiesInFlight = null
+let storiesFetchedAt = 0
+const STORIES_CACHE_TTL_MS = 30_000
 
-async function loadStories() {
-  storiesLoading.value = true
-  try {
-    const data = await fetchSnsStories()
-    storyGroups.value = data.groups
-  } catch {
-    storyGroups.value = []
-  } finally {
-    storiesLoading.value = false
+function syncStoryViewedFlags() {
+  for (const group of storyGroups.value) {
+    group.has_unviewed = group.stories.some((s) => !s.viewed_by_viewer)
   }
+}
+
+async function loadStories({ force = false } = {}) {
+  const now = Date.now()
+  if (!force && storiesFetchedAt && now - storiesFetchedAt < STORIES_CACHE_TTL_MS && storyGroups.value.length) {
+    return
+  }
+  if (storiesInFlight) {
+    return storiesInFlight
+  }
+
+  const requestId = ++storiesRequestId
+  storiesLoading.value = true
+  storiesError.value = ''
+  storiesInFlight = (async () => {
+    try {
+      const data = await fetchSnsStories()
+      if (requestId !== storiesRequestId) return
+      storyGroups.value = data.groups || []
+      storiesFetchedAt = Date.now()
+    } catch {
+      if (requestId !== storiesRequestId) return
+      storiesError.value = 'ストーリーズの取得に失敗しました'
+      if (!storyGroups.value.length) storyGroups.value = []
+    } finally {
+      if (requestId === storiesRequestId) {
+        storiesLoading.value = false
+        storiesInFlight = null
+      }
+    }
+  })()
+  return storiesInFlight
 }
 
 function openStoryViewer(group) {
@@ -122,11 +153,17 @@ function openStoryViewer(group) {
 
 function closeStoryViewer() {
   viewerGroups.value = null
-  loadStories()
+  // 全件再取得せず、閲覧済みフラグだけ反映してリング表示を更新する
+  syncStoryViewedFlags()
 }
 
-function onStoryDeleted() {
-  loadStories()
+function onStoryDeleted(storyId) {
+  for (const group of storyGroups.value) {
+    group.stories = group.stories.filter((s) => s.story_id !== storyId)
+  }
+  storyGroups.value = storyGroups.value.filter((g) => g.stories.length > 0)
+  syncStoryViewedFlags()
+  storiesFetchedAt = 0
 }
 
 async function loadFeed({ reset = true } = {}) {
@@ -185,7 +222,7 @@ function onPostCreated() {
   showCreateModal.value = false
   refreshUsage()
   loadFeed()
-  loadStories()
+  loadStories({ force: true })
 }
 
 function onLimitReached(status) {

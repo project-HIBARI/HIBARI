@@ -263,17 +263,25 @@ export function fetchSnsDiscoverPosts({ offset = 0, limit = 21 } = {}) {
 
 /**
  * SNS用メディア（画像・動画）をアップロード
- * @returns {Promise<{ path: string, media_type: 'image'|'video' }>}
+ * @returns {Promise<{ path: string, file_path: string, media_type: 'image'|'video' }>}
  */
 export async function uploadSnsMedia(file) {
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch('/api/sns/media/upload', {
-    method: 'POST',
-    credentials: 'include',
-    body: formData,
-  })
+  // Content-Type は手動設定しない（boundary をブラウザに任せる）
+  let response
+  try {
+    response = await fetch('/api/sns/media/upload', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    })
+  } catch {
+    const error = new Error('通信に失敗しました。ネットワーク接続を確認してください。')
+    error.status = 0
+    throw error
+  }
 
   let data = null
   const contentType = response.headers.get('content-type') || ''
@@ -282,12 +290,24 @@ export async function uploadSnsMedia(file) {
   }
 
   if (!response.ok) {
-    const message = data?.error || `アップロードに失敗しました（${response.status}）`
+    let message = data?.error
+    if (!message) {
+      if (response.status === 401) message = 'ログインの有効期限が切れました。再度ログインしてください。'
+      else if (response.status === 413) message = 'ファイルサイズが大きすぎます。'
+      else if (response.status === 415) message = '対応していない形式です。'
+      else if (response.status >= 500) message = 'サーバーへの保存に失敗しました。'
+      else message = `アップロードに失敗しました（${response.status}）`
+    }
     const error = new Error(message)
     error.status = response.status
     error.data = data
     throw error
   }
 
-  return data
+  const filePath = data?.file_path || data?.path
+  return {
+    ...data,
+    path: filePath,
+    file_path: filePath,
+  }
 }
