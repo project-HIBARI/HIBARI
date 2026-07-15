@@ -116,7 +116,8 @@ watch(
   font-weight: 500;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: var(--sns-text-muted);
+  color: #c8a96b;
+  opacity: 1;
 }
 
 .mm-drawer__nav {
@@ -132,20 +133,32 @@ watch(
   align-items: center;
   gap: 12px;
   width: 100%;
+  min-height: 56px;
   margin: 0;
   padding: clamp(14px, 2.8vh, 20px) 0;
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
   background: transparent;
   text-align: left;
   cursor: pointer;
-  color: var(--sns-ivory);
-  transition: color 0.25s ease, padding-left 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  color: rgba(255, 255, 255, 0.92);
+  opacity: 1;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    padding-left 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.mm-drawer__link:hover {
+.mm-drawer__link:hover,
+.mm-drawer__link:focus-visible {
   padding-left: 8px;
-  color: var(--sns-gold);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mm-drawer__link:focus-visible {
+  outline: 2px solid #c8a96b;
+  outline-offset: -2px;
 }
 
 .mm-drawer__link-text {
@@ -154,18 +167,19 @@ watch(
   font-weight: 600;
   letter-spacing: 0.08em;
   line-height: 1.35;
+  opacity: 1;
 }
 
 .mm-drawer__link-mark {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--sns-gold);
+  background: #e0bd75;
   flex-shrink: 0;
 }
 
 .mm-drawer__link--active {
-  color: var(--sns-gold);
+  color: #e0bd75;
 }
 
 .mm-drawer__stagger {
