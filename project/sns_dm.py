@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import os
 import uuid
+from datetime import datetime, timezone
 
 from flask import jsonify, request
 from sqlalchemy import text
@@ -310,65 +311,100 @@ def register_sns_dm_routes(app, engine, **deps):
 
         box = request.args.get("box", "inbox")
         status_filter = "accepted" if box != "requests" else "requested"
+        before_id = request.args.get("before_id", type=int)
 
-        rows = fetch_all(
+        params = {
+            "account_id": account_id,
+            "status": status_filter,
+            "limit": THREADS_PAGE_SIZE + 1,
+        }
+        before_clause = ""
+        if before_id:
+            before_clause = """
+              AND COALESCE(lm.message_id, 0) < :before_id
             """
-            SELECT dp.thread_id, dp.last_read_message_id
+            params["before_id"] = before_id
+
+        # 相手・最終メッセージ・未読を1クエリで取得（N+1回避）
+        rows = fetch_all(
+            f"""
+            SELECT
+              dp.thread_id,
+              other.account_id AS other_account_id,
+              other.name AS other_name,
+              pr.avatar_path AS other_avatar_path,
+              lm.body AS last_body,
+              lm.message_type AS last_message_type,
+              lm.reaction_emoji AS last_reaction_emoji,
+              lm.created_at AS last_created_at,
+              lm.sender_account_id AS last_sender_id,
+              lm.message_id AS last_message_id,
+              (
+                SELECT COUNT(*)
+                FROM sns_dm_messages um
+                WHERE um.thread_id = dp.thread_id
+                  AND um.deleted_at IS NULL
+                  AND um.sender_account_id != :account_id
+                  AND um.message_id > COALESCE(dp.last_read_message_id, 0)
+              ) AS unread_count
             FROM sns_dm_participants dp
-            WHERE dp.account_id = :account_id AND dp.status = :status
+            JOIN sns_dm_participants dp_other
+              ON dp_other.thread_id = dp.thread_id
+             AND dp_other.account_id != :account_id
+            JOIN accounts other ON other.account_id = dp_other.account_id
+            LEFT JOIN sns_profiles pr ON pr.account_id = other.account_id
+            LEFT JOIN LATERAL (
+              SELECT message_id, body, message_type, reaction_emoji, created_at, sender_account_id
+              FROM sns_dm_messages
+              WHERE thread_id = dp.thread_id AND deleted_at IS NULL
+              ORDER BY message_id DESC
+              LIMIT 1
+            ) lm ON TRUE
+            WHERE dp.account_id = :account_id
+              AND dp.status = :status
+              {before_clause}
+            ORDER BY lm.message_id DESC NULLS LAST, dp.thread_id DESC
+            LIMIT :limit
             """,
-            {"account_id": account_id, "status": status_filter},
+            params,
         )
+
+        has_more = len(rows) > THREADS_PAGE_SIZE
+        if has_more:
+            rows = rows[:THREADS_PAGE_SIZE]
 
         threads = []
         for r in rows:
-            thread_id = _row_val(r, "thread_id")
-            last_read = _row_val(r, "last_read_message_id")
-            other = _other_participant(thread_id, account_id)
-            if not other:
-                continue
-
-            last_msg_rows = fetch_all(
-                """
-                SELECT message_id, body, message_type, reaction_emoji, created_at, sender_account_id
-                FROM sns_dm_messages
-                WHERE thread_id = :thread_id AND deleted_at IS NULL
-                ORDER BY message_id DESC LIMIT 1
-                """,
-                {"thread_id": thread_id},
-            )
-            unread_row = fetch_all(
-                """
-                SELECT COUNT(*) AS c FROM sns_dm_messages
-                WHERE thread_id = :thread_id AND deleted_at IS NULL
-                  AND sender_account_id != :account_id
-                  AND message_id > :last_read
-                """,
-                {"thread_id": thread_id, "account_id": account_id, "last_read": last_read},
-            )
-
             last_message = None
             updated_at = None
-            if last_msg_rows:
-                lm = last_msg_rows[0]
+            last_created = _row_val(r, "last_created_at")
+            if last_created is not None:
                 last_message = {
-                    "body": _row_val(lm, "body"),
-                    "message_type": _row_val(lm, "message_type"),
-                    "reaction_emoji": _row_val(lm, "reaction_emoji"),
-                    "is_mine": _row_val(lm, "sender_account_id") == account_id,
+                    "body": _row_val(r, "last_body"),
+                    "message_type": _row_val(r, "last_message_type"),
+                    "reaction_emoji": _row_val(r, "last_reaction_emoji"),
+                    "is_mine": _row_val(r, "last_sender_id") == account_id,
                 }
-                updated_at = _row_val(lm, "created_at").isoformat()
+                updated_at = last_created.isoformat()
 
             threads.append({
-                "thread_id": thread_id,
-                "other": other,
+                "thread_id": _row_val(r, "thread_id"),
+                "other": {
+                    "account_id": _row_val(r, "other_account_id"),
+                    "name": _row_val(r, "other_name"),
+                    "avatar_path": _row_val(r, "other_avatar_path"),
+                },
                 "last_message": last_message,
                 "updated_at": updated_at,
-                "unread_count": int(_row_val(unread_row[0], "c")),
+                "unread_count": int(_row_val(r, "unread_count") or 0),
             })
 
-        threads.sort(key=lambda t: t["updated_at"] or "", reverse=True)
-        return jsonify({"threads": threads})
+        next_before_id = None
+        if has_more and threads:
+            last_row = rows[-1]
+            next_before_id = _row_val(last_row, "last_message_id") or _row_val(last_row, "thread_id")
+
+        return jsonify({"threads": threads, "next_before_id": next_before_id})
 
     @app.route("/api/sns/dm/threads", methods=["POST"])
     def sns_dm_get_or_create_thread():
@@ -684,7 +720,23 @@ def register_sns_dm_routes(app, engine, **deps):
                 account_id, recipient_id, message_type, body, media_path, shared_post_id, shared_story_id,
                 reaction_emoji=reaction_emoji,
             )
-            return jsonify({"thread_id": thread_id, "message_id": message_id}), 201
+            return jsonify({
+                "thread_id": thread_id,
+                "message_id": message_id,
+                "message": {
+                    "message_id": message_id,
+                    "thread_id": thread_id,
+                    "sender_account_id": account_id,
+                    "message_type": message_type,
+                    "body": body or "",
+                    "media_path": media_path,
+                    "shared_post_id": shared_post_id,
+                    "shared_story_id": shared_story_id,
+                    "reaction_emoji": reaction_emoji,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "is_mine": True,
+                },
+            }), 201
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
         except PermissionError as e:
@@ -735,7 +787,23 @@ def register_sns_dm_routes(app, engine, **deps):
                 account_id, other["account_id"], message_type, body, media_path, shared_post_id, shared_story_id,
                 reaction_emoji=reaction_emoji,
             )
-            return jsonify({"thread_id": thread_id, "message_id": message_id}), 201
+            return jsonify({
+                "thread_id": thread_id,
+                "message_id": message_id,
+                "message": {
+                    "message_id": message_id,
+                    "thread_id": thread_id,
+                    "sender_account_id": account_id,
+                    "message_type": message_type,
+                    "body": body or "",
+                    "media_path": media_path,
+                    "shared_post_id": shared_post_id,
+                    "shared_story_id": shared_story_id,
+                    "reaction_emoji": reaction_emoji,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "is_mine": True,
+                },
+            }), 201
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
         except PermissionError as e:
@@ -777,15 +845,21 @@ def register_sns_dm_routes(app, engine, **deps):
 
         rows = fetch_all(
             """
-            SELECT dp.thread_id, dp.last_read_message_id,
-                   (SELECT COUNT(*) FROM sns_dm_messages m
-                    WHERE m.thread_id = dp.thread_id AND m.deleted_at IS NULL
-                      AND m.sender_account_id != :account_id
-                      AND m.message_id > dp.last_read_message_id) AS unread
-            FROM sns_dm_participants dp
-            WHERE dp.account_id = :account_id AND dp.status = 'accepted'
+            SELECT COALESCE(SUM(unread), 0) AS total
+            FROM (
+              SELECT (
+                SELECT COUNT(*)
+                FROM sns_dm_messages m
+                WHERE m.thread_id = dp.thread_id
+                  AND m.deleted_at IS NULL
+                  AND m.sender_account_id != :account_id
+                  AND m.message_id > COALESCE(dp.last_read_message_id, 0)
+              ) AS unread
+              FROM sns_dm_participants dp
+              WHERE dp.account_id = :account_id AND dp.status = 'accepted'
+            ) AS counts
             """,
             {"account_id": account_id},
         )
-        total = sum(int(_row_val(r, "unread")) for r in rows)
+        total = int(_row_val(rows[0], "total") or 0) if rows else 0
         return jsonify({"unread_count": total})

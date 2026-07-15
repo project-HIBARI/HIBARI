@@ -8,7 +8,7 @@
 
  */
 
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick, defineAsyncComponent } from 'vue'
 
 import SiteHeader from './SiteHeader.vue'
 
@@ -35,18 +35,6 @@ import PageTop from '../pages/PageTop.vue'
 
 import PageNews from '../pages/PageNews.vue'
 
-import PageDisco from '../pages/PageDisco.vue'
-
-import PageProfile from '../pages/PageProfile.vue'
-
-import PagePlaces from '../pages/PagePlaces.vue'
-
-import PageMemories from '../pages/PageMemories.vue'
-
-import PageMessage from '../pages/PageMessage.vue'
-
-import PageMemoryBook from '../pages/PageMemoryBook.vue'
-
 import PageFaq from '../pages/PageFaq.vue'
 
 import PageContact from '../pages/PageContact.vue'
@@ -57,8 +45,6 @@ import PagePrivacyPolicy from '../pages/PagePrivacyPolicy.vue'
 
 import PageFanclub from '../pages/PageFanclub.vue'
 
-import PageFanclubSite from '../pages/PageFanclubSite.vue'
-
 import { useBodyScrollLock } from '../../composables/useBodyScrollLock.js'
 
 import { useSiteIntro } from '../../composables/useSiteIntro.js'
@@ -68,6 +54,14 @@ import { useAuth } from '../../composables/useAuth.js'
 import { MEMBERSHIP, PERMISSION, hasPermission } from '../../constants/membership.js'
 import { useOpenChatNotifications } from '../../composables/useOpenChatNotifications.js'
 import { initAos, scheduleAosRefresh, destroyAosScheduling } from '../../lib/aos.js'
+
+const PageDisco = defineAsyncComponent(() => import('../pages/PageDisco.vue'))
+const PageProfile = defineAsyncComponent(() => import('../pages/PageProfile.vue'))
+const PagePlaces = defineAsyncComponent(() => import('../pages/PagePlaces.vue'))
+const PageMemories = defineAsyncComponent(() => import('../pages/PageMemories.vue'))
+const PageMessage = defineAsyncComponent(() => import('../pages/PageMessage.vue'))
+const PageMemoryBook = defineAsyncComponent(() => import('../pages/PageMemoryBook.vue'))
+const PageFanclubSite = defineAsyncComponent(() => import('../pages/PageFanclubSite.vue'))
 
 const props = defineProps({
   pendingFeature: { type: String, default: null },

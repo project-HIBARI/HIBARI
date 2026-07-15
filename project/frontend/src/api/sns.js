@@ -104,8 +104,10 @@ export function fetchSnsFollowers(accountId) {
   return apiRequest(`/api/sns/follow/${accountId}/followers`)
 }
 
-export function fetchDmThreads(box = 'inbox') {
-  return apiRequest(`/api/sns/dm/threads?box=${box}`)
+export function fetchDmThreads(box = 'inbox', { beforeId = null } = {}) {
+  const params = new URLSearchParams({ box })
+  if (beforeId) params.set('before_id', String(beforeId))
+  return apiRequest(`/api/sns/dm/threads?${params.toString()}`)
 }
 
 export function getOrCreateDmThread(recipientId) {
@@ -161,8 +163,10 @@ export function fetchDmUnreadCount() {
 }
 
 export async function uploadDmMedia(file) {
+  const { compressImageFile } = await import('../lib/compressImageFile.js')
+  const prepared = await compressImageFile(file)
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append('file', prepared)
   const response = await fetch('/api/sns/dm/media/upload', {
     method: 'POST',
     credentials: 'include',
@@ -266,8 +270,10 @@ export function fetchSnsDiscoverPosts({ offset = 0, limit = 21 } = {}) {
  * @returns {Promise<{ path: string, file_path: string, media_type: 'image'|'video' }>}
  */
 export async function uploadSnsMedia(file) {
+  const { compressImageFile } = await import('../lib/compressImageFile.js')
+  const prepared = file?.type?.startsWith('image/') ? await compressImageFile(file) : file
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append('file', prepared)
 
   // Content-Type は手動設定しない（boundary をブラウザに任せる）
   let response

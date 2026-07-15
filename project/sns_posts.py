@@ -215,7 +215,9 @@ def register_sns_post_routes(app, engine, **deps):
     @app.route("/uploads/sns/<path:filename>")
     def sns_serve_media(filename):
         safe_name = secure_filename(filename)
-        return send_from_directory(str(SNS_UPLOAD_FOLDER), safe_name)
+        response = send_from_directory(str(SNS_UPLOAD_FOLDER), safe_name)
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
 
     @app.route("/api/sns/media/upload", methods=["POST"])
     def sns_upload_media():

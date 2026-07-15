@@ -49,4 +49,18 @@ const emit = defineEmits(['need-auth'])
   line-height: 1.8;
   color: rgba(248, 244, 239, 0.7);
 }
+
+@media (max-width: 767px) {
+  .page-platform-chat {
+    padding: 16px 12px calc(var(--bottom-nav-height, 66px) + env(safe-area-inset-bottom, 0px) + 16px);
+  }
+
+  .page-platform-chat__head {
+    margin-bottom: 12px;
+  }
+
+  .page-platform-chat__lead {
+    display: none;
+  }
+}
 </style>
