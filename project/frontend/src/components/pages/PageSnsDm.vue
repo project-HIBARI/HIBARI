@@ -6,6 +6,7 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import UiIco from '../ui/UiIco.vue'
 import SnsReportModal from '../modals/SnsReportModal.vue'
+import StoryAvatar from '../ui/StoryAvatar.vue'
 import { useAuth } from '../../composables/useAuth.js'
 import { useSnsDmUnread } from '../../composables/useSnsDmUnread.js'
 import {
@@ -25,6 +26,8 @@ import {
 
 const props = defineProps({
   targetAccountId: { type: Number, default: null },
+  /** 通知等、外部から特定のスレッドを直接開くためのトリガー */
+  targetThreadId: { type: Number, default: null },
 })
 
 const emit = defineEmits(['need-auth', 'open-chat', 'open-profile'])
@@ -278,6 +281,7 @@ function messageSummary(msg) {
   if (msg.message_type === 'image') return (msg.is_mine ? 'あなた: ' : '') + '画像を送信しました'
   if (msg.message_type === 'post_share') return (msg.is_mine ? 'あなた: ' : '') + '投稿を共有しました'
   if (msg.message_type === 'story_reply') return (msg.is_mine ? 'あなた: ' : '') + 'ストーリーズに返信しました'
+  if (msg.message_type === 'story_reaction') return (msg.is_mine ? 'あなた: ' : '') + `${msg.reaction_emoji || ''} ストーリーズにリアクションしました`.trim()
   return (msg.is_mine ? 'あなた: ' : '') + msg.body
 }
 
@@ -285,6 +289,14 @@ watch(
   () => props.targetAccountId,
   (id) => {
     if (id) startThreadWith(id)
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.targetThreadId,
+  (id) => {
+    if (id) openThread(id)
   },
   { immediate: true },
 )
@@ -321,12 +333,15 @@ onMounted(() => {
           {{ box === 'requests' ? 'メッセージリクエストはありません' : 'まだDMがありません。ユーザーを検索してメッセージを送ってみましょう。' }}
         </p>
         <ul v-else class="sns-dm__thread-list">
-          <li v-for="t in threads" :key="t.thread_id">
+          <li v-for="t in threads" :key="t.thread_id" class="sns-dm__thread-row">
+            <StoryAvatar
+              :account-id="t.other.account_id"
+              :name="t.other.name"
+              :avatar-path="t.other.avatar_path"
+              :size="44"
+              @open-profile="openThread(t.thread_id)"
+            />
             <button type="button" class="sns-dm__thread-item" @click="openThread(t.thread_id)">
-              <span class="sns-dm__avatar">
-                <img v-if="t.other.avatar_path" :src="t.other.avatar_path" :alt="t.other.name" />
-                <span v-else>{{ (t.other.name || '?').charAt(0) }}</span>
-              </span>
               <span class="sns-dm__thread-body">
                 <span class="sns-dm__thread-name">{{ t.other.name }}</span>
                 <span class="sns-dm__thread-preview">{{ messageSummary(t.last_message) }}</span>
@@ -350,13 +365,18 @@ onMounted(() => {
           <button type="button" class="sns-dm__icon-btn" aria-label="戻る" @click="closeThread">
             <UiIco name="arrow" :size="18" color="#f8f4ef" />
           </button>
-          <button type="button" class="sns-dm__thread-author" @click="emit('open-profile', activeThread.other.account_id)">
-            <span class="sns-dm__avatar">
-              <img v-if="activeThread.other.avatar_path" :src="activeThread.other.avatar_path" :alt="activeThread.other.name" />
-              <span v-else>{{ (activeThread.other.name || '?').charAt(0) }}</span>
-            </span>
-            <span>{{ activeThread.other.name }}</span>
-          </button>
+          <span class="sns-dm__thread-author">
+            <StoryAvatar
+              :account-id="activeThread.other.account_id"
+              :name="activeThread.other.name"
+              :avatar-path="activeThread.other.avatar_path"
+              :size="32"
+              @open-profile="emit('open-profile', activeThread.other.account_id)"
+            />
+            <button type="button" @click="emit('open-profile', activeThread.other.account_id)">
+              {{ activeThread.other.name }}
+            </button>
+          </span>
           <div class="sns-dm__thread-actions">
             <button type="button" class="sns-dm__icon-btn" aria-label="通報" @click="onReportUser">通報</button>
             <button type="button" class="sns-dm__icon-btn" aria-label="ブロック" :disabled="blockBusy" @click="onBlockUser">ブロック</button>
@@ -400,9 +420,24 @@ onMounted(() => {
                 <p v-if="m.message_type === 'deleted'" class="sns-dm__deleted">メッセージは削除されました</p>
                 <img v-else-if="m.message_type === 'image'" :src="m.media_path" alt="送信された画像" />
                 <p v-else-if="m.message_type === 'post_share'" class="sns-dm__shared">投稿を共有しました</p>
-                <p v-else-if="m.message_type === 'story_reply'" class="sns-dm__shared">
-                  ストーリーズへの返信：{{ m.body }}
-                </p>
+                <div v-else-if="m.message_type === 'story_reply' || m.message_type === 'story_reaction'" class="sns-dm__story-ref">
+                  <div class="sns-dm__story-ref-thumb">
+                    <img v-if="m.story_file_path && m.story_media_type === 'image'" :src="m.story_file_path" alt="ストーリーズ" />
+                    <video v-else-if="m.story_file_path && m.story_media_type === 'video'" :src="m.story_file_path" muted playsinline preload="metadata" />
+                    <span v-else class="sns-dm__story-ref-fallback" aria-hidden="true">
+                      <UiIco name="story-ring" :size="16" />
+                    </span>
+                    <span v-if="m.story_file_path && m.story_is_expired" class="sns-dm__story-ref-badge">期限切れ</span>
+                  </div>
+                  <div class="sns-dm__story-ref-body">
+                    <p class="sns-dm__story-ref-label">
+                      {{ m.message_type === 'story_reaction' ? 'ストーリーズにリアクションしました' : 'ストーリーズに返信しました' }}
+                    </p>
+                    <p v-if="!m.story_file_path" class="sns-dm__story-ref-expired">このストーリーズは期限切れです</p>
+                    <p v-if="m.message_type === 'story_reaction'" class="sns-dm__story-ref-emoji">{{ m.reaction_emoji }}</p>
+                    <p v-else-if="m.body" class="sns-dm__story-ref-text">{{ m.body }}</p>
+                  </div>
+                </div>
                 <p v-else>{{ m.body }}</p>
               </div>
               <div class="sns-dm__message-meta">
@@ -556,36 +591,24 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
 }
+.sns-dm__thread-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
 .sns-dm__thread-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: 100%;
-  padding: 10px 4px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
   text-align: left;
-  min-width: 0;
-}
-.sns-dm__avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--murasaki-700);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-.sns-dm__avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 .sns-dm__thread-body {
   flex: 1;
@@ -663,19 +686,20 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.sns-dm__thread-author > button {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   background: transparent;
   border: 0;
   color: #f8f4ef;
   font-size: 14px;
   cursor: pointer;
-  flex: 1;
-  min-width: 0;
-}
-.sns-dm__thread-author > span:last-child {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding: 0;
 }
 .sns-dm__thread-actions {
   display: flex;
@@ -758,6 +782,65 @@ onMounted(() => {
 .sns-dm__shared {
   font-style: italic;
   color: rgba(248, 244, 239, 0.6);
+}
+.sns-dm__story-ref {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+}
+.sns-dm__story-ref-thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  height: 66px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sns-dm__story-ref-thumb img,
+.sns-dm__story-ref-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sns-dm__story-ref-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(248, 244, 239, 0.5);
+}
+.sns-dm__story-ref-badge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1px 0;
+  text-align: center;
+  font-size: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(248, 244, 239, 0.85);
+}
+.sns-dm__story-ref-body {
+  min-width: 0;
+}
+.sns-dm__story-ref-label {
+  font-style: italic;
+  color: rgba(248, 244, 239, 0.6);
+  font-size: 12px;
+}
+.sns-dm__story-ref-expired {
+  font-size: 11px;
+  color: rgba(248, 244, 239, 0.45);
+}
+.sns-dm__story-ref-emoji {
+  font-size: 22px;
+}
+.sns-dm__story-ref-text {
+  color: #f8f4ef;
 }
 .sns-dm__message-meta {
   display: flex;
@@ -881,13 +964,8 @@ onMounted(() => {
 }
 
 @media (max-width: 374px) {
-  .sns-dm__thread-item {
+  .sns-dm__thread-row {
     gap: 8px;
-  }
-
-  .sns-dm__avatar {
-    width: 40px;
-    height: 40px;
   }
 
   .sns-dm__thread-time {

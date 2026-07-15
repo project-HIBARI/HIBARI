@@ -17,6 +17,7 @@ import SnsUsageLimitModal from '../modals/SnsUsageLimitModal.vue'
 import SnsUsageCard from './sns/SnsUsageCard.vue'
 import SnsEmptyState from './sns/SnsEmptyState.vue'
 import SnsSkeletonCard from './sns/SnsSkeletonCard.vue'
+import StoryAvatar from '../ui/StoryAvatar.vue'
 import { useAuth } from '../../composables/useAuth.js'
 import { useSnsUsage } from '../../composables/useSnsUsage.js'
 import { useToast } from '../../composables/useToast.js'
@@ -376,8 +377,12 @@ onUnmounted(() => {
     <template v-else-if="profile">
       <header class="sns-profile__head">
         <span class="sns-profile__avatar">
-          <img v-if="profile.avatar_path" :src="profile.avatar_path" :alt="profile.name" />
-          <span v-else aria-hidden="true">{{ (profile.name || '?').charAt(0) }}</span>
+          <StoryAvatar
+            :account-id="profile.account_id"
+            :name="profile.name"
+            :avatar-path="profile.avatar_path"
+            :size="90"
+          />
           <button
             v-if="isSelf"
             type="button"
@@ -663,27 +668,10 @@ onUnmounted(() => {
   position: relative;
   width: 96px;
   height: 96px;
-  border-radius: 50%;
-  overflow: visible;
-  background: var(--sns-purple);
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
   flex-shrink: 0;
-  border: 3px solid var(--sns-gold);
-  box-shadow: 0 0 0 3px var(--sns-bg);
-}
-.sns-profile__avatar img,
-.sns-profile__avatar > span:not(.sns-profile__avatar-camera) {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .sns-profile__avatar-camera {
   position: absolute;

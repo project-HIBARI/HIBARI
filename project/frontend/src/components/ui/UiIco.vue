@@ -149,6 +149,10 @@ const common = computed(() => ({
       <path d="M20 4.5A2.5 2.5 0 0 0 17.5 2H12v18h5.5A2.5 2.5 0 0 1 20 22.5z" />
       <line x1="12" y1="2" x2="12" y2="20" />
     </template>
+    <template v-else-if="name === 'bell'">
+      <path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 6 2.5 7H3.5C4.5 16 6 14 6 10z" />
+      <path d="M9.5 20a2.5 2.5 0 0 0 5 0" />
+    </template>
     <template v-else-if="name === 'spark'">
       <path d="M12 2v4" />
       <path d="M12 18v4" />

@@ -11,6 +11,7 @@ import SnsPostDetailModal from './sns/SnsPostDetailModal.vue'
 import SnsShareModal from './sns/SnsShareModal.vue'
 import SnsReportModal from '../modals/SnsReportModal.vue'
 import SnsEmptyState from './sns/SnsEmptyState.vue'
+import StoryAvatar from '../ui/StoryAvatar.vue'
 import { useAuth } from '../../composables/useAuth.js'
 import { useToast } from '../../composables/useToast.js'
 import {
@@ -460,17 +461,20 @@ onBeforeUnmount(() => {
                 </div>
                 <ul class="sns-discover__user-list">
                   <li v-for="u in topUsers" :key="u.account_id" class="sns-discover__user-row">
-                    <button type="button" class="sns-discover__user-main" @click="openProfile(u.account_id)">
-                      <span class="sns-discover__avatar" aria-hidden="true">
-                        <img v-if="u.avatar_path" :src="u.avatar_path" :alt="u.name" loading="lazy" />
-                        <span v-else>{{ (u.name || '?').charAt(0) }}</span>
-                      </span>
-                      <span class="sns-discover__user-meta">
+                    <span class="sns-discover__user-main">
+                      <StoryAvatar
+                        :account-id="u.account_id"
+                        :name="u.name"
+                        :avatar-path="u.avatar_path"
+                        :size="40"
+                        @open-profile="openProfile(u.account_id)"
+                      />
+                      <button type="button" class="sns-discover__user-meta" @click="openProfile(u.account_id)">
                         <span class="sns-discover__user-name">{{ u.name }}</span>
                         <span class="sns-discover__user-id">@{{ u.account_id }}</span>
                         <span v-if="u.bio" class="sns-discover__user-bio">{{ u.bio }}</span>
-                      </span>
-                    </button>
+                      </button>
+                    </span>
                     <UiButton
                       :variant="u.is_following ? 'ghost' : 'primary'"
                       size="sm"
@@ -548,17 +552,20 @@ onBeforeUnmount(() => {
             <SnsEmptyState v-if="!userResults.length" icon="search" title="検索結果が見つかりませんでした" />
             <ul v-else class="sns-discover__user-list">
               <li v-for="u in userResults" :key="u.account_id" class="sns-discover__user-row">
-                <button type="button" class="sns-discover__user-main" @click="openProfile(u.account_id)">
-                  <span class="sns-discover__avatar" aria-hidden="true">
-                    <img v-if="u.avatar_path" :src="u.avatar_path" :alt="u.name" loading="lazy" />
-                    <span v-else>{{ (u.name || '?').charAt(0) }}</span>
-                  </span>
-                  <span class="sns-discover__user-meta">
+                <span class="sns-discover__user-main">
+                  <StoryAvatar
+                    :account-id="u.account_id"
+                    :name="u.name"
+                    :avatar-path="u.avatar_path"
+                    :size="40"
+                    @open-profile="openProfile(u.account_id)"
+                  />
+                  <button type="button" class="sns-discover__user-meta" @click="openProfile(u.account_id)">
                     <span class="sns-discover__user-name">{{ u.name }}</span>
                     <span class="sns-discover__user-id">@{{ u.account_id }}</span>
                     <span v-if="u.bio" class="sns-discover__user-bio">{{ u.bio }}</span>
-                  </span>
-                </button>
+                  </button>
+                </span>
                 <UiButton
                   :variant="u.is_following ? 'ghost' : 'primary'"
                   size="sm"
@@ -848,38 +855,17 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-}
-
-.sns-discover__avatar {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--sns-purple, var(--murasaki-700));
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--ff-sans-jp);
-  font-size: 16px;
-}
-
-.sns-discover__avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .sns-discover__user-meta {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
 }
 
 .sns-discover__user-name {

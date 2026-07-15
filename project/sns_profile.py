@@ -19,6 +19,11 @@ from sns_posts import (
     _fetch_media_map,
     _serialize_post,
 )
+from notification_service import (
+    NOTIFICATION_TYPE_FOLLOW,
+    delete_toggle_notification_if_unread,
+    upsert_toggle_notification,
+)
 
 SAVED_POST_SELECT = f"""
     SELECT sp.saved_id, {POST_SELECT_BASE.strip()[len('SELECT'):]}
@@ -287,6 +292,14 @@ def register_sns_profile_routes(app, engine, **deps):
                     {"f": account_id, "t": target_id},
                 )
                 following = True
+
+            try:
+                if following:
+                    upsert_toggle_notification(engine, target_id, account_id, NOTIFICATION_TYPE_FOLLOW)
+                else:
+                    delete_toggle_notification_if_unread(engine, target_id, account_id, NOTIFICATION_TYPE_FOLLOW)
+            except Exception as notify_err:
+                print(notify_err)
 
             follower_count = _row_val(fetch_all(
                 "SELECT COUNT(*) AS c FROM sns_follows WHERE following_account_id = :id",
