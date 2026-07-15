@@ -102,7 +102,7 @@ function onToggleAgree() {
 .reg-step__title {
   margin: 0 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--murasaki-700);
@@ -110,7 +110,7 @@ function onToggleAgree() {
 .reg-step__desc {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
@@ -124,7 +124,7 @@ function onToggleAgree() {
   align-items: flex-start;
   gap: 8px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.75;
   color: var(--site-text) !important;
   cursor: pointer;
@@ -181,7 +181,7 @@ function onToggleAgree() {
 .reg-step__terms-note {
   margin: -12px 0 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: var(--site-text) !important;
 }
@@ -201,7 +201,7 @@ function onToggleAgree() {
 .reg-step__error {
   margin: -12px 0 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: #c0453b;
 }
 </style>

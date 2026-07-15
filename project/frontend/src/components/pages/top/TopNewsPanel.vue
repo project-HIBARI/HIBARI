@@ -79,7 +79,7 @@ function onOpenAll() {
 .top-news__heading {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   color: var(--site-text);
   letter-spacing: 0.06em;
@@ -106,7 +106,7 @@ function onOpenAll() {
 }
 .top-news__date {
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
   letter-spacing: 0.04em;
   transition: color 0.35s ease;
@@ -114,7 +114,7 @@ function onOpenAll() {
 .top-news__new {
   display: inline-block;
   padding: 1px 7px;
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   font-family: var(--ff-sans-jp);
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -123,7 +123,7 @@ function onOpenAll() {
   border-radius: 3px;
 }
 .top-news__label {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--murasaki-700);
   background: var(--murasaki-100);
   padding: 1px 6px;
@@ -132,7 +132,7 @@ function onOpenAll() {
 }
 .top-news__title-text {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.65;
   color: var(--site-text);
 }
@@ -145,7 +145,7 @@ function onOpenAll() {
   padding: 0;
   cursor: pointer;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   letter-spacing: 0.04em;
   white-space: nowrap;

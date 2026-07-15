@@ -125,20 +125,20 @@ onMounted(load)
   border: 1px solid var(--site-border);
   border-radius: 999px;
   padding: 9px 16px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
 }
 .sns-share__state {
   margin: 0;
   padding: 16px 0;
   text-align: center;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .sns-share__error {
   margin: 0;
   color: var(--beni-600);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 .sns-share__list {
   list-style: none;
@@ -166,7 +166,7 @@ onMounted(load)
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   flex-shrink: 0;
 }
 .sns-share__avatar img {
@@ -176,8 +176,12 @@ onMounted(load)
 }
 .sns-share__name {
   flex: 1;
-  font-size: 13px;
+  min-width: 0;
+  font-size: var(--font-size-button);
   color: var(--site-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .sns-share__send-btn {
   background: var(--murasaki-700);
@@ -185,7 +189,7 @@ onMounted(load)
   border: 0;
   border-radius: 999px;
   padding: 6px 14px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   cursor: pointer;
 }
 .sns-share__send-btn:disabled {

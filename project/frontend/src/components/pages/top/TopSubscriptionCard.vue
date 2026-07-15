@@ -116,7 +116,7 @@ const groups = computed(() =>
   display: flex;
   flex-direction: column;
   min-height: 520px;
-  overflow: hidden;
+  overflow: visible;
 }
 .top-subscription__image {
   position: absolute;
@@ -139,7 +139,7 @@ const groups = computed(() =>
   background: linear-gradient(135deg, var(--kin-400), var(--kin-500));
   color: var(--ink-900);
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   letter-spacing: 0.12em;
   border-radius: 0 4px 4px 0;
@@ -148,7 +148,7 @@ const groups = computed(() =>
 .top-subscription__lead {
   margin: 32px 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--kin-400);
@@ -156,7 +156,7 @@ const groups = computed(() =>
 .top-subscription__title {
   margin: 0 0 10px;
   font-family: var(--ff-mincho);
-  font-size: clamp(20px, 2vw, 24px);
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: #fff;
@@ -164,7 +164,7 @@ const groups = computed(() =>
 }
 .top-subscription__desc {
   margin: 0 0 20px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.85;
   color: rgba(255, 255, 255, 0.88);
   max-width: 38em;
@@ -198,7 +198,7 @@ const groups = computed(() =>
 .top-subscription__group-title {
   margin: 0 0 4px;
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: rgba(255, 255, 255, 0.88);
@@ -211,7 +211,7 @@ const groups = computed(() =>
 }
 .top-subscription__group-note {
   margin: 0;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.58);
 }
@@ -235,7 +235,7 @@ const groups = computed(() =>
   align-items: center;
   gap: 6px;
   text-align: center;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: rgba(255, 255, 255, 0.92);
   line-height: 1.35;
   position: relative;
@@ -288,21 +288,21 @@ const groups = computed(() =>
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--kin-400);
   flex-shrink: 0;
 }
 .top-subscription__perk-label {
   display: block;
   width: 100%;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   font-weight: 600;
   letter-spacing: 0.02em;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 .top-subscription__perk-lock {
-  font-size: 8px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.65);
   padding: 2px 6px;

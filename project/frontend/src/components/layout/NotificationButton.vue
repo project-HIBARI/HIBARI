@@ -55,7 +55,7 @@ function badgeLabel(count) {
   border-radius: 999px;
   background: var(--beni-600);
   color: #fff;
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   line-height: 16px;
   text-align: center;
   border: 2px solid rgba(22, 15, 24, 0.96);

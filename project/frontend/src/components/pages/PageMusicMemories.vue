@@ -164,12 +164,20 @@ function onEnterSite(siteId) {
 
 .music-memories--embedded .music-memories__main {
   padding-top: clamp(32px, 6vw, 56px);
+  /* Platform下部タブに本文末が隠れないよう余白を確保 */
+  padding-bottom: calc(48px + var(--bottom-nav-height, 0px) + env(safe-area-inset-bottom, 0px));
 }
 
 .music-memories {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: clip;
   background:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(122, 80, 136, 0.14), transparent 55%),
     linear-gradient(180deg, #1a1418 0%, #231b22 42%, #2a2228 100%);
@@ -203,7 +211,7 @@ function onEnterSite(siteId) {
 .music-memories__header-tag {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.16em;
   color: rgba(248, 244, 239, 0.55);
 }
@@ -212,40 +220,48 @@ function onEnterSite(siteId) {
   flex: 1;
   max-width: 1200px;
   width: 100%;
+  min-width: 0;
   margin: 0 auto;
-  padding: clamp(40px, 8vw, 80px) 24px 64px;
+  padding: clamp(40px, 8vw, 80px) clamp(12px, 4vw, 24px) 64px;
+  box-sizing: border-box;
 }
 
 .music-memories__hero {
   text-align: center;
   margin-bottom: clamp(48px, 8vw, 72px);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .music-memories__eyebrow {
   margin: 0 0 16px;
   font-family: var(--ff-latin);
-  font-size: 11px;
-  letter-spacing: 0.28em;
+  font-size: var(--font-size-caption, 0.75rem);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--kin-400);
+  overflow-wrap: anywhere;
 }
 
 .music-memories__title {
   margin: 0 0 20px;
   font-family: var(--ff-mincho);
-  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  font-size: clamp(1.5rem, 5vw, 2.75rem);
   font-weight: 600;
   line-height: 1.45;
   letter-spacing: 0.06em;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .music-memories__lead {
   margin: 0 auto;
   max-width: 640px;
   font-family: var(--ff-sans-jp);
-  font-size: clamp(0.9rem, 2vw, 1rem);
+  font-size: clamp(0.875rem, 2vw, 1rem);
   line-height: 1.9;
   color: rgba(248, 244, 239, 0.72);
+  overflow-wrap: break-word;
 }
 
 .music-memories__grid-head {
@@ -260,7 +276,7 @@ function onEnterSite(siteId) {
 .music-memories__connections-eyebrow {
   margin: 0 0 12px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--kin-400);
@@ -277,7 +293,7 @@ function onEnterSite(siteId) {
   margin: 0 auto 28px;
   max-width: 620px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: rgba(248, 244, 239, 0.68);
 }
@@ -295,18 +311,31 @@ function onEnterSite(siteId) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: var(--sp-4);
   flex-wrap: wrap;
-  padding: 28px 30px;
+  padding: clamp(18px, 3vw, 28px) clamp(16px, 3vw, 30px);
   border: 1px solid rgba(201, 169, 97, 0.35);
   border-radius: var(--site-radius-lg);
   background: linear-gradient(135deg, rgba(122, 80, 136, 0.22), rgba(26, 20, 24, 0.5));
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.music-memories__chat-copy {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.music-memories__chat-card :deep(.ui-btn) {
+  flex: 0 1 auto;
+  max-width: 100%;
 }
 
 .music-memories__chat-eyebrow {
   margin: 0 0 8px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--kin-400);
@@ -315,17 +344,19 @@ function onEnterSite(siteId) {
 .music-memories__chat-title {
   margin: 0 0 10px;
   font-family: var(--ff-mincho);
-  font-size: 1.35rem;
+  font-size: clamp(1.1rem, 3vw, 1.35rem);
   letter-spacing: 0.08em;
+  overflow-wrap: break-word;
 }
 
 .music-memories__chat-desc {
   margin: 0;
   max-width: 640px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-small, 0.875rem);
   line-height: 1.8;
   color: rgba(248, 244, 239, 0.68);
+  overflow-wrap: break-word;
 }
 
 .music-memories__today-section {
@@ -334,23 +365,28 @@ function onEnterSite(siteId) {
 
 .music-memories__today {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   overflow: hidden;
   border: 1px solid rgba(201, 169, 97, 0.28);
   border-radius: var(--site-radius-lg);
   background: linear-gradient(120deg, rgba(26, 20, 24, 0.55), rgba(122, 80, 136, 0.18));
+  min-width: 0;
+  max-width: 100%;
 }
 
 .music-memories__today-visual {
-  min-height: 220px;
+  min-height: 0;
+  aspect-ratio: 16 / 10;
   background: #1e161e;
   overflow: hidden;
+  min-width: 0;
 }
 
 .music-memories__today-image {
   width: 100%;
   height: 100%;
+  max-width: 100%;
   object-fit: cover;
   object-position: center top;
   display: block;
@@ -361,13 +397,14 @@ function onEnterSite(siteId) {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(24px, 4vw, 36px) clamp(22px, 4vw, 36px);
+  padding: clamp(20px, 4vw, 36px) clamp(16px, 4vw, 36px);
+  min-width: 0;
 }
 
 .music-memories__today-eyebrow {
   margin: 0 0 8px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--kin-400);
@@ -376,14 +413,15 @@ function onEnterSite(siteId) {
 .music-memories__today-title {
   margin: 0 0 18px;
   font-family: var(--ff-mincho);
-  font-size: 1.35rem;
+  font-size: clamp(1.15rem, 3vw, 1.35rem);
   letter-spacing: 0.08em;
+  overflow-wrap: break-word;
 }
 
 .music-memories__today-en {
   margin: 0 0 4px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(201, 169, 97, 0.85);
@@ -399,7 +437,7 @@ function onEnterSite(siteId) {
 .music-memories__today-headline {
   margin: 0 0 10px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   letter-spacing: 0.04em;
   color: rgba(248, 244, 239, 0.88);
 }
@@ -407,26 +445,33 @@ function onEnterSite(siteId) {
 .music-memories__today-blurb {
   margin: 0 0 20px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.85;
   color: rgba(248, 244, 239, 0.65);
 }
 
 .music-memories__today-cta {
   align-self: flex-start;
+  max-width: 100%;
+}
+
+.music-memories__grid-section {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .music-memories__grid-title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: 1.25rem;
+  font-size: clamp(1.1rem, 3vw, 1.25rem);
   letter-spacing: 0.1em;
+  overflow-wrap: break-word;
 }
 
 .music-memories__grid-desc {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-small, 0.875rem);
   color: rgba(248, 244, 239, 0.55);
 }
 
@@ -435,8 +480,15 @@ function onEnterSite(siteId) {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  /* 280px 固定 min だと 320px 端末で横溢れするため流体化 */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-5);
+  min-width: 0;
+}
+
+.music-memories__card-wrap {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .music-memories__footer {
@@ -448,27 +500,71 @@ function onEnterSite(siteId) {
 .music-memories__copyright {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: rgba(248, 244, 239, 0.4);
   letter-spacing: 0.08em;
 }
 
-@media (max-width: 720px) {
-  .music-memories__today {
-    grid-template-columns: 1fr;
+/* —— Platformホーム BP: 480 / 768 / 1024 / 1280 —— */
+
+@media (max-width: 479px) {
+  .music-memories__eyebrow {
+    letter-spacing: 0.12em;
   }
 
-  .music-memories__today-visual {
-    aspect-ratio: 16 / 10;
-    min-height: 0;
-  }
-}
-
-@media (max-width: 640px) {
   .music-memories__br-sp {
     display: none;
   }
 
+  .music-memories__chat-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .music-memories__chat-card :deep(.ui-btn) {
+    width: 100%;
+  }
+
+  .music-memories__today-cta {
+    align-self: stretch;
+  }
+
+  .music-memories__today-cta :deep(.ui-btn),
+  .music-memories__today-cta.ui-btn {
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .music-memories__today {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+
+  .music-memories__today-visual {
+    aspect-ratio: auto;
+    min-height: 220px;
+    height: 100%;
+  }
+
+  .music-memories__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .music-memories__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .music-memories__main {
+    padding-inline: 24px;
+  }
+}
+
+@media (max-width: 640px) {
   .music-memories__header-inner {
     flex-direction: column;
     align-items: flex-start;

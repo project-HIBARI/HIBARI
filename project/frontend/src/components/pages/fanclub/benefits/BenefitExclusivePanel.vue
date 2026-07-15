@@ -41,7 +41,7 @@ const items = HIBARU_DATA.placeGallery
   display: inline-block;
   margin: 0 0 8px;
   padding: 4px 12px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   background: var(--murasaki-100);
   border: 1px solid var(--murasaki-400);
@@ -49,7 +49,7 @@ const items = HIBARU_DATA.placeGallery
 }
 .benefit-panel__lead {
   margin: 0 0 16px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
@@ -72,13 +72,13 @@ const items = HIBARU_DATA.placeGallery
   margin: 0;
   padding: 10px 12px 4px;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text);
 }
 .benefit-panel__caption {
   margin: 0;
   padding: 0 12px 12px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: var(--site-text-muted);
 }

@@ -69,7 +69,7 @@ const hasAvatar = computed(() => Boolean(props.avatarPath))
   border-radius: 50%;
   background: var(--murasaki-700);
   color: #fff;
-  font-size: 12px;
+  font-size: var(--font-size-navigation);
   font-weight: 700;
   overflow: hidden;
 }
@@ -86,13 +86,13 @@ const hasAvatar = computed(() => Boolean(props.avatarPath))
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-navigation);
   color: var(--site-text);
 }
 
 .fc-membership-badge__chevron {
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--site-text-muted);
 }
 </style>

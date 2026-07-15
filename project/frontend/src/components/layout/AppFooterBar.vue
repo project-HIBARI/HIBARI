@@ -109,7 +109,7 @@ function onLinkClick(link, event) {
   background: linear-gradient(180deg, #fffefb 0%, var(--site-bg) 100%);
   color: var(--site-text-muted);
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 
 .app-footer__inner {
@@ -127,11 +127,12 @@ function onLinkClick(link, event) {
   align-items: center;
   gap: 12px;
   justify-self: start;
+  min-width: 0;
 }
 
 .app-footer__sns-label {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--site-text-light);
@@ -182,6 +183,8 @@ function onLinkClick(link, event) {
   align-items: center;
   justify-content: center;
   gap: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .app-footer__sep {
@@ -193,9 +196,10 @@ function onLinkClick(link, event) {
 .app-footer__links a {
   color: var(--site-text-muted);
   text-decoration: none;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.04em;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .app-footer__links a:hover {
@@ -204,10 +208,11 @@ function onLinkClick(link, event) {
 
 .app-footer__copy {
   justify-self: end;
-  font-size: 11px;
+  min-width: 0;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.06em;
   color: var(--site-text-light);
-  white-space: nowrap;
+  white-space: normal;
 }
 
 @media (max-width: 1023px) {

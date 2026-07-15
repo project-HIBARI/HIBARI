@@ -119,7 +119,7 @@ function onCta() {
   flex: 1;
   min-width: 0;
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: var(--site-text-muted);
   letter-spacing: 0.02em;
@@ -131,7 +131,7 @@ function onCta() {
   padding: 4px 2px;
   cursor: pointer;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 600;
   color: var(--murasaki-700);
   white-space: nowrap;
@@ -161,7 +161,7 @@ function onCta() {
   background: var(--site-surface);
   color: var(--site-text);
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.03em;
   white-space: nowrap;
   cursor: pointer;
@@ -175,7 +175,7 @@ function onCta() {
   box-shadow: var(--site-shadow);
 }
 .quick-nav__link-icon {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1;
 }
 

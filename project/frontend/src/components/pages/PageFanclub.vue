@@ -62,7 +62,7 @@ function goRegister(plan) {
   margin: 0 0 var(--sp-7);
   max-width: 760px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.9;
   color: var(--site-text-muted);
 }

@@ -209,7 +209,7 @@ onBeforeUnmount(() => {
 .home-hero__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: clamp(34px, 4.2vw, 48px);
+  font-size: clamp(2.125rem, 4.2vw, 3rem);
   font-weight: 800;
   line-height: 1.5;
   letter-spacing: 0.08em;
@@ -221,7 +221,7 @@ onBeforeUnmount(() => {
 
 .home-hero__sub {
   margin: var(--sp-6) 0 0;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 2.1;
   color: var(--site-text-muted);
   letter-spacing: 0.05em;
@@ -249,7 +249,7 @@ onBeforeUnmount(() => {
 
 .home-hero__scroll-icon {
   display: block;
-  font-size: 22px;
+  font-size: var(--font-size-subtitle);
   line-height: 1;
   text-shadow: 0 1px 8px rgba(255, 255, 255, 0.8);
 }
@@ -288,7 +288,7 @@ onBeforeUnmount(() => {
     );
   }
   .home-hero__title {
-    font-size: clamp(28px, 8vw, 36px);
+    font-size: clamp(1.75rem, 8vw, 2.25rem);
   }
   .home-hero__cta {
     flex-direction: column;

@@ -412,7 +412,7 @@ function onAgreeTerms() {
   flex: 0 0 auto;
   padding: 16px 22px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   letter-spacing: 0.06em;
   color: var(--site-text);
   background: var(--site-surface);
@@ -433,7 +433,7 @@ function onAgreeTerms() {
   flex: 1 1 auto;
   padding: 16px 24px;
   font-family: var(--ff-sans-jp);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 500;
   letter-spacing: 0.12em;
   color: #fff;
@@ -456,7 +456,7 @@ function onAgreeTerms() {
   margin: 0;
   padding: 10px 12px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: #9b2c2c;
   background: #fff5f5;
@@ -476,7 +476,7 @@ function onAgreeTerms() {
 .reg-card__login-title {
   margin: 0 0 18px;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--site-text);
@@ -490,7 +490,7 @@ function onAgreeTerms() {
   max-width: 320px;
   padding: 12px 20px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   letter-spacing: 0.06em;
   color: var(--site-text);
   background: var(--site-surface);

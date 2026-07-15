@@ -211,7 +211,7 @@ onMounted(() => {
   margin: 0 0 8px;
   padding: 0 2px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 600;
   letter-spacing: 0.06em;
   color: var(--sns-text-muted, rgba(248, 244, 239, 0.6));
@@ -221,7 +221,7 @@ onMounted(() => {
   margin: 0;
   padding: 24px 12px;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--sns-text-muted);
 }
 

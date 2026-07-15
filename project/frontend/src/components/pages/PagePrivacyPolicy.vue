@@ -137,19 +137,19 @@ const articles = [
 .page-privacy__ornament-diamond,
 .page-privacy__ornament-mark {
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   line-height: 1;
   color: var(--kin-600);
 }
 
 .page-privacy__ornament-mark {
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 
 .page-privacy__title {
   margin: 0 0 20px;
   font-family: var(--ff-mincho);
-  font-size: clamp(26px, 3.8vw, 34px);
+  font-size: clamp(1.625rem, 3.8vw, 2.125rem);
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--murasaki-800);
@@ -158,7 +158,7 @@ const articles = [
 .page-privacy__lead {
   margin: 0 0 20px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 2;
   letter-spacing: 0.04em;
   color: var(--site-text-muted);
@@ -189,7 +189,7 @@ const articles = [
 
 .page-privacy__divider-diamond {
   flex-shrink: 0;
-  font-size: 8px;
+  font-size: var(--font-size-badge);
   line-height: 1;
   color: var(--kin-600);
 }
@@ -197,7 +197,7 @@ const articles = [
 .page-privacy__article-title {
   margin: 0 0 12px;
   font-family: var(--ff-mincho);
-  font-size: clamp(17px, 2.2vw, 20px);
+  font-size: clamp(1.0625rem, 2.2vw, 1.25rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--murasaki-800);
@@ -207,7 +207,7 @@ const articles = [
   margin: 0 auto 12px;
   max-width: 720px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 2;
   letter-spacing: 0.04em;
   color: var(--site-text-muted);
@@ -229,7 +229,7 @@ const articles = [
   position: relative;
   padding-left: 1.2em;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 2;
   letter-spacing: 0.04em;
   color: var(--site-text-muted);
@@ -257,7 +257,7 @@ const articles = [
 
   .page-privacy__article-body,
   .page-privacy__list li {
-    font-size: 12px;
+    font-size: var(--font-size-caption);
     line-height: 1.9;
   }
 

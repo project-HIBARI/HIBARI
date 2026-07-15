@@ -2,6 +2,19 @@
 <html lang="ja" data-text-size="m">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      /* 文字サイズをCSS適用前に復元（FOUC軽減）。正規化は useTextSize.js と同方針 */
+      (function () {
+        try {
+          var raw = localStorage.getItem('hibari-text-size')
+          var size = raw === 'xl' ? 'l' : raw
+          if (size !== 's' && size !== 'm' && size !== 'l') size = 'm'
+          document.documentElement.setAttribute('data-text-size', size)
+        } catch (e) {
+          document.documentElement.setAttribute('data-text-size', 'm')
+        }
+      })()
+    </script>
     <link rel="icon" type="image/png" href="/images/music-memories-icon.png" />
     <link rel="apple-touch-icon" href="/images/music-memories-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

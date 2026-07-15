@@ -37,7 +37,7 @@ const { membership } = useMemberAccess()
   display: inline-block;
   margin: 0 0 12px;
   padding: 4px 12px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   background: var(--murasaki-100);
   border: 1px solid var(--murasaki-400);
@@ -45,7 +45,7 @@ const { membership } = useMemberAccess()
 }
 .benefit-panel__lead {
   margin: 0 0 16px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
@@ -60,14 +60,14 @@ const { membership } = useMemberAccess()
 }
 .benefit-panel__date {
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 .benefit-panel__label {
   display: inline-block;
   margin-left: 8px;
   padding: 2px 8px;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--murasaki-700);
   background: var(--murasaki-100);
   border-radius: 4px;
@@ -75,7 +75,7 @@ const { membership } = useMemberAccess()
 .benefit-panel__title {
   margin: 6px 0 0;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   color: var(--site-text);
 }
 </style>

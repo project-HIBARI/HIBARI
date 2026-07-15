@@ -54,21 +54,21 @@ const emit = defineEmits(['open-ai'])
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.08em;
   margin-bottom: 10px;
 }
 .disco-ai__title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--paper-50);
 }
 .disco-ai__desc {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.75;
   color: rgba(255, 255, 255, 0.85);
   max-width: 520px;

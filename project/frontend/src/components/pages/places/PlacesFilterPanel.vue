@@ -109,7 +109,7 @@ function onRegionChange(e) {
   border-radius: var(--site-radius-md);
   background: var(--site-surface-muted);
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text);
 }
 .places-filter__input:focus {
@@ -129,7 +129,7 @@ function onRegionChange(e) {
   gap: 6px;
 }
 .places-filter__label {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.1em;
   color: var(--site-text-muted);
 }
@@ -139,7 +139,7 @@ function onRegionChange(e) {
   border-radius: var(--site-radius-sm);
   background: var(--site-surface);
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
 }
 .places-filter__select:focus {
@@ -155,7 +155,7 @@ function onRegionChange(e) {
 .places-filter__result {
   margin-left: auto;
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--kin-600);
   letter-spacing: 0.08em;
 }

@@ -212,7 +212,7 @@ const imgAlt = computed(() => props.alt || props.title || '')
 
   font-family: var(--ff-mincho);
 
-  font-size: clamp(24px, 3vw, 34px);
+  font-size: clamp(1.5rem, 3vw, 2.125rem);
 
   font-weight: 800;
 
@@ -230,7 +230,7 @@ const imgAlt = computed(() => props.alt || props.title || '')
 
   font-family: var(--ff-sans-jp);
 
-  font-size: 14px;
+  font-size: var(--font-size-small);
 
   line-height: 1.85;
 

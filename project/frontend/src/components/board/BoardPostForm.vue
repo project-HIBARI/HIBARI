@@ -260,17 +260,17 @@ function onSubmit() {
 <style scoped>
 .board-form__heading {
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   margin: 0 0 4px;
   color: var(--murasaki-700);
 }
 .board-form--compact .board-form__heading {
-  font-size: 16px;
+  font-size: var(--font-size-body);
 }
 .board-form__note {
   margin: 0 0 var(--sp-4);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: var(--site-text-muted);
 }
@@ -286,7 +286,7 @@ function onSubmit() {
   color: var(--site-text);
   padding: 10px 12px;
   font-family: var(--ff-serif);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   border-radius: var(--site-radius-sm);
   outline: none;
 }
@@ -300,7 +300,7 @@ function onSubmit() {
   resize: vertical;
 }
 .board-form__error {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--beni-600);
   margin-top: 3px;
 }
@@ -322,12 +322,12 @@ function onSubmit() {
 }
 .board-form__media-title {
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 600;
   color: var(--site-text);
 }
 .board-form__media-hint {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--site-text-light);
 }
 .board-form__media-input {
@@ -348,7 +348,7 @@ function onSubmit() {
   border-radius: var(--site-radius-sm);
   background: var(--site-surface-muted);
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   transition: border-color 0.2s, background 0.2s;
 }
@@ -376,7 +376,7 @@ function onSubmit() {
   border: 0;
   background: transparent;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--beni-600);
   cursor: pointer;
   text-decoration: underline;
@@ -386,19 +386,19 @@ function onSubmit() {
   padding: var(--sp-4) 0;
 }
 .board-form__done-icon {
-  font-size: 36px;
+  font-size: 2.25rem;
   margin-bottom: 12px;
   color: var(--kin-600);
 }
 .board-form__done-title {
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   margin-bottom: 12px;
   color: var(--site-text);
 }
 .board-form__done-text {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
   line-height: 1.8;
   margin: 0 0 var(--sp-4);
@@ -413,26 +413,26 @@ function onSubmit() {
 .board-form__loading {
   padding: 20px 14px;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
 }
 .board-form__limit-title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   color: var(--site-text);
 }
 .board-form__limit-text {
   margin: 0 0 14px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
 .board-form__limit-btn {
   padding: 8px 16px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: #fff;
   background: var(--murasaki-700);
   border: 1px solid var(--murasaki-800);

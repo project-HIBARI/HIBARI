@@ -74,13 +74,13 @@ const emit = defineEmits(['update:modelValue'])
   gap: 8px;
   padding: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-form-label);
   font-weight: 500;
   letter-spacing: 0.04em;
   color: var(--murasaki-700) !important;
 }
 .reg-opt__required {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: #fff;
@@ -97,12 +97,14 @@ const emit = defineEmits(['update:modelValue'])
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: 44px;
   padding: 12px 14px;
   background: #f5f2ee;
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-sm);
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .reg-opt__item:hover {
   border-color: var(--murasaki-400);
@@ -141,20 +143,22 @@ const emit = defineEmits(['update:modelValue'])
 }
 .reg-opt__name {
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-form-label);
   color: var(--site-text) !important;
 }
 .reg-opt__desc {
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.5;
   color: var(--site-text-light) !important;
+  overflow-wrap: anywhere;
 }
 .reg-opt__error {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: #c0453b;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 640px) {

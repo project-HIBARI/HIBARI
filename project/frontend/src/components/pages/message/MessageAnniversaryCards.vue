@@ -87,14 +87,14 @@ const cards = [
 
 .msg-anniv__en {
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.4em;
   color: var(--kin-600);
 }
 
 .msg-anniv__date {
   font-family: var(--ff-mincho);
-  font-size: clamp(32px, 6vw, 48px);
+  font-size: clamp(2rem, 6vw, 3rem);
   font-weight: 800;
   margin: 12px 0 6px;
   letter-spacing: 0.04em;
@@ -102,7 +102,7 @@ const cards = [
 }
 
 .msg-anniv__jp {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
 }
 
@@ -113,27 +113,27 @@ const cards = [
 
 .msg-anniv__count {
   font-family: var(--ff-mono);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
   letter-spacing: 0.2em;
 }
 
 .msg-anniv__count-num {
   color: var(--kin-600);
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 
 .msg-anniv__days {
   margin-top: 12px;
   font-family: var(--ff-latin);
-  font-size: 48px;
+  font-size: 3rem;
   font-weight: 700;
   color: var(--murasaki-600);
   line-height: 1;
 }
 
 .msg-anniv__days-unit {
-  font-size: 14px;
+  font-size: var(--font-size-small);
   font-family: var(--ff-mincho);
 }
 

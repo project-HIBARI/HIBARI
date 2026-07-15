@@ -63,14 +63,14 @@ const visibleCount = computed(() => props.places.length)
 .places-map__eyebrow {
   margin: 0 0 4px;
   font-family: var(--ff-latin);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.22em;
   color: var(--kin-600);
 }
 .places-map__area {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--site-text);
@@ -82,13 +82,13 @@ const visibleCount = computed(() => props.places.length)
 .places-map__count-num {
   display: block;
   font-family: var(--ff-latin);
-  font-size: 24px;
+  font-size: var(--font-size-title);
   font-weight: 700;
   color: var(--murasaki-600);
   line-height: 1;
 }
 .places-map__count-label {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   letter-spacing: 0.06em;
 }

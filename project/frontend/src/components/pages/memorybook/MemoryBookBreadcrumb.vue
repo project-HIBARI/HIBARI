@@ -36,7 +36,7 @@ const emit = defineEmits(['navigate'])
   gap: 8px;
   margin-bottom: var(--sp-5);
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.04em;
 }
 

@@ -33,7 +33,7 @@ defineEmits(['back'])
   border: 0;
   background: transparent;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 700;
   color: var(--murasaki-700);
   cursor: pointer;

@@ -125,19 +125,23 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
 }
 .places-hero__copy {
   flex: 1 1 auto;
-  min-width: 240px;
+  min-width: 0;
   max-width: 400px;
 }
 .places-hero__aside {
   display: flex;
   align-items: stretch;
   gap: var(--sp-4);
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
   margin-left: auto;
 }
 .places-hero__visual {
-  flex-shrink: 0;
-  width: 360px;
+  flex: 0 1 360px;
+  width: min(360px, 100%);
+  max-width: 360px;
+  min-width: 0;
   align-self: stretch;
   display: flex;
   align-items: flex-end;
@@ -146,7 +150,8 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
 }
 .places-hero__photo {
   display: block;
-  width: 360px;
+  width: 100%;
+  max-width: 360px;
   height: 100%;
   object-fit: contain;
   object-position: left bottom;
@@ -156,8 +161,10 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
 }
 .places-hero__ai {
   display: flex;
-  width: 320px;
-  flex-shrink: 0;
+  flex: 0 1 320px;
+  width: min(320px, 100%);
+  max-width: 320px;
+  min-width: 0;
 }
 .places-hero__ai :deep(.top-ai-card) {
   width: 100%;
@@ -167,21 +174,21 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
 .places-hero__eyebrow {
   margin: 0 0 10px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.28em;
   color: var(--kin-600);
 }
 .places-hero__title {
   margin: 0 0 14px;
   font-family: var(--ff-mincho);
-  font-size: clamp(32px, 4vw, 42px);
+  font-size: clamp(2rem, 4vw, 2.625rem);
   font-weight: 800;
   letter-spacing: 0.1em;
   color: var(--site-text);
 }
 .places-hero__desc {
   margin: 0 0 var(--sp-5);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.9;
   color: var(--site-text-muted);
 }
@@ -204,7 +211,7 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
 .places-hero__stat-num {
   display: block;
   font-family: var(--ff-latin);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   color: var(--murasaki-600);
   line-height: 1.2;
@@ -213,7 +220,7 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
   display: block;
   margin-top: 4px;
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.1em;
   color: var(--site-text-muted);
 }
@@ -223,7 +230,7 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
   align-items: center;
   gap: 10px;
   font-family: var(--ff-latin);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.3em;
   color: var(--kin-600);
 }
@@ -234,7 +241,7 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
   background: linear-gradient(180deg, var(--kin-500), transparent);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .places-hero__inner {
     flex-direction: column;
     align-items: stretch;
@@ -272,6 +279,7 @@ const regionCount = HIBARU_DATA.placeRegions.filter((r) => r.key !== 'all').leng
   .places-hero__ai {
     width: 100%;
     max-width: none;
+    flex-basis: auto;
   }
 
   .places-hero__scroll {

@@ -204,7 +204,7 @@ function like(id) {
   margin: 0;
   padding: 24px;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
 }
 

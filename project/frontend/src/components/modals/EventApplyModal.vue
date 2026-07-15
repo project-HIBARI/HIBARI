@@ -177,14 +177,14 @@ function goToMap() {
   margin-bottom: 16px;
 }
 .event-apply__type {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: #fff;
   background: var(--murasaki-700);
   padding: 4px 10px;
   border-radius: var(--site-radius-sm);
 }
 .event-apply__partner {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   border: 1px solid var(--kin-500);
   color: var(--kin-600);
   padding: 4px 8px;
@@ -192,10 +192,10 @@ function goToMap() {
 }
 .event-apply__dl {
   display: grid;
-  grid-template-columns: 72px 1fr;
+  grid-template-columns: 72px minmax(0, 1fr);
   gap: 8px 12px;
   margin: 0 0 20px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
 }
 .event-apply__dl dt {
   color: var(--kin-600);
@@ -203,12 +203,20 @@ function goToMap() {
 }
 .event-apply__dl dd {
   margin: 0;
+  min-width: 0;
   color: var(--site-text-muted);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .event-apply__dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .event-apply__benefit {
   margin: 0 0 16px;
   padding: 10px 12px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   background: var(--murasaki-100);
   border-radius: var(--site-radius-sm);
@@ -221,7 +229,7 @@ function goToMap() {
 }
 .event-apply__error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--beni-600);
 }
 .event-apply__actions {
@@ -236,13 +244,13 @@ function goToMap() {
 .event-apply__success-title {
   margin: 0 0 12px;
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   color: var(--murasaki-700);
 }
 .event-apply__success-text {
   margin: 0 0 20px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }

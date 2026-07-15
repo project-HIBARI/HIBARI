@@ -83,7 +83,7 @@ function goTo(p) {
   border-radius: var(--site-radius-sm);
   background: var(--site-surface);
   font-family: var(--ff-mono);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
@@ -101,7 +101,7 @@ function goTo(p) {
   width: 100%;
   text-align: center;
   font-family: var(--ff-mono);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   letter-spacing: 0.06em;
 }

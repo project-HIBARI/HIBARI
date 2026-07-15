@@ -114,7 +114,7 @@ const membershipBadge = computed(() => {
     </div>
 
     <!-- Hero -->
-    <section class="mmb-top__hero" aria-labelledby="mmb-top-title">
+    <section class="mmb-top__hero content-media" aria-labelledby="mmb-top-title">
       <div class="mmb-top__hero-bg" aria-hidden="true" />
 
       <div class="mmb-top__hero-inner">
@@ -122,8 +122,8 @@ const membershipBadge = computed(() => {
           <p class="mmb-top__eyebrow">MEMORY BOOK · MISORA HIBARI</p>
           <h1 id="mmb-top-title" class="mmb-top__title">Music Memory Book</h1>
           <p class="mmb-top__lead">
-            あなたの美空ひばりとの思い出を、ひとつのアルバムに。<br />
-            献花、思い出の投稿、お気に入りの楽曲、AIとの会話をまとめて、<br />
+            あなたの美空ひばりとの思い出を、ひとつのアルバムに。<br class="mmb-top__br" />
+            献花、思い出の投稿、お気に入りの楽曲、AIとの会話をまとめて、<br class="mmb-top__br" />
             あなただけの音楽の思い出を残しましょう。
           </p>
         </div>
@@ -134,6 +134,7 @@ const membershipBadge = computed(() => {
             alt=""
             class="mmb-top__hero-photo-img"
             width="360"
+            height="480"
             decoding="async"
           />
         </div>
@@ -265,21 +266,31 @@ const membershipBadge = computed(() => {
 </template>
 
 <style scoped>
+.mmb-top {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .mmb-top__limit-banner {
   display: flex;
   align-items: center;
-  gap: var(--sp-4);
+  flex-wrap: wrap;
+  gap: var(--sp-3) var(--sp-4);
   margin-bottom: var(--sp-6);
   padding: var(--sp-4) var(--sp-5);
   border-radius: var(--site-radius-lg);
   border: 1px solid rgba(122, 80, 136, 0.22);
   background: linear-gradient(135deg, rgba(245, 235, 248, 0.95), rgba(252, 248, 250, 0.95));
+  min-width: 0;
 }
 
 .mmb-top__limit-banner p {
   margin: 0;
-  flex: 1;
-  font-size: 13px;
+  flex: 1 1 12rem;
+  min-width: 0;
+  font-size: var(--font-size-small, 0.875rem);
   line-height: 1.75;
   color: var(--site-text-muted);
 }
@@ -289,14 +300,13 @@ const membershipBadge = computed(() => {
 }
 
 .mmb-top__limit-link {
-  flex-shrink: 0;
+  flex: 0 1 auto;
   border: 0;
   background: transparent;
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-small, 0.875rem);
   color: var(--murasaki-700);
   cursor: pointer;
-  white-space: nowrap;
 }
 
 .mmb-top__limit-link:hover {
@@ -327,8 +337,8 @@ const membershipBadge = computed(() => {
 .mmb-top__hero-inner {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px minmax(456px, 472px);
-  gap: var(--sp-6);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-5);
   align-items: stretch;
   min-width: 0;
 }
@@ -341,26 +351,29 @@ const membershipBadge = computed(() => {
 .mmb-top__eyebrow {
   margin: 0 0 12px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption, 0.75rem);
   letter-spacing: 0.35em;
   color: var(--kin-600);
+  overflow-wrap: anywhere;
 }
 
 .mmb-top__title {
   margin: 0 0 16px;
   font-family: var(--ff-mincho);
-  font-size: clamp(32px, 3.5vw, 44px);
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--murasaki-800);
   line-height: 1.35;
+  overflow-wrap: break-word;
 }
 
 .mmb-top__lead {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-small, 0.875rem);
   line-height: 2;
   color: var(--site-text-muted);
+  overflow-wrap: break-word;
 }
 
 .mmb-top__hero-photo {
@@ -370,32 +383,42 @@ const membershipBadge = computed(() => {
   justify-content: center;
   align-self: stretch;
   overflow: hidden;
+  min-width: 0;
+  width: 100%;
 }
 
 .mmb-top__hero-photo-img {
   display: block;
-  width: 360px;
-  height: 100%;
-  min-height: 300px;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  max-height: min(52vh, 420px);
   object-fit: contain;
   object-position: center bottom;
-  transform: scale(1.14);
+  transform: scale(1.06);
   transform-origin: center bottom;
   filter: drop-shadow(var(--site-shadow-md));
 }
 
 .mmb-top__hero-aside {
   display: grid;
-  grid-template-columns: repeat(2, 220px);
-  gap: var(--sp-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
   align-self: center;
+  justify-self: center;
+  width: 100%;
+  max-width: 28rem;
   min-width: 0;
 }
 
 .mmb-top__hero-tile {
   box-sizing: border-box;
-  width: 220px;
-  height: 300px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 12.5rem;
+  height: auto;
+  aspect-ratio: 11 / 15;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -448,14 +471,16 @@ const membershipBadge = computed(() => {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 6px 14px;
+  max-width: 100%;
+  padding: 6px 10px;
   border-radius: 999px;
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-caption, 0.75rem);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   line-height: 1.2;
-  white-space: nowrap;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .mmb-top__stats-badge--premium {
@@ -479,7 +504,7 @@ const membershipBadge = computed(() => {
 .mmb-top__stats-badge-note {
   margin: 8px 0 0;
   font-family: var(--ff-sans-jp);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.04em;
   line-height: 1.5;
   color: var(--site-text-light);
@@ -488,7 +513,7 @@ const membershipBadge = computed(() => {
 .mmb-top__stats-label {
   margin: 0 0 10px;
   font-family: var(--ff-mincho);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 600;
   letter-spacing: 0.12em;
   color: var(--site-text-muted);
@@ -505,14 +530,14 @@ const membershipBadge = computed(() => {
 
 .mmb-top__stats-num-value {
   font-family: var(--ff-mincho);
-  font-size: clamp(36px, 4vw, 44px);
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
   font-weight: 800;
   letter-spacing: 0.02em;
   color: var(--murasaki-700);
 }
 
 .mmb-top__stats-unit {
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-family: var(--ff-mincho);
   font-weight: 700;
   color: var(--murasaki-600);
@@ -521,14 +546,14 @@ const membershipBadge = computed(() => {
 
 .mmb-top__stats-foot-label {
   font-family: var(--ff-mincho);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.14em;
   color: var(--site-text-light);
 }
 
 .mmb-top__stats-foot-date {
   font-family: var(--ff-mono);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   font-weight: 600;
   letter-spacing: 0.06em;
   color: var(--murasaki-800);
@@ -541,15 +566,23 @@ const membershipBadge = computed(() => {
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+  overflow: hidden;
 }
 
 .mmb-top__hero-album :deep(.mmb-cover--with-design) {
   filter: none;
 }
 
+.mmb-top__hero-album :deep(.mmb-cover--lg) {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  aspect-ratio: 11 / 15;
+}
+
 .mmb-top__categories {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--sp-4);
   margin-bottom: var(--sp-8);
 }
@@ -592,7 +625,7 @@ const membershipBadge = computed(() => {
 .mmb-top__cat-title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   color: var(--site-text);
 }
@@ -600,21 +633,21 @@ const membershipBadge = computed(() => {
 .mmb-top__cat-count {
   margin: 0 0 8px;
   font-family: var(--ff-latin);
-  font-size: 28px;
+  font-size: var(--font-size-heading);
   font-weight: 700;
   color: var(--murasaki-700);
   line-height: 1;
 }
 
 .mmb-top__cat-count span {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-family: var(--ff-mincho);
   margin-left: 2px;
 }
 
 .mmb-top__cat-desc {
   margin: 0 0 auto;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.75;
   color: var(--site-text-muted);
   flex: 1;
@@ -623,7 +656,7 @@ const membershipBadge = computed(() => {
 .mmb-top__cat-link {
   margin-top: var(--sp-4);
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-600);
   letter-spacing: 0.04em;
 }
@@ -641,16 +674,29 @@ const membershipBadge = computed(() => {
 
 .mmb-top__year-inner {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--sp-7);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-5);
   align-items: center;
-  padding: var(--sp-7) var(--sp-8);
+  justify-items: center;
+  padding: var(--sp-5);
+  min-width: 0;
+}
+
+.mmb-top__year-copy {
+  min-width: 0;
+  width: 100%;
+}
+
+.mmb-top__year-inner :deep(.mmb-cover--md) {
+  width: min(168px, 48vw);
+  height: auto;
+  aspect-ratio: 168 / 228;
 }
 
 .mmb-top__year-eyebrow {
   margin: 0 0 8px;
   font-family: var(--ff-latin);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.35em;
   color: var(--kin-600);
 }
@@ -658,7 +704,7 @@ const membershipBadge = computed(() => {
 .mmb-top__year-title {
   margin: 0 0 var(--sp-5);
   font-family: var(--ff-mincho);
-  font-size: clamp(24px, 2.5vw, 32px);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--murasaki-800);
@@ -671,13 +717,13 @@ const membershipBadge = computed(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 10px 24px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
 }
 
 .mmb-top__year-stats strong {
   font-family: var(--ff-latin);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   color: var(--murasaki-700);
   margin-right: 2px;
 }
@@ -685,7 +731,7 @@ const membershipBadge = computed(() => {
 .mmb-top__shelf-title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: 22px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--site-text);
@@ -693,21 +739,28 @@ const membershipBadge = computed(() => {
 
 .mmb-top__shelf-desc {
   margin: 0 0 var(--sp-6);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
 }
 
 .mmb-top__shelf-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--sp-5);
-  padding: var(--sp-6);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+  padding: var(--sp-4);
   border-radius: var(--site-radius-lg);
   background:
     linear-gradient(180deg, #e8dfd4 0%, #ddd2c4 100%);
   border: 1px solid rgba(90, 60, 40, 0.15);
   box-shadow: inset 0 2px 8px rgba(60, 40, 30, 0.08);
   margin-bottom: var(--sp-2);
+  min-width: 0;
+}
+
+.mmb-top__shelf-item :deep(.mmb-cover--sm) {
+  width: min(120px, 100%);
+  height: auto;
+  aspect-ratio: 120 / 164;
 }
 
 .mmb-top__shelf-wrap {
@@ -746,14 +799,14 @@ const membershipBadge = computed(() => {
 .mmb-top__shelf-label {
   margin: 0 0 4px;
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   color: var(--site-text);
 }
 
 .mmb-top__shelf-count {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 
@@ -767,12 +820,125 @@ const membershipBadge = computed(() => {
 
 .mmb-state--loading {
   color: var(--site-text-muted);
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 
 .mmb-state--error p {
   margin: 0 0 var(--sp-4);
   color: var(--beni-600);
-  font-size: 14px;
+  font-size: var(--font-size-small);
+}
+
+/* —— レスポンシブ（3A' 方針: 480 / 768 / 1024 / 1280）—— */
+
+@media (max-width: 479px) {
+  .mmb-top__hero {
+    padding: var(--sp-4) var(--sp-3);
+  }
+
+  .mmb-top__br {
+    display: none;
+  }
+
+  .mmb-top__stats-foot-date {
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (min-width: 480px) {
+  .mmb-top__categories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .mmb-top__hero-inner {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: var(--sp-5);
+    align-items: end;
+  }
+
+  .mmb-top__hero-aside {
+    grid-column: 1 / -1;
+    max-width: none;
+    justify-self: stretch;
+    grid-template-columns: repeat(2, minmax(0, 13.75rem));
+    justify-content: center;
+  }
+
+  .mmb-top__hero-photo-img {
+    max-height: min(56vh, 460px);
+    transform: scale(1.1);
+  }
+
+  .mmb-top__categories {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mmb-top__year-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    justify-items: stretch;
+    gap: var(--sp-6);
+    padding: var(--sp-6) var(--sp-7);
+  }
+
+  .mmb-top__shelf-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-5);
+    padding: var(--sp-5);
+  }
+}
+
+@media (min-width: 1024px) {
+  .mmb-top__categories {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .mmb-top__shelf-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: var(--sp-6);
+  }
+
+  .mmb-top__year-inner {
+    gap: var(--sp-7);
+    padding: var(--sp-7) var(--sp-8);
+  }
+}
+
+@media (min-width: 1280px) {
+  .mmb-top__hero-inner {
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 320px) minmax(0, 28rem);
+    gap: var(--sp-6);
+    align-items: stretch;
+  }
+
+  .mmb-top__hero-aside {
+    grid-column: auto;
+    max-width: 28rem;
+    justify-self: end;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mmb-top__hero-tile {
+    min-height: 0;
+    height: 300px;
+    aspect-ratio: auto;
+  }
+
+  .mmb-top__hero-album :deep(.mmb-cover--lg) {
+    width: 220px;
+    height: 300px;
+    aspect-ratio: auto;
+  }
+
+  .mmb-top__hero-photo-img {
+    max-width: 360px;
+    max-height: none;
+    height: 100%;
+    min-height: 280px;
+    transform: scale(1.14);
+  }
 }
 </style>

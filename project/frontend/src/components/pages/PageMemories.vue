@@ -259,6 +259,7 @@ onMounted(() => {
           </template>
         </div>
         <MemoriesPostAside
+          class="page-memories__aside"
           :post-data="postData"
           :submitted="submitted"
           :submitting="submitting"
@@ -302,12 +303,21 @@ onMounted(() => {
 }
 .page-memories__layout {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--sp-7);
   margin-top: var(--sp-5);
+  min-width: 0;
 }
 .page-memories__list {
   min-width: 0;
+  max-width: 100%;
+  /* スマホ／1カラム: 投稿フォームの下に一覧 */
+  order: 2;
+}
+.page-memories__aside {
+  min-width: 0;
+  max-width: 100%;
+  order: 1;
 }
 .page-memories__state {
   margin: var(--sp-5) 0 0;
@@ -316,7 +326,7 @@ onMounted(() => {
   border-radius: var(--site-radius-md);
   background: var(--site-surface);
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.8;
   color: var(--site-text-muted);
   text-align: center;
@@ -331,7 +341,7 @@ onMounted(() => {
   border-radius: var(--site-radius-sm);
   background: #fff;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
   cursor: pointer;
 }
@@ -340,9 +350,16 @@ onMounted(() => {
   color: var(--murasaki-700);
 }
 
-@media (max-width: 767px) {
+/* 十分な幅（小型PC以上）でのみサイドバー2カラム（一覧 | 投稿） */
+@media (min-width: 1024px) {
   .page-memories__layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+  }
+  .page-memories__list {
+    order: 1;
+  }
+  .page-memories__aside {
+    order: 2;
   }
 }
 </style>

@@ -114,12 +114,14 @@ onUnmounted(() => {
   justify-content: center;
   padding: 6px 12px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-navigation);
   font-weight: 500;
   letter-spacing: 0.06em;
   white-space: nowrap;
   border-radius: 999px;
   cursor: pointer;
+  min-height: 44px;
+  box-sizing: border-box;
   transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
 .header-account__btn--login {
@@ -140,12 +142,14 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
   padding: 4px 10px 4px 4px;
   border: 1px solid var(--site-border);
   border-radius: 999px;
   background: #fff;
   cursor: pointer;
   max-width: 180px;
+  box-sizing: border-box;
 }
 .header-account__avatar {
   flex-shrink: 0;
@@ -157,7 +161,7 @@ onUnmounted(() => {
   border-radius: 50%;
   background: var(--murasaki-700);
   color: #fff;
-  font-size: 12px;
+  font-size: var(--font-size-navigation);
   font-weight: 700;
   overflow: hidden;
 }
@@ -172,11 +176,11 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-navigation);
   color: var(--site-text);
 }
 .header-account__chevron {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--site-text-muted);
   transition: transform 0.2s;
 }
@@ -198,21 +202,24 @@ onUnmounted(() => {
 .header-account__plan {
   margin: 0;
   padding: 8px 16px 10px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   border-bottom: 1px solid var(--site-border);
+  overflow-wrap: anywhere;
 }
 .header-account__item {
   display: block;
   width: 100%;
   padding: 10px 16px;
+  min-height: 44px;
   border: 0;
   background: transparent;
   text-align: left;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
   cursor: pointer;
+  box-sizing: border-box;
 }
 .header-account__item:hover {
   background: var(--murasaki-100);
@@ -225,13 +232,13 @@ onUnmounted(() => {
 @media (min-width: 1100px) {
   .header-account__btn {
     padding: 6px 12px;
-    font-size: 12px;
+    font-size: var(--font-size-navigation);
   }
 }
 @media (min-width: 1280px) {
   .header-account__btn {
     padding: 7px 16px;
-    font-size: 13px;
+    font-size: var(--font-size-button);
   }
 }
 </style>

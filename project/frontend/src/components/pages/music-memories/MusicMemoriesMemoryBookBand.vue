@@ -154,7 +154,7 @@ const features = [
   bottom: 0;
   padding: 7px 8px;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.06em;
   text-align: center;
   color: rgba(248, 244, 239, 0.92);
@@ -164,7 +164,7 @@ const features = [
 .mm-mbook__visual-caption {
   margin: 0;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: rgba(201, 169, 97, 0.75);
@@ -180,7 +180,7 @@ const features = [
 .mm-mbook__eyebrow {
   margin: 0 0 8px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--kin-400);
@@ -196,7 +196,7 @@ const features = [
 .mm-mbook__lead {
   margin: 0 0 18px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.9;
   color: rgba(248, 244, 239, 0.72);
 }
@@ -220,7 +220,7 @@ const features = [
   align-items: center;
   gap: 8px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: rgba(248, 244, 239, 0.82);
 }
 
@@ -232,7 +232,7 @@ const features = [
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--kin-400);
   flex-shrink: 0;
 }
@@ -253,12 +253,12 @@ const features = [
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: rgba(248, 244, 239, 0.62);
 }
 
 .mm-mbook__artist-chip small {
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.04em;
   color: rgba(248, 244, 239, 0.45);
 }

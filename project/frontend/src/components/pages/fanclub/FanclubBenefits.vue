@@ -2,6 +2,7 @@
 /**
  * 部品名: ファンクラブ 特典ハイライト
  */
+import { ref } from 'vue'
 import { useMemberAccess } from '../../../composables/useMemberAccess.js'
 import { MEMBERSHIP_LABELS } from '../../../constants/membership.js'
 
@@ -19,6 +20,17 @@ const benefits = [
   { feature: 'gallery', icon: '✧', title: '限定コンテンツ', desc: 'ハイレゾ音源や会員限定の特典コンテンツ。', permission: PERMISSION.EXCLUSIVE_CONTENT, premium: true },
   { feature: 'priority-events', icon: '◎', title: '優先申込＋会員割引', desc: 'イベントの優先申込と会員割引価格がご利用いただけます。', permission: PERMISSION.PRIORITY_DISCOUNT, premium: true },
 ]
+
+/** DevTools スマホ表示でも浮かぶよう、:hover ではなくクラスで制御 */
+const liftedFeature = ref(null)
+
+function liftBenefit(feature) {
+  liftedFeature.value = feature
+}
+
+function unliftBenefit(feature) {
+  if (liftedFeature.value === feature) liftedFeature.value = null
+}
 
 function status(b) {
   if (!isFanclubMember.value) {
@@ -43,9 +55,20 @@ function onUse(b) {
       :class="{
         'fc-benefits__item--premium': b.premium,
         'fc-benefits__item--ready': isLoggedIn && canUse(b.permission),
+        'fc-benefits__item--lifted': liftedFeature === b.feature,
       }"
+      @pointerenter="liftBenefit(b.feature)"
+      @pointerleave="unliftBenefit(b.feature)"
+      @mouseenter="liftBenefit(b.feature)"
+      @mouseleave="unliftBenefit(b.feature)"
     >
-      <button type="button" class="fc-benefits__btn" @click="onUse(b)">
+      <button
+        type="button"
+        class="fc-benefits__btn"
+        @focus="liftBenefit(b.feature)"
+        @blur="unliftBenefit(b.feature)"
+        @click="onUse(b)"
+      >
         <span class="fc-benefits__icon" aria-hidden="true">{{ b.icon }}</span>
         <h3 class="fc-benefits__title">
           {{ b.title }}
@@ -62,27 +85,59 @@ function onUse(b) {
 .fc-benefits {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 14px 6px 28px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--sp-4);
 }
 .fc-benefits__item {
+  position: relative;
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-md);
   background: var(--site-surface);
-  overflow: hidden;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 2px 8px rgba(60, 40, 30, 0.06);
+  overflow: visible;
+  isolation: isolate;
+  will-change: transform, box-shadow;
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+.fc-benefits__item:hover,
+.fc-benefits__item.motion-card:hover,
+.fc-benefits__item:focus-within,
+.fc-benefits__item--lifted,
+.fc-benefits__item.motion-card.fc-benefits__item--lifted {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow:
+    0 18px 40px rgba(60, 40, 30, 0.26),
+    0 6px 14px rgba(93, 58, 107, 0.18);
+  border-color: var(--murasaki-500, #7a4d8a);
+  background: linear-gradient(135deg, #fff 0%, var(--murasaki-100) 100%);
+  z-index: 2;
+}
+.fc-benefits__item:active,
+.fc-benefits__item.motion-card:active,
+.fc-benefits__item--lifted:active {
+  transform: translateY(-3px) scale(0.995);
+  box-shadow: 0 8px 18px rgba(60, 40, 30, 0.16);
+  border-color: var(--murasaki-500, #7a4d8a);
+  z-index: 2;
 }
 .fc-benefits__item--premium {
   border-color: rgba(201, 169, 97, 0.45);
   background: linear-gradient(180deg, #fffaf6 0%, var(--site-surface) 100%);
 }
+.fc-benefits__item--premium:hover,
+.fc-benefits__item--premium:focus-within,
+.fc-benefits__item--premium.fc-benefits__item--lifted {
+  border-color: var(--kin-500, #c9a961);
+  background: linear-gradient(180deg, #fff 0%, #fffaf6 100%);
+}
 .fc-benefits__item--ready {
   border-color: var(--murasaki-400);
-}
-.fc-benefits__item--ready:hover {
-  box-shadow: var(--site-shadow-md);
 }
 .fc-benefits__btn {
   display: flex;
@@ -95,6 +150,8 @@ function onUse(b) {
   border: 0;
   background: transparent;
   cursor: pointer;
+  border-radius: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 .fc-benefits__icon {
   width: 52px;
@@ -106,12 +163,12 @@ function onUse(b) {
   border: 1px solid var(--kin-500);
   background: var(--murasaki-100);
   color: var(--kin-600);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
 }
 .fc-benefits__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--site-text);
@@ -122,7 +179,7 @@ function onUse(b) {
 }
 .fc-benefits__tag {
   font-family: var(--ff-sans-jp);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--kin-600);
@@ -130,12 +187,12 @@ function onUse(b) {
 .fc-benefits__desc {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
 .fc-benefits__status {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   color: var(--murasaki-700);
   letter-spacing: 0.06em;

@@ -53,7 +53,7 @@ const emit = defineEmits(['open-ai'])
   color: #fff;
   border-radius: 999px;
   font-family: var(--ff-sans-jp);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.1em;
   margin-bottom: 12px;
 }
@@ -66,14 +66,14 @@ const emit = defineEmits(['open-ai'])
 .top-ai-card__title {
   margin: 0 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 21px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   color: var(--murasaki-700);
   letter-spacing: 0.06em;
 }
 .top-ai-card__desc {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
@@ -92,7 +92,7 @@ const emit = defineEmits(['open-ai'])
 }
 .top-ai-card__avatar-inner {
   font-family: var(--ff-mincho);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   color: var(--murasaki-700);
 }
@@ -108,7 +108,7 @@ const emit = defineEmits(['open-ai'])
   background: rgba(255, 255, 255, 0.85);
   border: 1px solid var(--site-border);
   border-radius: 14px 14px 14px 4px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.55;
   color: var(--site-text);
   max-width: 92%;

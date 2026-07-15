@@ -37,7 +37,7 @@ const display = useCountUp(() => props.total)
 .msg-count__label {
   margin: 0 0 var(--sp-3);
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.28em;
   color: var(--kin-600);
 }
@@ -51,7 +51,7 @@ const display = useCountUp(() => props.total)
 
 .msg-count__num {
   font-family: var(--ff-mincho);
-  font-size: clamp(40px, 6vw, 64px);
+  font-size: clamp(2.5rem, 6vw, 4rem);
   font-weight: 800;
   letter-spacing: 0.04em;
   line-height: 1;
@@ -59,7 +59,7 @@ const display = useCountUp(() => props.total)
 }
 
 .msg-count__icon {
-  font-size: clamp(28px, 4vw, 40px);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
   line-height: 1;
   filter: drop-shadow(0 4px 8px rgba(201, 169, 97, 0.25));
 }

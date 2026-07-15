@@ -45,7 +45,7 @@ const emit = defineEmits(['need-auth'])
 .page-platform-chat__lead {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.8;
   color: rgba(248, 244, 239, 0.7);
 }

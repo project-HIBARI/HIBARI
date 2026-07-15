@@ -107,7 +107,7 @@ async function save() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: var(--font-size-subtitle);
   flex-shrink: 0;
 }
 .sns-profile-edit__avatar img {
@@ -122,11 +122,11 @@ async function save() {
   border: 1px solid var(--murasaki-400);
   border-radius: 999px;
   color: var(--murasaki-700);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   cursor: pointer;
 }
 .sns-profile-edit__label {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .sns-profile-edit__textarea {
@@ -135,7 +135,7 @@ async function save() {
   border-radius: var(--site-radius-md);
   padding: 12px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.7;
   resize: vertical;
   color: var(--site-text);
@@ -143,13 +143,13 @@ async function save() {
 .sns-profile-edit__count {
   margin: -4px 0 0;
   text-align: right;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 .sns-profile-edit__error {
   margin: 0;
   color: var(--beni-600);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 .sns-profile-edit__actions {
   display: flex;

@@ -53,7 +53,7 @@ function pickFlower(i) {
 <style scoped>
 .msg-picker__lead {
   margin: 0 0 var(--sp-5);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
@@ -97,7 +97,7 @@ function pickFlower(i) {
   border-radius: 50%;
   background: var(--kin-500);
   color: #fff;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 20px;
   text-align: center;
   opacity: 0;
@@ -112,7 +112,7 @@ function pickFlower(i) {
 
 .msg-picker__name {
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.08em;
   color: var(--site-text);
 }

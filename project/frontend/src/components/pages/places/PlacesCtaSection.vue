@@ -70,7 +70,7 @@ const cards = [
   display: inline-block;
   align-self: flex-start;
   padding: 2px 8px;
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.12em;
   color: var(--murasaki-700);
   border: 1px solid rgba(122, 80, 136, 0.3);
@@ -80,7 +80,7 @@ const cards = [
 .places-cta__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 17px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--site-text);
@@ -88,7 +88,7 @@ const cards = [
 .places-cta__desc {
   margin: 0;
   flex: 1;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.75;
   color: var(--site-text-muted);
 }

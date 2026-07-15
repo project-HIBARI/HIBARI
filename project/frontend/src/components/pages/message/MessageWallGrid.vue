@@ -138,7 +138,7 @@ function goNext() {
 .msg-wall__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: clamp(20px, 2.4vw, 26px);
+  font-size: clamp(1.25rem, 2.4vw, 1.625rem);
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--site-text);
@@ -147,7 +147,7 @@ function goNext() {
 .msg-wall__sort {
   margin: 0;
   font-family: var(--ff-latin);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.2em;
   color: var(--kin-600);
 }
@@ -195,7 +195,7 @@ function goNext() {
 
 .msg-wall__flower-name {
   font-family: var(--ff-mincho);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   letter-spacing: 0.1em;
   color: var(--murasaki-700);
 }
@@ -209,7 +209,7 @@ function goNext() {
 
 .msg-wall__body {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.95;
   color: var(--site-text);
   flex: 1;
@@ -220,7 +220,7 @@ function goNext() {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 10px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
   letter-spacing: 0.06em;
   padding-top: var(--sp-3);
@@ -247,7 +247,7 @@ function goNext() {
   padding: var(--sp-8) var(--sp-5);
   text-align: center;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.9;
   color: var(--site-text-muted);
   border-radius: 24px;
@@ -268,7 +268,7 @@ function goNext() {
   min-width: 4.5em;
   text-align: center;
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.08em;
   color: var(--site-text-muted);
 }

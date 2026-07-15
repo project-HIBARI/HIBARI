@@ -129,7 +129,7 @@ const summary = computed(() => [
 .reg-done__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 22px;
+  font-size: var(--font-size-subtitle);
   font-weight: 800;
   letter-spacing: 0.06em;
   color: var(--murasaki-700);
@@ -137,7 +137,7 @@ const summary = computed(() => [
 .reg-done__lead {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
@@ -160,14 +160,14 @@ const summary = computed(() => [
 .reg-done__dt {
   flex: 0 0 96px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 .reg-done__dd {
   margin: 0;
   flex: 1 1 auto;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
   word-break: break-all;
 }
@@ -180,7 +180,7 @@ const summary = computed(() => [
   margin-top: 8px;
   padding: 16px 24px;
   font-family: var(--ff-sans-jp);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 500;
   letter-spacing: 0.12em;
   color: #fff;

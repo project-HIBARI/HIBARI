@@ -41,7 +41,7 @@ const tabs = HIBARU_DATA.placeCategories
   border-radius: 999px;
   background: var(--site-surface);
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.06em;
   color: var(--site-text-muted);
   cursor: pointer;

@@ -151,7 +151,7 @@ function onPlayClick(e) {
 .disco-song-card__meta {
   display: block;
   font-family: var(--ff-mono);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.12em;
   color: var(--kin-600);
   margin-bottom: 4px;
@@ -159,27 +159,29 @@ function onPlayClick(e) {
 .disco-song-card__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--site-text);
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 .disco-song-card__romaji {
   margin: 2px 0 0;
   font-family: var(--ff-latin);
   font-style: italic;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .disco-song-card__credits {
   margin: 6px 0 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   line-height: 1.5;
 }
 .disco-song-card__note {
   margin: 4px 0 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text);
   line-height: 1.5;
 }
@@ -213,7 +215,7 @@ function onPlayClick(e) {
   cursor: not-allowed;
 }
 .disco-song-card__award {
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   color: var(--kin-600);
   border: 1px solid var(--kin-500);
   padding: 2px 6px;

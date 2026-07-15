@@ -141,7 +141,7 @@ function closeApply() {
   align-items: center;
 }
 .mem-events__type {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: #fff;
   padding: 3px 10px;
   letter-spacing: 0.15em;
@@ -149,7 +149,7 @@ function closeApply() {
   border-radius: var(--site-radius-sm);
 }
 .mem-events__partner {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   border: 1px solid var(--kin-500);
   color: var(--kin-600);
   padding: 3px 8px;
@@ -158,7 +158,7 @@ function closeApply() {
   border-radius: var(--site-radius-sm);
 }
 .mem-events__preorder {
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   padding: 3px 8px;
   background: var(--murasaki-100);
   color: var(--murasaki-700);
@@ -174,7 +174,7 @@ function closeApply() {
   border: 0;
   background: transparent;
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   color: var(--site-text);
   cursor: pointer;
@@ -187,7 +187,7 @@ function closeApply() {
   display: grid;
   grid-template-columns: 60px 1fr;
   gap: 6px 12px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
   margin: 0;
 }
@@ -202,7 +202,7 @@ function closeApply() {
 .mem-events__priority {
   display: inline-block;
   margin-left: 8px;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   font-weight: 700;
   color: var(--murasaki-700);
 }

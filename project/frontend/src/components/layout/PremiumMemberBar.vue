@@ -23,7 +23,7 @@ const emit = defineEmits(['open-fanclub'])
   border: 0;
   cursor: pointer;
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.12em;
   color: var(--murasaki-700);
   display: inline-flex;
@@ -47,14 +47,14 @@ const emit = defineEmits(['open-fanclub'])
   display: none;
 }
 .premium-bar__arrow {
-  font-size: 16px;
+  font-size: var(--font-size-body);
   line-height: 1;
   flex-shrink: 0;
 }
 
 @media (max-width: 767px) {
   .premium-bar__btn {
-    font-size: 11px;
+    font-size: var(--font-size-caption);
     letter-spacing: 0.06em;
   }
   .premium-bar__text--full {

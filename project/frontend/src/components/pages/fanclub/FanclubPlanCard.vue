@@ -67,7 +67,7 @@ const emit = defineEmits(['join'])
   color: var(--ink-900);
   padding: 3px 16px;
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   letter-spacing: 0.08em;
   border-radius: var(--site-radius-sm);
@@ -75,7 +75,7 @@ const emit = defineEmits(['join'])
 .fc-plan__name {
   margin: 0 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--site-text);
@@ -83,7 +83,7 @@ const emit = defineEmits(['join'])
 .fc-plan__price {
   margin: 0 0 20px;
   font-family: var(--ff-latin);
-  font-size: 30px;
+  font-size: 1.875rem;
   font-weight: 700;
   color: var(--kin-600);
   line-height: 1.1;
@@ -91,7 +91,7 @@ const emit = defineEmits(['join'])
 .fc-plan__unit {
   margin-left: 4px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 500;
   color: var(--site-text-muted);
 }
@@ -106,7 +106,7 @@ const emit = defineEmits(['join'])
   align-items: flex-start;
   gap: 8px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.6;
   color: var(--site-text-muted);
   padding: 7px 0;
@@ -115,7 +115,7 @@ const emit = defineEmits(['join'])
 .fc-plan__check {
   flex-shrink: 0;
   color: var(--murasaki-600);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 .fc-plan__feat--locked {
   color: var(--site-text-light);

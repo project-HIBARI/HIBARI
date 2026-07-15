@@ -101,7 +101,7 @@ function onSubscribe() {
 .disco-dl__gate-msg {
   margin: 0 0 var(--sp-5);
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.04em;
   line-height: 1.7;
@@ -111,14 +111,14 @@ function onSubscribe() {
 .disco-dl__song {
   margin: 0 0 var(--sp-2);
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--site-text);
 }
 .disco-dl__hint {
   margin: 0 0 var(--sp-5);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
 }
 .disco-dl__formats {
@@ -162,7 +162,7 @@ function onSubscribe() {
 .disco-dl__ext {
   grid-column: 2;
   font-family: var(--ff-mono);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--site-text);
   text-align: left;
@@ -170,7 +170,7 @@ function onSubscribe() {
 }
 .disco-dl__label {
   grid-column: 3;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
   white-space: nowrap;
   text-align: right;
@@ -184,7 +184,7 @@ function onSubscribe() {
   background: var(--murasaki-700);
   color: #fff;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   letter-spacing: 0.12em;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;

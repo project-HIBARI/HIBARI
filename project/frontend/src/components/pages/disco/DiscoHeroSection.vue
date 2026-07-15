@@ -164,20 +164,20 @@ function onPlayClick() {
 }
 .disco-hero__copy {
   flex: 1 1 auto;
-  min-width: 240px;
+  min-width: 0;
   max-width: 400px;
 }
 .disco-hero__eyebrow {
   margin: 0 0 10px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.28em;
   color: var(--kin-600);
 }
 .disco-hero__title {
   margin: 0 0 14px;
   font-family: var(--ff-mincho);
-  font-size: clamp(28px, 3.5vw, 38px);
+  font-size: clamp(1.75rem, 3.5vw, 2.375rem);
   font-weight: 800;
   letter-spacing: 0.06em;
   color: var(--site-text);
@@ -185,7 +185,7 @@ function onPlayClick() {
 }
 .disco-hero__desc {
   margin: 0 0 var(--sp-5);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.85;
   color: var(--site-text-muted);
 }
@@ -212,21 +212,21 @@ function onPlayClick() {
 .disco-hero__stat-num {
   display: block;
   font-family: var(--ff-latin);
-  font-size: clamp(15px, 1.6vw, 20px);
+  font-size: clamp(0.9375rem, 1.6vw, 1.25rem);
   font-weight: 700;
   color: var(--murasaki-600);
   line-height: 1.2;
   white-space: nowrap;
 }
 .disco-hero__stat--period .disco-hero__stat-num {
-  font-size: clamp(12px, 1.3vw, 16px);
+  font-size: clamp(0.75rem, 1.3vw, 1rem);
   letter-spacing: -0.02em;
 }
 .disco-hero__stat-label {
   display: block;
   margin-top: 4px;
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.1em;
   color: var(--site-text-muted);
 }
@@ -234,12 +234,16 @@ function onPlayClick() {
   display: flex;
   align-items: stretch;
   gap: var(--sp-4);
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
   margin-left: auto;
 }
 .disco-hero__visual {
-  flex-shrink: 0;
-  width: 360px;
+  flex: 0 1 360px;
+  width: min(360px, 100%);
+  max-width: 360px;
+  min-width: 0;
   align-self: stretch;
   display: flex;
   align-items: flex-end;
@@ -248,7 +252,8 @@ function onPlayClick() {
 }
 .disco-hero__photo {
   display: block;
-  width: 360px;
+  width: 100%;
+  max-width: 360px;
   height: 100%;
   object-fit: contain;
   object-position: left bottom;
@@ -258,8 +263,10 @@ function onPlayClick() {
 }
 .disco-hero__ai {
   display: flex;
-  width: 320px;
-  flex-shrink: 0;
+  flex: 0 1 320px;
+  width: min(320px, 100%);
+  max-width: 320px;
+  min-width: 0;
 }
 .disco-hero__ai :deep(.top-ai-card) {
   width: 100%;
@@ -276,7 +283,7 @@ function onPlayClick() {
 .disco-hero__today-label {
   margin: 0 0 var(--sp-4);
   font-family: var(--ff-latin);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.25em;
   color: var(--kin-600);
 }
@@ -333,13 +340,13 @@ function onPlayClick() {
 }
 .disco-hero__today-year {
   font-family: var(--ff-mono);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.15em;
   color: var(--kin-600);
 }
 .disco-hero__today-title {
   font-family: var(--ff-mincho);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--site-text);
@@ -347,11 +354,12 @@ function onPlayClick() {
 .disco-hero__today-romaji {
   font-family: var(--ff-latin);
   font-style: italic;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 
-@media (max-width: 900px) {
+/* タブレット以下は縦積み（901〜1023 の固定幅横並び窮屈を解消） */
+@media (max-width: 1023px) {
   .disco-hero__inner {
     flex-direction: column;
     align-items: stretch;
@@ -389,6 +397,7 @@ function onPlayClick() {
   .disco-hero__ai {
     width: 100%;
     max-width: none;
+    flex-basis: auto;
   }
 }
 </style>

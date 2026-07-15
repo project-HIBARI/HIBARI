@@ -60,7 +60,7 @@ defineProps({
 .social-links__label {
   margin: 0 0 4px;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.14em;
   color: var(--murasaki-700);
@@ -70,7 +70,7 @@ defineProps({
   margin: 0 0 20px;
   font-family: var(--ff-latin);
   font-style: italic;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.22em;
   color: var(--kin-600);
 }
@@ -133,7 +133,7 @@ defineProps({
 
 .social-links--footer .social-links__label {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--site-text-light);

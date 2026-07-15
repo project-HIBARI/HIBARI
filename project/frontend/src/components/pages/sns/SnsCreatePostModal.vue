@@ -347,7 +347,7 @@ async function submit() {
   background: var(--site-surface);
   cursor: pointer;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text);
   text-align: left;
 }
@@ -362,7 +362,7 @@ async function submit() {
 .sns-create__type-btn small {
   margin-left: auto;
   color: var(--site-text-light);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
 }
 
 .sns-create__form {
@@ -372,30 +372,33 @@ async function submit() {
 }
 .sns-create__usage {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--murasaki-700);
   font-weight: 600;
 }
 .sns-create__reset {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .sns-create__textarea {
   width: 100%;
+  min-height: 7.5rem;
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-md);
   padding: 12px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-form-input, var(--font-size-small));
   line-height: 1.7;
   resize: vertical;
   color: var(--site-text);
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
 }
 .sns-create__count {
   margin: -4px 0 0;
   text-align: right;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 .sns-create__media-picker {
@@ -412,12 +415,12 @@ async function submit() {
   border: 1px solid var(--murasaki-400);
   border-radius: 999px;
   color: var(--murasaki-700);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   cursor: pointer;
 }
 .sns-create__media-hint {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 .sns-create__previews {
@@ -458,14 +461,14 @@ async function submit() {
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-sm);
   padding: 10px 12px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
 }
 .sns-create__toggle {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
 }
 .sns-create__notice {
@@ -474,18 +477,18 @@ async function submit() {
   border-radius: var(--site-radius-sm);
   background: var(--site-surface-muted);
   color: var(--site-text-muted);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
 }
 .sns-create__error {
   margin: 0;
   color: var(--beni-600);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 .sns-create__uploading {
   margin: 0;
   color: var(--site-text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 .sns-create__actions {
   display: flex;

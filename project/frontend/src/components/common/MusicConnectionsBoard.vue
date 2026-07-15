@@ -327,7 +327,7 @@ function onArtistNav(artistId) {
 
 .mc-board__label {
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.1em;
   color: rgba(248, 244, 239, 0.6);
 }
@@ -356,7 +356,7 @@ function onArtistNav(artistId) {
   background: rgba(255, 255, 255, 0.06);
   color: #f8f4ef;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
 }
 
 .mc-board__input {
@@ -400,7 +400,7 @@ function onArtistNav(artistId) {
 .mc-board__counts {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   letter-spacing: 0.04em;
   color: rgba(248, 244, 239, 0.7);
 }
@@ -429,7 +429,7 @@ function onArtistNav(artistId) {
   background: rgba(201, 169, 97, 0.1);
   color: #f8f4ef;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.06em;
   cursor: pointer;
 }
@@ -440,7 +440,7 @@ function onArtistNav(artistId) {
 }
 
 .mc-board__tag-x {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1;
   opacity: 0.75;
 }
@@ -469,7 +469,7 @@ function onArtistNav(artistId) {
   margin: 0 0 8px;
   max-width: 420px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: rgba(248, 244, 239, 0.65);
 }
@@ -510,13 +510,13 @@ function onArtistNav(artistId) {
 }
 
 .mc-board__list-song {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 600;
   letter-spacing: 0.03em;
 }
 
 .mc-board__list-meta {
-  font-size: 10.5px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.03em;
   color: rgba(248, 244, 239, 0.5);
 }
@@ -542,7 +542,7 @@ function onArtistNav(artistId) {
 .mc-board__column-head {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.08em;
   font-weight: 600;
 }
@@ -605,14 +605,14 @@ function onArtistNav(artistId) {
 .mc-board__song-title {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: #f8f4ef;
 }
 
 .mc-board__song-credit {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: rgba(248, 244, 239, 0.55);
 }
 
@@ -627,7 +627,7 @@ function onArtistNav(artistId) {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   font-family: var(--ff-sans-jp);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.1em;
   color: rgba(248, 244, 239, 0.5);
 }
@@ -662,7 +662,7 @@ function onArtistNav(artistId) {
 .mc-board__hub-desc {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: rgba(248, 244, 239, 0.6);
 }
@@ -672,7 +672,7 @@ function onArtistNav(artistId) {
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.8;
   color: rgba(248, 244, 239, 0.7);
 }

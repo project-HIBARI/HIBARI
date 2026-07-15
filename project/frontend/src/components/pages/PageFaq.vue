@@ -69,7 +69,7 @@ const faqItems = [
 .page-faq__title {
   margin: 0 0 20px;
   font-family: var(--ff-mincho);
-  font-size: clamp(28px, 4vw, 36px);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--murasaki-800);
@@ -92,7 +92,7 @@ const faqItems = [
 
 .page-faq__ornament-diamond {
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   line-height: 1;
   color: var(--kin-600);
 }
@@ -124,7 +124,7 @@ const faqItems = [
 
 .page-faq__divider-diamond {
   flex-shrink: 0;
-  font-size: 8px;
+  font-size: var(--font-size-badge);
   line-height: 1;
   color: var(--kin-600);
 }
@@ -132,7 +132,7 @@ const faqItems = [
 .page-faq__item-title {
   margin: 0 0 10px;
   font-family: var(--ff-mincho);
-  font-size: clamp(18px, 2.5vw, 22px);
+  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--murasaki-800);
@@ -141,7 +141,7 @@ const faqItems = [
 .page-faq__item-desc {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.9;
   letter-spacing: 0.04em;
   color: var(--site-text-muted);

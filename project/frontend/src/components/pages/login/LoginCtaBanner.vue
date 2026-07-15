@@ -76,7 +76,7 @@ import { SITE_NAME, SITE_TAGLINE } from '../../../constants/site.js'
 .login-cta__title {
   margin: 0 0 10px;
   font-family: var(--ff-mincho);
-  font-size: clamp(20px, 2.4vw, 28px);
+  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--murasaki-800);
@@ -84,7 +84,7 @@ import { SITE_NAME, SITE_TAGLINE } from '../../../constants/site.js'
 .login-cta__sub {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   letter-spacing: 0.06em;
   color: var(--site-text-muted);
 }

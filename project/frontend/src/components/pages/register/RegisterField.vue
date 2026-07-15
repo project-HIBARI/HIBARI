@@ -85,13 +85,13 @@ function currentType() {
   align-items: center;
   gap: 8px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-form-label);
   font-weight: 500;
   letter-spacing: 0.04em;
   color: var(--murasaki-700);
 }
 .reg-field__required {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: #fff;
@@ -104,14 +104,17 @@ function currentType() {
 }
 .reg-field__input {
   width: 100%;
+  min-height: 44px;
   padding: 14px 16px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-form-input);
+  line-height: 1.4;
   color: var(--site-text);
   background: #f5f2ee;
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-sm);
   transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .reg-field__control--pw .reg-field__input {
   padding-right: 48px;
@@ -148,15 +151,17 @@ function currentType() {
 .reg-field__hint {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: var(--site-text) !important;
+  overflow-wrap: anywhere;
 }
 .reg-field__error {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: #c0453b;
+  overflow-wrap: anywhere;
 }
 </style>

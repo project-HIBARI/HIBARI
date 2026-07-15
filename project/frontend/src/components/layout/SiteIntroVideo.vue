@@ -158,14 +158,14 @@ onUnmounted(() => {
 .site-intro__fallback-label {
   margin: 0;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.28em;
   color: rgba(255, 255, 255, 0.72);
 }
 .site-intro__fallback-title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: clamp(28px, 5vw, 40px);
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
   letter-spacing: 0.2em;
   color: rgba(255, 251, 247, 0.95);
 }
@@ -204,7 +204,7 @@ onUnmounted(() => {
   transform: translateX(-50%);
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.16em;
   color: rgba(255, 255, 255, 0.72);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
@@ -216,7 +216,7 @@ onUnmounted(() => {
   bottom: 20px;
   padding: 8px 14px;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.88);
   background: rgba(30, 16, 24, 0.45);
@@ -234,11 +234,11 @@ onUnmounted(() => {
 @media (max-width: 767px) {
   .site-intro__brand {
     bottom: 72px;
-    font-size: 16px;
+    font-size: var(--font-size-body);
   }
   .site-intro__brand-sub {
     bottom: 48px;
-    font-size: 10px;
+    font-size: var(--font-size-badge);
   }
   .site-intro__skip {
     right: 16px;

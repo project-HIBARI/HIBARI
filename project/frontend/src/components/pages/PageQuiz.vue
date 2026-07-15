@@ -302,7 +302,7 @@ function retryQuiz() {
 .legend-quiz__eyebrow {
   margin: 0 0 14px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--kin-400);
@@ -321,7 +321,7 @@ function retryQuiz() {
   margin: 0 auto 18px;
   max-width: 520px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.9;
   color: rgba(248, 244, 239, 0.72);
 }
@@ -329,7 +329,7 @@ function retryQuiz() {
 .legend-quiz__meta {
   margin: 0 0 28px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.08em;
   color: rgba(201, 169, 97, 0.9);
 }
@@ -338,7 +338,7 @@ function retryQuiz() {
   display: block;
   margin: 0 0 8px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.08em;
   color: rgba(248, 244, 239, 0.65);
   text-align: left;
@@ -353,7 +353,7 @@ function retryQuiz() {
   background: rgba(122, 80, 136, 0.16);
   color: #f8f4ef;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   box-sizing: border-box;
   transition: border-color 0.2s, background 0.2s;
 }
@@ -417,14 +417,14 @@ function retryQuiz() {
 
 .legend-quiz__ranking-rank {
   font-family: var(--ff-mono);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--kin-400);
   text-align: center;
 }
 
 .legend-quiz__ranking-name {
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -432,7 +432,7 @@ function retryQuiz() {
 
 .legend-quiz__ranking-score {
   font-family: var(--ff-mono);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: rgba(248, 244, 239, 0.75);
 }
 
@@ -447,7 +447,7 @@ function retryQuiz() {
 .legend-quiz__progress-label {
   margin: 0;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.2em;
   color: var(--kin-400);
 }
@@ -455,7 +455,7 @@ function retryQuiz() {
 .legend-quiz__progress-pct {
   margin: 0;
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: rgba(248, 244, 239, 0.65);
 }
 
@@ -485,7 +485,7 @@ function retryQuiz() {
   border-radius: 999px;
   background: rgba(201, 169, 97, 0.1);
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.06em;
   color: var(--kin-400);
 }
@@ -555,14 +555,14 @@ function retryQuiz() {
   align-items: center;
   justify-content: center;
   font-family: var(--ff-latin);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 600;
   color: var(--kin-400);
 }
 
 .legend-quiz__option-text {
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.65;
   letter-spacing: 0.02em;
 }
@@ -598,7 +598,7 @@ function retryQuiz() {
 .legend-quiz__feedback-text {
   margin: 0 0 18px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.8;
   color: rgba(248, 244, 239, 0.8);
   text-align: left;
@@ -624,7 +624,7 @@ function retryQuiz() {
 .legend-quiz__result-score-label {
   margin: 8px 0 0;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   letter-spacing: 0.12em;
   color: rgba(248, 244, 239, 0.65);
 }
@@ -634,7 +634,7 @@ function retryQuiz() {
   padding-top: 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.7;
   color: rgba(248, 244, 239, 0.8);
 }
@@ -664,7 +664,7 @@ function retryQuiz() {
 .legend-quiz__copyright {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.08em;
   color: rgba(248, 244, 239, 0.35);
 }

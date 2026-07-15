@@ -49,7 +49,7 @@ const emit = defineEmits(['toggle-favorite', 'select'])
 .places-grid__empty {
   padding: var(--sp-7) var(--sp-5);
   text-align: center;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text-muted);
   background: var(--site-surface-muted);
   border: 1px dashed var(--site-border);

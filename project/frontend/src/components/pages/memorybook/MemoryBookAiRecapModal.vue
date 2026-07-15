@@ -84,7 +84,7 @@ watch(
 <style scoped>
 .mmb-recap__lead {
   margin: 0 0 var(--sp-5);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
@@ -92,7 +92,7 @@ watch(
 .mmb-recap__loading {
   padding: var(--sp-8) var(--sp-4);
   text-align: center;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text-muted);
 }
 
@@ -105,7 +105,7 @@ watch(
 
 .mmb-recap__text {
   margin: 0 0 var(--sp-4);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   line-height: 2.1;
   color: var(--site-text);
   white-space: pre-line;
@@ -113,7 +113,7 @@ watch(
 
 .mmb-recap__note {
   margin: 0;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--site-text-light);
 }
 

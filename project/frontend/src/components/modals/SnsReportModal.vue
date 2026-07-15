@@ -93,11 +93,11 @@ async function submit() {
 }
 .sns-report__done {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text);
 }
 .sns-report__label {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .sns-report__reasons {
@@ -109,7 +109,7 @@ async function submit() {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
   cursor: pointer;
 }
@@ -119,7 +119,7 @@ async function submit() {
   border-radius: var(--site-radius-md);
   padding: 10px 12px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.7;
   resize: vertical;
   color: var(--site-text);
@@ -127,7 +127,7 @@ async function submit() {
 .sns-report__error {
   margin: 0;
   color: var(--beni-600);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 .sns-report__actions {
   display: flex;

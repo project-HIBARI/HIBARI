@@ -155,7 +155,7 @@ function onShareClick(e) {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid var(--site-border);
   border-radius: 999px;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.08em;
   color: var(--murasaki-700);
 }
@@ -164,7 +164,7 @@ function onShareClick(e) {
   top: 10px;
   right: 10px;
   padding: 3px 8px;
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.1em;
   border-radius: 4px;
 }
@@ -184,7 +184,7 @@ function onShareClick(e) {
 .places-spot-card__title {
   margin: 0 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 17px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--site-text);
@@ -192,26 +192,27 @@ function onShareClick(e) {
 }
 .places-spot-card__location {
   margin: 0 0 2px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   line-height: 1.5;
 }
 .places-spot-card__region {
   margin: 0 0 10px;
   font-family: var(--ff-mono);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.1em;
   color: var(--kin-600);
 }
 .places-spot-card__desc {
   margin: 0 0 8px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.75;
   color: var(--site-text-muted);
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .places-spot-card__tips {
   display: flex;
@@ -221,7 +222,7 @@ function onShareClick(e) {
   padding: var(--sp-3);
   background: var(--site-surface-muted);
   border-radius: var(--site-radius-sm);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: var(--site-text-muted);
 }
@@ -234,13 +235,13 @@ function onShareClick(e) {
 }
 .places-spot-card__detail-text {
   margin: 0 0 8px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.8;
   color: var(--site-text);
 }
 .places-spot-card__event {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
@@ -268,7 +269,7 @@ function onShareClick(e) {
   background: rgba(192, 52, 47, 0.06);
 }
 .places-spot-card__share-icon {
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text-muted);
   line-height: 1;
 }

@@ -135,14 +135,14 @@ const timeline = HIBARU_DATA.timeline
 }
 .profile-timeline__year {
   font-family: var(--ff-latin);
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--kin-600);
   line-height: 1;
 }
 .profile-timeline__era {
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
   letter-spacing: 0.12em;
 }
@@ -150,7 +150,7 @@ const timeline = HIBARU_DATA.timeline
   flex-shrink: 0;
   padding: 4px 10px;
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.06em;
   color: var(--murasaki-700);
   background: var(--murasaki-100);
@@ -160,7 +160,7 @@ const timeline = HIBARU_DATA.timeline
 .profile-timeline__title {
   margin: 0 0 var(--sp-3);
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--site-text);
@@ -168,7 +168,7 @@ const timeline = HIBARU_DATA.timeline
 }
 .profile-timeline__body {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 2;
   color: var(--site-text-muted);
 }
@@ -185,7 +185,7 @@ const timeline = HIBARU_DATA.timeline
     left: 11px;
   }
   .profile-timeline__year {
-    font-size: 24px;
+    font-size: var(--font-size-title);
   }
   .profile-timeline__card {
     padding: var(--sp-4);

@@ -185,7 +185,7 @@ const statCards = [
 .msg-hero__title {
   margin: 0 0 var(--sp-3);
   font-family: var(--ff-mincho);
-  font-size: clamp(40px, 4.8vw, 56px);
+  font-size: clamp(2.5rem, 4.8vw, 3.5rem);
   font-weight: 800;
   letter-spacing: 0.14em;
   line-height: 1.15;
@@ -195,7 +195,7 @@ const statCards = [
 .msg-hero__subtitle {
   margin: 0 0 var(--sp-5);
   font-family: var(--ff-mincho);
-  font-size: clamp(16px, 1.8vw, 20px);
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   line-height: 1.65;
@@ -211,7 +211,7 @@ const statCards = [
 .msg-hero__desc p {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 2;
   letter-spacing: 0.04em;
   color: var(--site-text-muted);
@@ -237,7 +237,7 @@ const statCards = [
 .msg-hero__card-title {
   margin: 0 0 var(--sp-3);
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--site-text);
@@ -250,7 +250,7 @@ const statCards = [
 
 .msg-hero__card-num {
   font-family: var(--ff-mincho);
-  font-size: clamp(34px, 4vw, 44px);
+  font-size: clamp(2.125rem, 4vw, 2.75rem);
   font-weight: 800;
   letter-spacing: 0.04em;
   color: var(--murasaki-700);
@@ -259,7 +259,7 @@ const statCards = [
 .msg-hero__card-unit {
   margin-left: 4px;
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   color: var(--site-text-muted);
 }
@@ -272,7 +272,7 @@ const statCards = [
 .msg-hero__card-desc {
   margin: 0 0 var(--sp-5);
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.85;
   letter-spacing: 0.03em;
   color: var(--site-text-light);
@@ -319,15 +319,15 @@ const statCards = [
   }
 
   .msg-hero__title {
-    font-size: clamp(34px, 9vw, 44px);
+    font-size: clamp(2.125rem, 9vw, 2.75rem);
   }
 
   .msg-hero__subtitle {
-    font-size: 15px;
+    font-size: var(--font-size-body);
   }
 
   .msg-hero__desc p {
-    font-size: 12px;
+    font-size: var(--font-size-caption);
     line-height: 1.9;
   }
 

@@ -36,20 +36,20 @@ defineProps({
 }
 .page-head__kanji {
   font-family: var(--ff-mincho);
-  font-size: 72px;
+  font-size: 4.5rem;
   font-weight: 800;
   line-height: 1;
 }
 .page-head__title {
   font-family: var(--ff-mincho);
-  font-size: 34px;
+  font-size: var(--font-size-heading);
   margin: 0;
   letter-spacing: 0.08em;
 }
 .page-head__sub {
   font-family: var(--ff-latin);
   font-style: italic;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   margin-top: 5px;
   letter-spacing: 0.2em;
 }
@@ -89,13 +89,13 @@ defineProps({
     gap: 8px;
   }
   .page-head__kanji {
-    font-size: clamp(40px, 14vw, 72px);
+    font-size: clamp(2.5rem, 14vw, 4.5rem);
   }
   .page-head__title {
-    font-size: clamp(22px, 6vw, 34px);
+    font-size: clamp(1.375rem, 6vw, 2.125rem);
   }
   .page-head__sub {
-    font-size: 11px;
+    font-size: var(--font-size-caption);
     letter-spacing: 0.12em;
   }
   .page-head__rule {

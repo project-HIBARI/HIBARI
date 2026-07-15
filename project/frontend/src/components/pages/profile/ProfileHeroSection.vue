@@ -70,8 +70,10 @@ const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
   border: 1px solid var(--site-border);
 }
 .profile-hero__visual {
-  flex-shrink: 0;
-  width: 360px;
+  flex: 0 1 360px;
+  width: min(360px, 100%);
+  max-width: 360px;
+  min-width: 0;
   align-self: stretch;
   display: flex;
   align-items: flex-end;
@@ -80,7 +82,8 @@ const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
 }
 .profile-hero__photo {
   display: block;
-  width: 360px;
+  width: 100%;
+  max-width: 360px;
   height: 100%;
   object-fit: contain;
   object-position: left bottom;
@@ -92,13 +95,17 @@ const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
   display: flex;
   align-items: stretch;
   gap: var(--sp-4);
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
   margin-left: auto;
 }
 .profile-hero__ai {
   display: flex;
-  width: 320px;
-  flex-shrink: 0;
+  flex: 0 1 320px;
+  width: min(320px, 100%);
+  max-width: 320px;
+  min-width: 0;
 }
 .profile-hero__ai :deep(.top-ai-card) {
   width: 100%;
@@ -135,7 +142,7 @@ const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
 }
 .profile-hero__copy {
   flex: 1 1 auto;
-  min-width: 240px;
+  min-width: 0;
   max-width: 400px;
 }
 .profile-hero__title-row {
@@ -149,14 +156,14 @@ const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
   margin: 0 0 var(--sp-3);
   font-family: var(--ff-latin);
   font-style: italic;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.28em;
   color: var(--kin-600);
 }
 .profile-hero__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: clamp(40px, 4.2vw, 52px);
+  font-size: clamp(2.5rem, 4.2vw, 3.25rem);
   font-weight: 800;
   letter-spacing: 0.12em;
   color: var(--site-text);
@@ -165,7 +172,7 @@ const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
 .profile-hero__sub {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: clamp(15px, 1.6vw, 18px);
+  font-size: clamp(0.9375rem, 1.6vw, 1.125rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--murasaki-700);
@@ -173,13 +180,13 @@ const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
 }
 .profile-hero__desc {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 2;
   color: var(--site-text-muted);
   letter-spacing: 0.04em;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .profile-hero__inner {
     flex-direction: column;
     align-items: stretch;
@@ -227,6 +234,7 @@ const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
   .profile-hero__ai {
     width: 100%;
     max-width: none;
+    flex-basis: auto;
   }
 }
 </style>

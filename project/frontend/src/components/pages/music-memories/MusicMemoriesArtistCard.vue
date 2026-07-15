@@ -84,9 +84,13 @@ const metaTags = [
 
 <style scoped>
 .mm-artist-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
   border-radius: var(--site-radius-lg);
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -120,6 +124,7 @@ const metaTags = [
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  min-width: 0;
 }
 
 .mm-artist-card__image {
@@ -139,14 +144,15 @@ const metaTags = [
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px 22px 24px;
+  padding: clamp(16px, 3vw, 20px) clamp(14px, 3vw, 22px) clamp(18px, 3vw, 24px);
   gap: 6px;
+  min-width: 0;
 }
 
 .mm-artist-card__en {
   margin: 0;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--kin-400);
@@ -155,18 +161,20 @@ const metaTags = [
 .mm-artist-card__name {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 1.35rem;
+  font-size: clamp(1.15rem, 3vw, 1.35rem);
   letter-spacing: 0.06em;
   color: #f8f4ef;
+  overflow-wrap: break-word;
 }
 
 .mm-artist-card__tagline {
   margin: 0 0 12px;
   flex: 1;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-small, 0.875rem);
   line-height: 1.7;
   color: rgba(248, 244, 239, 0.65);
+  overflow-wrap: break-word;
 }
 
 .mm-artist-card__meta {
@@ -185,7 +193,7 @@ const metaTags = [
   border: 1px solid rgba(201, 169, 97, 0.28);
   background: rgba(201, 169, 97, 0.08);
   font-family: var(--ff-sans-jp);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.06em;
   color: rgba(248, 244, 239, 0.72);
 }
@@ -195,17 +203,20 @@ const metaTags = [
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  max-width: 100%;
   padding: 10px 20px;
-  min-height: 40px;
+  min-height: 44px;
   border-radius: var(--site-radius-sm);
   border: 1px solid var(--kin-600);
   background: linear-gradient(180deg, var(--kin-400) 0%, var(--kin-500) 100%);
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-small, 0.875rem);
   font-weight: 500;
   letter-spacing: 0.08em;
   color: var(--ink-900);
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 .mm-artist-card__badge {
@@ -216,7 +227,7 @@ const metaTags = [
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: transparent;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.12em;
   color: rgba(248, 244, 239, 0.5);
 }

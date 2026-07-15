@@ -61,7 +61,7 @@ const emit = defineEmits(['enter-site'])
 .music-connections__eyebrow {
   margin: 0 0 16px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--kin-400);

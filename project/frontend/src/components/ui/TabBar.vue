@@ -42,7 +42,7 @@ const emit = defineEmits(['update:active'])
   gap: 2px;
   border-bottom: 1px solid rgba(201, 169, 97, 0.2);
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-tab);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -84,22 +84,28 @@ const emit = defineEmits(['update:active'])
 }
 .tab-bar__badge {
   min-width: 16px;
-  height: 16px;
+  min-height: 16px;
+  height: auto;
   padding: 0 4px;
   border-radius: 999px;
   background: #c0453b;
   color: #fff;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   font-weight: 700;
-  line-height: 16px;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 @media (max-width: 767px) {
   .tab-bar {
-    font-size: 13px;
+    font-size: var(--font-size-button);
   }
   .tab-bar__btn {
     padding: 10px 12px;
+    min-height: 44px;
   }
 }
 

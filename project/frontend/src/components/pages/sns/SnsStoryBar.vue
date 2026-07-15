@@ -105,7 +105,7 @@ function onSelfAvatarClick() {
 .sns-story-bar__empty {
   margin: 0;
   padding: 14px 4px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--sns-text-muted, rgba(248, 244, 239, 0.5));
   white-space: nowrap;
 }
@@ -143,7 +143,7 @@ function onSelfAvatarClick() {
   overflow: hidden;
   background: var(--sns-purple, var(--murasaki-700));
   color: #fff;
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-family: var(--ff-sans-jp);
   border: 2px solid var(--sns-bg, #1a1418);
 }
@@ -167,7 +167,7 @@ function onSelfAvatarClick() {
   cursor: pointer;
 }
 .sns-story-bar__label {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--sns-text-muted, rgba(248, 244, 239, 0.7));
   max-width: 64px;
   overflow: hidden;

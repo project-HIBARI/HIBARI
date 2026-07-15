@@ -80,11 +80,14 @@ onUnmounted(() => {
   width: 100%;
   max-width: 600px;
   max-height: 85vh;
+  max-height: 85dvh;
   overflow-y: auto;
   z-index: 1;
   box-shadow: var(--site-shadow-md);
   color: var(--site-text);
   animation: modalShellIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  box-sizing: border-box;
+  min-width: 0;
 }
 .modal-shell__overlay {
   position: absolute;
@@ -97,43 +100,58 @@ onUnmounted(() => {
 }
 .modal-shell__close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 12px;
+  right: 12px;
   background: transparent;
   border: 0;
   color: var(--site-text-muted);
   cursor: pointer;
-  font-size: 22px;
+  font-size: var(--font-size-subtitle);
   line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .modal-shell__close:hover {
   color: var(--murasaki-700);
 }
 .modal-shell__title {
   font-family: var(--ff-mincho);
-  font-size: 22px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   margin-bottom: 24px;
   letter-spacing: 0.1em;
   color: var(--site-text);
-  padding-right: 32px;
+  padding-right: 40px;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 .modal-shell__rule {
   margin-bottom: 24px;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
   .modal-shell {
     padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
     align-items: center;
   }
   .modal-shell__panel {
     padding: 24px 20px;
     max-height: 90vh;
+    max-height: 90dvh;
   }
   .modal-shell__title {
-    font-size: 18px;
+    font-size: var(--font-size-emphasis);
     margin-bottom: 16px;
+    overflow-wrap: anywhere;
+  }
+  .modal-shell__close {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 

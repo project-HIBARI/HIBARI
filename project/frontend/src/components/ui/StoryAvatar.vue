@@ -91,7 +91,7 @@ function onClick() {
   overflow: hidden;
   background: var(--sns-purple, var(--murasaki-700));
   color: #fff;
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-family: var(--ff-sans-jp);
   border: 2px solid var(--sns-bg, #1a1418);
 }

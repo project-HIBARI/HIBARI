@@ -79,7 +79,7 @@ defineProps({
   background: var(--site-surface);
   border: 1.5px solid var(--site-border-strong);
   font-family: var(--ff-latin);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 700;
   color: var(--site-text-light);
   transition: background 0.25s, border-color 0.25s, color 0.25s;
@@ -97,11 +97,13 @@ defineProps({
 }
 .reg-steps__label {
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.02em;
   text-align: center;
   color: var(--site-text-light);
   line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .reg-steps__item--active .reg-steps__label {
   color: var(--murasaki-700);
@@ -113,12 +115,12 @@ defineProps({
 
 @media (max-width: 480px) {
   .reg-steps__label {
-    font-size: 10px;
+    font-size: var(--font-size-badge);
   }
   .reg-steps__dot {
     width: 28px;
     height: 28px;
-    font-size: 12px;
+    font-size: var(--font-size-caption);
   }
   .reg-steps__item::before {
     top: 13px;

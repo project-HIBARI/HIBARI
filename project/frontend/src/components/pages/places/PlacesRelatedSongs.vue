@@ -44,13 +44,13 @@ const songs = HIBARU_DATA.placeRelatedSongs
   margin-bottom: 6px;
 }
 .places-songs__note {
-  font-size: 16px;
+  font-size: var(--font-size-body);
   color: var(--murasaki-500);
 }
 .places-songs__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 17px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--site-text);
@@ -58,13 +58,13 @@ const songs = HIBARU_DATA.placeRelatedSongs
 .places-songs__place {
   margin: 0 0 8px;
   font-family: var(--ff-mono);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.1em;
   color: var(--kin-600);
 }
 .places-songs__desc {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.75;
   color: var(--site-text-muted);
 }

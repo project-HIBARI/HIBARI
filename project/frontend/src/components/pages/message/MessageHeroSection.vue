@@ -143,7 +143,7 @@ function onCardAction(action) {
 .msg-hero__inner {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 360px) minmax(0, 1fr);
   gap: var(--sp-6);
   align-items: stretch;
   min-width: 0;
@@ -157,7 +157,7 @@ function onCardAction(action) {
 .msg-hero__eyebrow {
   margin: 0 0 10px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.28em;
   color: var(--kin-600);
 }
@@ -172,7 +172,7 @@ function onCardAction(action) {
 .msg-hero__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: clamp(32px, 4vw, 44px);
+  font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 800;
   letter-spacing: 0.12em;
   color: var(--murasaki-800);
@@ -193,7 +193,7 @@ function onCardAction(action) {
 .msg-hero__subtitle {
   margin: 0 0 14px;
   font-family: var(--ff-mincho);
-  font-size: clamp(15px, 1.6vw, 18px);
+  font-size: clamp(0.9375rem, 1.6vw, 1.125rem);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--murasaki-700);
@@ -202,7 +202,7 @@ function onCardAction(action) {
 
 .msg-hero__desc {
   margin: 0 0 var(--sp-5);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.9;
   color: var(--site-text-muted);
 }
@@ -217,7 +217,7 @@ function onCardAction(action) {
   align-items: center;
   gap: 10px;
   font-family: var(--ff-latin);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.3em;
   color: var(--kin-600);
 }
@@ -240,7 +240,8 @@ function onCardAction(action) {
 
 .msg-hero__photo {
   display: block;
-  width: 360px;
+  width: 100%;
+  max-width: 360px;
   height: 100%;
   object-fit: contain;
   object-position: center bottom;
@@ -271,7 +272,7 @@ function onCardAction(action) {
 .msg-hero__card-title {
   margin: 0 0 var(--sp-3);
   font-family: var(--ff-mincho);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--site-text);
@@ -287,12 +288,12 @@ function onCardAction(action) {
 }
 
 .msg-hero__card-icon {
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
 }
 
 .msg-hero__card-num {
   font-family: var(--ff-mincho);
-  font-size: clamp(26px, 3vw, 34px);
+  font-size: clamp(1.625rem, 3vw, 2.125rem);
   font-weight: 800;
   letter-spacing: 0.02em;
   color: var(--murasaki-700);
@@ -300,7 +301,7 @@ function onCardAction(action) {
 
 .msg-hero__card-unit {
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--site-text-muted);
 }
@@ -312,7 +313,7 @@ function onCardAction(action) {
 
 .msg-hero__card-desc {
   margin: 0 0 var(--sp-4);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.75;
   color: var(--site-text-light);
 }
@@ -321,15 +322,16 @@ function onCardAction(action) {
   width: 100%;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
   .msg-hero__inner {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--sp-7);
   }
 
   .msg-hero__visual {
     order: -1;
     min-height: 280px;
+    min-width: 0;
   }
 
   .msg-hero__photo {
@@ -337,10 +339,12 @@ function onCardAction(action) {
     max-width: 360px;
     min-height: 280px;
     transform: scale(1.1);
+    margin-inline: auto;
   }
 
   .msg-hero__stats {
     order: 1;
+    width: 100%;
   }
 
   .msg-hero__scroll {

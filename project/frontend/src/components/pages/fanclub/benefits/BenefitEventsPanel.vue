@@ -101,7 +101,7 @@ function openApply(ev) {
 <style scoped>
 .benefit-panel__lead {
   margin: 0 0 16px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
@@ -128,32 +128,32 @@ function openApply(ev) {
 }
 .benefit-panel__date {
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   color: var(--murasaki-700);
 }
 .benefit-panel__time {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .benefit-panel__title {
   margin: 8px 0 4px;
-  font-size: 15px;
+  font-size: var(--font-size-body);
   color: var(--site-text);
 }
 .benefit-panel__note {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .benefit-panel__fee {
   margin: 10px 0 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--kin-600);
 }
 .benefit-panel__fee-regular {
   margin-left: 6px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 .benefit-panel__actions {
@@ -163,7 +163,7 @@ function openApply(ev) {
   margin-top: 12px;
 }
 .benefit-panel__priority {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   font-weight: 700;
 }

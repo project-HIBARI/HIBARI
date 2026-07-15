@@ -80,7 +80,7 @@ const medals = ['🥇', '🥈', '🥉']
   flex-shrink: 0;
   width: 36px;
   text-align: center;
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   font-family: var(--ff-latin);
   font-weight: 700;
   color: var(--kin-600);
@@ -92,7 +92,7 @@ const medals = ['🥇', '🥈', '🥉']
 .places-rank__name {
   display: block;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   color: var(--site-text);
   letter-spacing: 0.04em;
@@ -100,13 +100,13 @@ const medals = ['🥇', '🥈', '🥉']
 .places-rank__area {
   display: block;
   margin-top: 2px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .places-rank__score {
   flex-shrink: 0;
   font-family: var(--ff-mono);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--murasaki-600);
 }

@@ -43,11 +43,12 @@ const goods = [
 }
 .goods-modal__item {
   display: grid;
-  grid-template-columns: 80px 1fr auto;
+  grid-template-columns: 80px minmax(0, 1fr) auto;
   gap: 16px;
   align-items: center;
   border: 1px solid rgba(201, 169, 97, 0.25);
   padding: 20px;
+  min-width: 0;
 }
 .goods-modal__thumb {
   width: 80px;
@@ -58,35 +59,35 @@ const goods = [
   justify-content: center;
   border: 1px solid rgba(201, 169, 97, 0.2);
   font-family: var(--ff-mono);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--kin-500);
   text-align: center;
 }
 .goods-modal__title {
   margin: 0 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   color: var(--site-text);
 }
 .goods-modal__price {
   margin: 0;
   font-family: var(--ff-mono);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
 }
 .goods-modal__member {
   margin: 3px 0 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--kin-600);
 }
 .goods-modal__buy {
-  font-size: 11px !important;
+  font-size: var(--font-size-caption) !important;
   padding: 10px 16px !important;
   white-space: nowrap;
 }
 .goods-modal__note {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   line-height: 1.8;
   margin-top: 16px;
@@ -95,9 +96,9 @@ const goods = [
   color: var(--kin-600);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
   .goods-modal__item {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     text-align: center;
     padding: 16px;
   }
@@ -107,6 +108,7 @@ const goods = [
   .goods-modal__buy {
     width: 100%;
     justify-content: center;
+    white-space: normal;
   }
 }
 </style>

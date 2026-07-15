@@ -494,7 +494,7 @@ onMounted(() => {
 }
 .fc-account__guest-text {
   margin: 0 0 16px;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
@@ -508,7 +508,7 @@ onMounted(() => {
 .fc-account__heading {
   margin: 0 0 16px;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   color: var(--murasaki-700);
 }
@@ -526,13 +526,13 @@ onMounted(() => {
 }
 .fc-account__row dt {
   flex: 0 0 120px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 .fc-account__row dd {
   margin: 0;
   flex: 1;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
   word-break: break-all;
 }
@@ -544,12 +544,12 @@ onMounted(() => {
 }
 .fc-account__error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: #c0453b;
 }
 .fc-account__success {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: #2d6a4f;
 }
 .fc-account__section--logout {
@@ -558,7 +558,7 @@ onMounted(() => {
 }
 .fc-account__plan-text {
   margin: 0 0 12px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
 }
 .fc-account__plan-actions {

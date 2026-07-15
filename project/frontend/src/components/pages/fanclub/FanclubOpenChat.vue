@@ -758,7 +758,7 @@ onUnmounted(() => {
   background: #fff2f0;
   border: 1px solid #f0c4be;
   color: #a33b2f;
-  font-size: 13px;
+  font-size: var(--font-size-button);
 }
 .open-chat__layout {
   display: grid;
@@ -785,7 +785,7 @@ onUnmounted(() => {
 .open-chat__rooms-title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   color: var(--murasaki-700);
 }
 .open-chat__rooms-head {
@@ -801,7 +801,7 @@ onUnmounted(() => {
   border-radius: 999px;
   background: #c0453b;
   color: #fff;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -815,7 +815,7 @@ onUnmounted(() => {
   border-radius: var(--site-radius-sm);
   background: #fff;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   color: var(--murasaki-700);
   cursor: pointer;
@@ -825,7 +825,7 @@ onUnmounted(() => {
 }
 .open-chat__notify-hint {
   margin: 0 0 10px;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   line-height: 1.6;
   color: #a33b2f;
 }
@@ -866,7 +866,7 @@ onUnmounted(() => {
   border-radius: 50%;
   background: var(--murasaki-700);
   color: var(--kin-400);
-  font-size: 16px;
+  font-size: var(--font-size-body);
 }
 .open-chat__room-body {
   display: flex;
@@ -888,19 +888,19 @@ onUnmounted(() => {
   border-radius: 999px;
   background: #c0453b;
   color: #fff;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 .open-chat__room-name {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 700;
   color: var(--site-text);
 }
 .open-chat__room-preview {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.5;
   color: var(--site-text-muted);
   overflow: hidden;
@@ -908,7 +908,7 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 .open-chat__room-meta {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--murasaki-700);
 }
 .open-chat__panel {
@@ -939,7 +939,7 @@ onUnmounted(() => {
   border: 0;
   background: transparent;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   color: var(--murasaki-700);
   cursor: pointer;
@@ -964,7 +964,7 @@ onUnmounted(() => {
   background: #fff;
   box-shadow: var(--site-shadow-md);
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   color: var(--murasaki-700);
   cursor: pointer;
@@ -976,7 +976,7 @@ onUnmounted(() => {
 .open-chat__title {
   margin: 0 0 4px;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   color: var(--murasaki-700);
   display: flex;
   align-items: center;
@@ -984,7 +984,7 @@ onUnmounted(() => {
 }
 .open-chat__desc {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: var(--site-text-muted);
 }
@@ -997,7 +997,7 @@ onUnmounted(() => {
 .open-chat__meta-btn {
   border: 0;
   background: transparent;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   color: var(--murasaki-700);
   cursor: pointer;
@@ -1015,7 +1015,7 @@ onUnmounted(() => {
   padding: 32px 24px;
   text-align: center;
   color: var(--site-text-muted);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
 }
 .open-chat__messages {
@@ -1058,7 +1058,7 @@ onUnmounted(() => {
 }
 .open-chat__author {
   margin: 0 0 4px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   color: var(--murasaki-700);
 }
@@ -1069,7 +1069,7 @@ onUnmounted(() => {
 }
 .open-chat__text {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.7;
   color: var(--site-text);
   white-space: pre-wrap;
@@ -1078,7 +1078,7 @@ onUnmounted(() => {
 .open-chat__time {
   display: block;
   margin-top: 6px;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--site-text-light);
   text-align: right;
 }
@@ -1111,7 +1111,7 @@ onUnmounted(() => {
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-md);
   background: var(--site-surface-muted);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   cursor: pointer;
 }
 .open-chat__attach-btn:disabled {
@@ -1136,7 +1136,7 @@ onUnmounted(() => {
 }
 .open-chat__pending-name {
   flex: 1;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1145,7 +1145,7 @@ onUnmounted(() => {
 .open-chat__pending-remove {
   border: 0;
   background: transparent;
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   line-height: 1;
   cursor: pointer;
   color: var(--site-text-muted);
@@ -1188,7 +1188,7 @@ onUnmounted(() => {
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-md);
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.6;
 }
 .open-chat__member-list {
@@ -1212,7 +1212,7 @@ onUnmounted(() => {
   background: #fff;
 }
 .open-chat__member-name {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 700;
   color: var(--site-text);
 }
@@ -1221,12 +1221,12 @@ onUnmounted(() => {
   color: var(--site-text-muted);
 }
 .open-chat__member-plan {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
 }
 .open-chat__muted {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .open-chat__empty {
@@ -1237,7 +1237,7 @@ onUnmounted(() => {
 .open-chat__platform-lead {
   margin: 0 0 var(--sp-4);
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.7;
   color: rgba(248, 244, 239, 0.72);
 }
@@ -1255,7 +1255,7 @@ onUnmounted(() => {
   border-radius: 999px;
   background: #fff;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   cursor: pointer;
 }
@@ -1268,7 +1268,7 @@ onUnmounted(() => {
 
 .open-chat__room-artist {
   display: block;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--kin-600);
   letter-spacing: 0.06em;
   margin-bottom: 2px;

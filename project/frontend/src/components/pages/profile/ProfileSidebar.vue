@@ -92,13 +92,13 @@ const rows = [
 .profile-sidebar__caption {
   margin: 0;
   font-family: var(--ff-mono);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.04em;
   color: var(--site-text-light);
 }
 .profile-sidebar__bio {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 2;
   color: var(--site-text-muted);
   letter-spacing: 0.04em;
@@ -111,7 +111,7 @@ const rows = [
 .profile-sidebar__heading {
   margin: 0 0 var(--sp-4);
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--murasaki-700);
@@ -126,7 +126,7 @@ const rows = [
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 10px 16px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
 }
 .profile-sidebar__dt {
   font-family: var(--ff-mincho);
@@ -145,7 +145,7 @@ const rows = [
   padding: 0;
 }
 .profile-sidebar__award-item {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.75;
   color: var(--site-text);
   padding: 8px 0 8px 12px;

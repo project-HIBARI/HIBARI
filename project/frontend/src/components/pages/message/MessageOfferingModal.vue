@@ -175,7 +175,7 @@ async function submitOffering() {
 
 .msg-modal__lead {
   margin: 0 0 var(--sp-5);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
@@ -184,7 +184,7 @@ async function submitOffering() {
   margin: var(--sp-6) 0;
   text-align: center;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   line-height: 1.9;
   color: var(--murasaki-700);
 }
@@ -202,7 +202,7 @@ async function submitOffering() {
   width: 100%;
   margin-bottom: var(--sp-3);
   font-family: var(--ff-mincho);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   letter-spacing: 0.1em;
   color: var(--site-text);
 }
@@ -240,7 +240,7 @@ async function submitOffering() {
   border-radius: 50%;
   background: var(--kin-500);
   color: #fff;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 20px;
   text-align: center;
   opacity: 0;
@@ -255,7 +255,7 @@ async function submitOffering() {
 
 .msg-modal__flower-name {
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.08em;
   color: var(--site-text);
 }
@@ -269,7 +269,7 @@ async function submitOffering() {
   display: block;
   margin-bottom: 6px;
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.08em;
   color: var(--site-text-muted);
 }
@@ -281,7 +281,7 @@ async function submitOffering() {
   color: var(--site-text);
   padding: 12px 14px;
   font-family: var(--ff-serif);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   border-radius: var(--site-radius-sm);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -299,7 +299,7 @@ async function submitOffering() {
 
 .msg-modal__error {
   margin: 0 0 var(--sp-4);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--beni-600);
 }
 

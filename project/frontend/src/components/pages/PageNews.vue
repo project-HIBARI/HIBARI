@@ -78,7 +78,7 @@ const items = HIBARU_DATA.news
   margin: 0 0 var(--sp-7);
   max-width: 720px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.9;
   color: var(--site-text-muted);
 }
@@ -122,7 +122,7 @@ const items = HIBARU_DATA.news
 }
 .page-news__date {
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
   letter-spacing: 0.04em;
   transition: color 0.45s ease;
@@ -133,7 +133,7 @@ const items = HIBARU_DATA.news
 .page-news__new {
   display: inline-block;
   padding: 1px 7px;
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   font-family: var(--ff-sans-jp);
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -142,7 +142,7 @@ const items = HIBARU_DATA.news
   border-radius: 3px;
 }
 .page-news__label {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--murasaki-700);
   background: var(--murasaki-100);
   padding: 2px 8px;
@@ -152,7 +152,7 @@ const items = HIBARU_DATA.news
 .page-news__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   line-height: 1.65;
   letter-spacing: 0.04em;
@@ -166,7 +166,7 @@ const items = HIBARU_DATA.news
 }
 .page-news__member-lead {
   margin: 0 0 var(--sp-5);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.85;
   color: var(--site-text-muted);
 }

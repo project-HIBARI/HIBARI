@@ -48,7 +48,7 @@ const { toasts, dismissToast } = useToast()
   border: 1px solid var(--sns-border, rgba(255, 255, 255, 0.12));
   color: var(--sns-ivory, #f6f0ea);
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   text-align: center;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   cursor: pointer;

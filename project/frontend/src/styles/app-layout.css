@@ -19,6 +19,33 @@ body {
 }
 #app {
   min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/*
+ * —— 共通レスポンシブ基盤（フェーズ3A'）——
+ * 既存の .site-main / .main-pad / .pc-only は維持。
+ * 新規・段階改修向けの opt-in ユーティリティのみ追加する。
+ * ブレークポイント数値は tokens.css の方針コメントに合わせ、@media には数値を直接書く。
+ */
+
+/* 中央寄せコンテナ（既存 .site-main と別系統。必要な画面だけ付与） */
+.layout-container {
+  width: 100%;
+  max-width: var(--layout-max-width);
+  margin-inline: auto;
+  padding-inline: var(--layout-gutter);
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* コンテンツ画像・動画が親幅を超えない（アイコン／ロゴ／地図／背景には付けない） */
+.content-media img,
+.content-media video {
+  max-width: 100%;
+  height: auto;
+  box-sizing: border-box;
+  display: block;
 }
 
 .pc-only {
@@ -58,7 +85,7 @@ body {
   background: linear-gradient(180deg, var(--site-surface-muted) 0%, var(--site-bg) 100%);
   color: var(--site-text-muted);
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 .app-footer__sns {
   display: flex;
@@ -68,7 +95,7 @@ body {
 }
 .app-footer__sns-label {
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.12em;
   color: var(--site-text-light);
   margin-right: 4px;
@@ -84,7 +111,7 @@ body {
   background: var(--site-surface-muted);
   color: var(--site-text-muted);
   text-decoration: none;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   transition: border-color 0.2s, color 0.2s;
 }
@@ -108,7 +135,7 @@ body {
   color: var(--murasaki-700);
 }
 .app-footer__copy {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.06em;
   color: var(--site-text-light);
   text-align: right;

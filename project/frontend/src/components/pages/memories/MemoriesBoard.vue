@@ -99,20 +99,20 @@ function authorLine(m) {
   color: var(--kin-400);
   padding: 3px 12px;
   font-family: var(--ff-mono);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.15em;
   border: 1px solid var(--kin-500);
   border-radius: var(--site-radius-sm);
 }
 .mem-board__title {
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   margin: 0 0 12px;
   letter-spacing: 0.06em;
   color: var(--site-text);
 }
 .mem-board__body {
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 2;
   color: var(--site-text-muted);
   margin: 0;
@@ -143,7 +143,7 @@ function authorLine(m) {
   gap: 8px;
 }
 .mem-board__author {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 .mem-board__actions {
@@ -158,7 +158,7 @@ function authorLine(m) {
   border-radius: var(--site-radius-sm);
   background: #fff;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   cursor: pointer;
 }
@@ -182,12 +182,12 @@ function authorLine(m) {
   align-items: center;
   gap: 5px;
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 .mem-board__meta {
   color: var(--site-text-light);
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 
 @media (max-width: 480px) {

@@ -66,7 +66,7 @@ onMounted(load)
   margin: 0;
   padding: 20px 0;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
 }
 .sns-follow-list__state--error {
@@ -80,7 +80,7 @@ onMounted(load)
   color: var(--murasaki-700);
   border-radius: 999px;
   padding: 6px 16px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   cursor: pointer;
 }
 .sns-follow-list {
@@ -98,6 +98,7 @@ onMounted(load)
   align-items: center;
   gap: 10px;
   width: 100%;
+  min-width: 0;
   padding: 8px 4px;
   background: transparent;
   border: 0;
@@ -114,7 +115,7 @@ onMounted(load)
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   flex-shrink: 0;
 }
 .sns-follow-list__avatar img {
@@ -123,7 +124,11 @@ onMounted(load)
   object-fit: cover;
 }
 .sns-follow-list__name {
-  font-size: 13px;
+  min-width: 0;
+  font-size: var(--font-size-button);
   color: var(--site-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

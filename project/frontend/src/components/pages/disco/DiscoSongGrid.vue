@@ -62,7 +62,7 @@ const emptyMessages = {
   border-radius: var(--site-radius-lg);
   color: var(--site-text-muted);
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   line-height: 1.8;
 }
 .disco-grid__empty p {

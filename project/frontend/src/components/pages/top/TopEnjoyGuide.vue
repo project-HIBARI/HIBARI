@@ -67,20 +67,20 @@ const guides = [
 }
 .top-enjoy__icon {
   font-family: var(--ff-mincho);
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--murasaki-600);
   line-height: 1;
 }
 .top-enjoy__card-title {
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   color: var(--site-text);
   letter-spacing: 0.04em;
 }
 .top-enjoy__card-desc {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
 }

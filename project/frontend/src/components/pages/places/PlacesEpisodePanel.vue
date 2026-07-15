@@ -40,7 +40,7 @@ const episodes = HIBARU_DATA.placeEpisodes
 .places-episodes__heading {
   margin: 0 0 10px;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--site-text);
@@ -48,7 +48,7 @@ const episodes = HIBARU_DATA.placeEpisodes
 }
 .places-episodes__body {
   margin: 0 0 var(--sp-3);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.85;
   color: var(--site-text-muted);
 }
@@ -56,7 +56,7 @@ const episodes = HIBARU_DATA.placeEpisodes
   margin: 0;
   padding-top: var(--sp-3);
   border-top: 1px solid var(--site-border);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   letter-spacing: 0.04em;
 }

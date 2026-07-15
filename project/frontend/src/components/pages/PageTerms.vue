@@ -124,19 +124,19 @@ const articles = [
 .page-terms__ornament-diamond,
 .page-terms__ornament-mark {
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   line-height: 1;
   color: var(--kin-600);
 }
 
 .page-terms__ornament-mark {
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 
 .page-terms__title {
   margin: 0 0 20px;
   font-family: var(--ff-mincho);
-  font-size: clamp(28px, 4vw, 36px);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--murasaki-800);
@@ -145,7 +145,7 @@ const articles = [
 .page-terms__lead {
   margin: 0 0 20px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 2;
   letter-spacing: 0.04em;
   color: var(--site-text-muted);
@@ -176,7 +176,7 @@ const articles = [
 
 .page-terms__divider-diamond {
   flex-shrink: 0;
-  font-size: 8px;
+  font-size: var(--font-size-badge);
   line-height: 1;
   color: var(--kin-600);
 }
@@ -184,7 +184,7 @@ const articles = [
 .page-terms__article-title {
   margin: 0 0 12px;
   font-family: var(--ff-mincho);
-  font-size: clamp(17px, 2.2vw, 20px);
+  font-size: clamp(1.0625rem, 2.2vw, 1.25rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--murasaki-800);
@@ -194,7 +194,7 @@ const articles = [
   margin: 0 auto;
   max-width: 720px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 2;
   letter-spacing: 0.04em;
   color: var(--site-text-muted);
@@ -215,7 +215,7 @@ const articles = [
   }
 
   .page-terms__article-body {
-    font-size: 12px;
+    font-size: var(--font-size-caption);
     line-height: 1.9;
   }
 }

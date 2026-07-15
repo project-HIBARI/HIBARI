@@ -118,7 +118,7 @@ function onCrumb(action) {
 .mmb-filter__title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: clamp(24px, 2.6vw, 30px);
+  font-size: clamp(1.5rem, 2.6vw, 1.875rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--murasaki-800);
@@ -126,7 +126,7 @@ function onCrumb(action) {
 
 .mmb-filter__lead {
   margin: 0 0 12px;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.9;
   color: var(--site-text-muted);
 }
@@ -134,13 +134,13 @@ function onCrumb(action) {
 .mmb-filter__count {
   margin: 0;
   font-family: var(--ff-latin);
-  font-size: 28px;
+  font-size: var(--font-size-heading);
   font-weight: 700;
   color: var(--murasaki-700);
 }
 
 .mmb-filter__count small {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-family: var(--ff-mincho);
   margin-left: 4px;
 }
@@ -178,7 +178,7 @@ function onCrumb(action) {
   border-radius: 999px;
   background: var(--murasaki-100);
   font-family: var(--ff-mincho);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.06em;
   color: var(--murasaki-700);
   margin-bottom: 8px;
@@ -187,7 +187,7 @@ function onCrumb(action) {
 .mmb-filter__entry-title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: 17px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   color: var(--site-text);
   line-height: 1.5;
@@ -196,13 +196,13 @@ function onCrumb(action) {
 .mmb-filter__date {
   margin: 0 0 6px;
   font-family: var(--ff-mono);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 
 .mmb-filter__desc {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
@@ -228,7 +228,7 @@ function onCrumb(action) {
 }
 
 .mmb-filter__arrow {
-  font-size: 22px;
+  font-size: var(--font-size-subtitle);
   color: var(--murasaki-500);
 }
 
@@ -243,7 +243,7 @@ function onCrumb(action) {
 
 .mmb-filter__empty {
   color: var(--site-text-muted);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -256,12 +256,12 @@ function onCrumb(action) {
 
 .mmb-state--loading {
   color: var(--site-text-muted);
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 
 .mmb-state--error p {
   margin: 0 0 var(--sp-4);
   color: var(--beni-600);
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 </style>

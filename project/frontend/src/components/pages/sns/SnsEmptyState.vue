@@ -54,13 +54,13 @@ defineEmits(['action'])
 .sns-empty__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   color: var(--sns-ivory);
 }
 .sns-empty__message {
   margin: 0;
   max-width: 320px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.8;
   color: var(--sns-text-muted);
 }

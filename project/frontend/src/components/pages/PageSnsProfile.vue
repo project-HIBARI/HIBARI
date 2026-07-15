@@ -648,7 +648,7 @@ onUnmounted(() => {
   margin: 0;
   padding: 24px 12px;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--sns-text-muted);
 }
 .sns-profile__state--error {
@@ -704,13 +704,19 @@ onUnmounted(() => {
   font-family: var(--ff-mincho);
   font-size: 1.2rem;
   color: var(--sns-ivory);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 .sns-profile__bio {
   margin: 0 0 8px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: rgba(246, 240, 234, 0.8);
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .sns-profile__bio--empty {
   color: var(--sns-text-muted);
@@ -719,7 +725,7 @@ onUnmounted(() => {
 .sns-profile__stats {
   display: flex;
   gap: 14px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: rgba(246, 240, 234, 0.8);
 }
 .sns-profile__stats button {
@@ -761,18 +767,18 @@ onUnmounted(() => {
 }
 .sns-profile__shortcut-title {
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 600;
 }
 .sns-profile__shortcut-sub {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--sns-text-muted);
   line-height: 1.5;
 }
 .sns-profile__section-title {
   margin: 0 0 -6px;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--sns-ivory);
 }
 .sns-profile__activity {
@@ -832,12 +838,31 @@ onUnmounted(() => {
   right: 4px;
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   padding: 2px 6px;
   border-radius: 999px;
 }
 
+@media (max-width: 767px) {
+  .sns-profile__shortcuts {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sns-profile__shortcut-sub {
+    overflow-wrap: anywhere;
+  }
+}
+
 @media (max-width: 420px) {
+  .sns-profile__head {
+    gap: 12px;
+  }
+
+  .sns-profile__avatar {
+    width: 72px;
+    height: 72px;
+  }
+
   .sns-profile__shortcuts {
     grid-template-columns: 1fr;
   }

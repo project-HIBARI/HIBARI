@@ -57,16 +57,19 @@ function formatRelativeTime(iso) {
 <style scoped>
 .notification-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   width: 100%;
+  max-width: 100%;
   min-height: 64px;
-  padding: 10px 14px;
+  min-width: 0;
+  padding: 12px 14px;
   background: transparent;
   border: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
   text-align: left;
+  box-sizing: border-box;
 }
 
 .notification-item--unread {
@@ -85,7 +88,7 @@ function formatRelativeTime(iso) {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-family: var(--ff-sans-jp);
 }
 
@@ -118,19 +121,21 @@ function formatRelativeTime(iso) {
 }
 
 .notification-item__message {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.5;
   color: var(--sns-ivory, #f8f4ef);
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .notification-item__time {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--sns-text-muted, rgba(248, 244, 239, 0.5));
 }
 
 .notification-item__deleted {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-style: italic;
   color: rgba(248, 244, 239, 0.45);
 }

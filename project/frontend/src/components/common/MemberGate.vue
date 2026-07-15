@@ -59,19 +59,19 @@ const state = computed(() => getAccessState(props.permission))
 }
 .member-gate__icon {
   margin: 0 0 8px;
-  font-size: 22px;
+  font-size: var(--font-size-subtitle);
 }
 .member-gate__title {
   margin: 0 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   color: var(--site-text);
 }
 .member-gate__text {
   margin: 0 0 14px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
@@ -84,7 +84,7 @@ const state = computed(() => getAccessState(props.permission))
 .member-gate__btn {
   padding: 8px 16px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   border-radius: 999px;
   border: 1px solid var(--site-border-strong);
   background: var(--site-surface);

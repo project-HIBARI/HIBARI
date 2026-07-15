@@ -300,12 +300,12 @@ body.site-intro-active {
 
 .disco-song-card.motion-card:hover,
 .places-spot-card.motion-card:hover,
-.fc-benefits__item.motion-card:hover,
-.page-news__item.motion-card:hover,
-.page-fc-site__perk.motion-card:hover {
+.page-news__item.motion-card:hover {
   transform: var(--motion-lift);
   box-shadow: 0 12px 32px rgba(60, 40, 30, 0.14);
 }
+
+/* ファンクラブ特典カードの lift は各コンポーネント側で定義 */
 
 .page-fc-site__perk--highlight .page-fc-site__perk-btn {
   animation: motionFeatureHighlight 4.2s var(--motion-ease) infinite;
@@ -351,7 +351,15 @@ body.site-intro-active {
   .ui-btn--primary:hover:not(:disabled),
   .ui-btn--outline:hover:not(:disabled),
   .ui-btn--gold:hover:not(:disabled),
-  .motion-button:hover:not(:disabled) {
+  .motion-button:hover:not(:disabled),
+  .page-fc-site__perk:hover,
+  .page-fc-site__perk:focus-within,
+  .page-fc-site__perk:active,
+  .page-fc-site__perk--lifted,
+  .fc-benefits__item:hover,
+  .fc-benefits__item:focus-within,
+  .fc-benefits__item:active,
+  .fc-benefits__item--lifted {
     transform: none;
   }
   .motion-image:hover img,

@@ -55,20 +55,20 @@ defineProps({
 .sns-usage-card__message {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 600;
   color: var(--sns-gold);
 }
 .sns-usage-card__reset {
   margin: 2px 0 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--sns-text-muted);
 }
 .sns-usage-card__deco {
   position: absolute;
   right: 14px;
   bottom: -6px;
-  font-size: 34px;
+  font-size: 2.125rem;
   color: rgba(228, 190, 99, 0.14);
   pointer-events: none;
 }

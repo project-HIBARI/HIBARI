@@ -73,7 +73,7 @@ const emit = defineEmits(['open-fanclub'])
   border: 1px solid rgba(201, 169, 97, 0.45);
   background: rgba(255, 255, 255, 0.1);
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.12em;
   color: var(--kin-400);
   margin-bottom: 12px;
@@ -82,7 +82,7 @@ const emit = defineEmits(['open-fanclub'])
 .mmb-premium__title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--paper-50);
@@ -91,7 +91,7 @@ const emit = defineEmits(['open-fanclub'])
 
 .mmb-premium__desc {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.85;
   color: rgba(255, 255, 255, 0.82);
   max-width: 560px;
@@ -104,7 +104,7 @@ const emit = defineEmits(['open-fanclub'])
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px 16px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: rgba(255, 255, 255, 0.78);
 }
 
@@ -122,5 +122,21 @@ const emit = defineEmits(['open-fanclub'])
 
 .mmb-premium__btn {
   flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .mmb-premium__inner {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--sp-5);
+  }
+
+  .mmb-premium__list {
+    grid-template-columns: 1fr;
+  }
+
+  .mmb-premium__btn {
+    width: 100%;
+  }
 }
 </style>

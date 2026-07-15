@@ -170,7 +170,7 @@ function onClick(pv) {
 }
 .disco-pv__placeholder-text {
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.12em;
   color: var(--site-text-muted);
 }
@@ -185,7 +185,7 @@ function onClick(pv) {
   top: 8px;
   right: 8px;
   padding: 3px 8px;
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.1em;
   color: #fff;
   background: var(--kin-600);
@@ -219,21 +219,21 @@ function onClick(pv) {
 }
 .disco-pv__year {
   font-family: var(--ff-mono);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.15em;
   color: var(--kin-600);
 }
 .disco-pv__title {
   margin: 6px 0 4px;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--site-text);
 }
 .disco-pv__note {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: var(--site-text-muted);
 }

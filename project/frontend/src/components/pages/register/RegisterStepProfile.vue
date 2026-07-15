@@ -70,7 +70,7 @@ const genderOptions = [
 .reg-step__title {
   margin: 0 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--murasaki-700);
@@ -78,7 +78,7 @@ const genderOptions = [
 .reg-step__desc {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
 }

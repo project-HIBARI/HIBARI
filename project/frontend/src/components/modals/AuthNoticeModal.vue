@@ -63,18 +63,18 @@ const messages = {
   border: 1px solid var(--murasaki-400);
   border-radius: 999px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.1em;
 }
 .auth-notice__text {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.9;
   color: var(--site-text);
 }
 .auth-notice__note {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.8;
   color: var(--site-text-muted);
 }

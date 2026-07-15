@@ -179,7 +179,7 @@ function onPremiumAction(action) {
   border-radius: var(--site-radius-lg);
   border: 1px solid rgba(122, 80, 136, 0.18);
   background: rgba(245, 235, 248, 0.65);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.75;
   color: var(--site-text-muted);
 }
@@ -195,7 +195,7 @@ function onPremiumAction(action) {
 .mmb-year__title {
   margin: 0 0 12px;
   font-family: var(--ff-mincho);
-  font-size: clamp(28px, 3vw, 36px);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--murasaki-800);
@@ -203,7 +203,7 @@ function onPremiumAction(action) {
 
 .mmb-year__lead {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.95;
   color: var(--site-text-muted);
 }
@@ -248,7 +248,7 @@ function onPremiumAction(action) {
 .mmb-year__stat-label {
   display: block;
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.06em;
   color: var(--site-text-muted);
   margin-bottom: 6px;
@@ -256,14 +256,14 @@ function onPremiumAction(action) {
 
 .mmb-year__stat-val {
   font-family: var(--ff-latin);
-  font-size: 28px;
+  font-size: var(--font-size-heading);
   font-weight: 700;
   color: var(--murasaki-700);
   line-height: 1;
 }
 
 .mmb-year__stat-val small {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-family: var(--ff-mincho);
   margin-left: 2px;
 }
@@ -298,7 +298,7 @@ function onPremiumAction(action) {
   top: 20px;
   width: 36px;
   font-family: var(--ff-latin);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 700;
   color: var(--kin-600);
   text-align: right;
@@ -331,7 +331,7 @@ function onPremiumAction(action) {
   border-radius: 999px;
   background: var(--murasaki-100);
   font-family: var(--ff-mincho);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.06em;
   color: var(--murasaki-700);
   margin-bottom: 8px;
@@ -340,7 +340,7 @@ function onPremiumAction(action) {
 .mmb-year__entry-title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: 17px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   color: var(--site-text);
   line-height: 1.5;
@@ -349,13 +349,13 @@ function onPremiumAction(action) {
 .mmb-year__entry-date {
   margin: 0 0 6px;
   font-family: var(--ff-mono);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 
 .mmb-year__entry-desc {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
@@ -381,7 +381,7 @@ function onPremiumAction(action) {
 }
 
 .mmb-year__entry-arrow {
-  font-size: 22px;
+  font-size: var(--font-size-subtitle);
   color: var(--murasaki-500);
 }
 
@@ -406,17 +406,17 @@ function onPremiumAction(action) {
 
 .mmb-year__empty {
   color: var(--site-text-muted);
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 
 .mmb-state--loading {
   color: var(--site-text-muted);
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 
 .mmb-state--error p {
   margin: 0 0 var(--sp-4);
   color: var(--beni-600);
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 </style>

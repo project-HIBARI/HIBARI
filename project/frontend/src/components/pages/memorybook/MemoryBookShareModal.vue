@@ -100,7 +100,7 @@ async function copyOnly() {
 <style scoped>
 .mmb-share__lead {
   margin: 0 0 var(--sp-4);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
@@ -116,7 +116,7 @@ async function copyOnly() {
 .mmb-share__preview-title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   color: var(--murasaki-800);
 }
@@ -124,7 +124,7 @@ async function copyOnly() {
 .mmb-share__preview-text {
   margin: 0 0 10px;
   font-family: var(--ff-serif);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   white-space: pre-wrap;
   color: var(--site-text);
@@ -132,20 +132,20 @@ async function copyOnly() {
 
 .mmb-share__preview-url {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
   word-break: break-all;
 }
 
 .mmb-share__message {
   margin: 0 0 var(--sp-3);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
 }
 
 .mmb-share__error {
   margin: 0 0 var(--sp-3);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--beni-600);
 }
 

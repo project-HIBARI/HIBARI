@@ -183,7 +183,7 @@ function onForgotPassword() {
 .login-card__corner::after {
   content: '❧';
   position: absolute;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--kin-600);
   line-height: 1;
 }
@@ -219,21 +219,24 @@ function onForgotPassword() {
 }
 .login-card__label {
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 500;
   letter-spacing: 0.04em;
   color: var(--site-text);
 }
 .login-card__input {
   width: 100%;
+  min-height: 44px;
   padding: 14px 16px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-form-input, var(--font-size-small));
+  line-height: 1.4;
   color: var(--site-text);
   background: #f5f2ee;
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-sm);
   transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 .login-card__input::placeholder {
   color: var(--site-text-light);
@@ -274,7 +277,7 @@ function onForgotPassword() {
   align-items: center;
   gap: 8px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   cursor: pointer;
 }
@@ -289,7 +292,7 @@ function onForgotPassword() {
   border: 0;
   padding: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   text-decoration: underline;
   cursor: pointer;
@@ -302,8 +305,9 @@ function onForgotPassword() {
   margin: 0;
   padding: 10px 12px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
+  overflow-wrap: anywhere;
   color: #9b2c2c;
   background: #fff5f5;
   border: 1px solid #f0c4c4;
@@ -318,7 +322,7 @@ function onForgotPassword() {
   margin-top: 4px;
   padding: 16px 24px;
   font-family: var(--ff-sans-jp);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 500;
   letter-spacing: 0.12em;
   color: #fff;
@@ -349,7 +353,7 @@ function onForgotPassword() {
 .login-card__register-title {
   margin: 0 0 10px;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--site-text);
@@ -357,7 +361,7 @@ function onForgotPassword() {
 .login-card__register-desc {
   margin: 0 0 18px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.75;
   color: var(--site-text-muted);
 }
@@ -370,7 +374,7 @@ function onForgotPassword() {
   max-width: 320px;
   padding: 12px 20px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   letter-spacing: 0.06em;
   color: var(--site-text);
   background: var(--site-surface);

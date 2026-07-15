@@ -78,7 +78,7 @@ function onMineClick() {
   padding: 6px 14px;
   cursor: pointer;
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.06em;
   border-radius: var(--site-radius-sm);
   transition: background 0.2s, border-color 0.2s, color 0.2s;

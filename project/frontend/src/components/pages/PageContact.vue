@@ -271,7 +271,7 @@ function onSubmit(event) {
 .page-contact__star {
   position: absolute;
   color: rgba(201, 169, 97, 0.35);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1;
 }
 
@@ -283,7 +283,7 @@ function onSubmit(event) {
 .page-contact__star--2 {
   top: 34%;
   right: 200px;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
 }
 
 .page-contact__inner {
@@ -321,19 +321,19 @@ function onSubmit(event) {
 .page-contact__ornament-diamond,
 .page-contact__ornament-mark {
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   line-height: 1;
   color: var(--kin-600);
 }
 
 .page-contact__ornament-mark {
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 
 .page-contact__title {
   margin: 0 0 20px;
   font-family: var(--ff-mincho);
-  font-size: clamp(28px, 4vw, 36px);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--murasaki-800);
@@ -342,7 +342,7 @@ function onSubmit(event) {
 .page-contact__lead {
   margin: 0 0 20px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 2;
   letter-spacing: 0.04em;
   color: var(--site-text-muted);
@@ -352,7 +352,7 @@ function onSubmit(event) {
   margin: 0 0 20px;
   padding: 12px 16px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.7;
   color: var(--murasaki-700);
   background: var(--murasaki-100);
@@ -363,7 +363,7 @@ function onSubmit(event) {
 .page-contact__error-banner {
   margin: 0 0 20px;
   padding: 12px 16px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--beni-600);
   background: #fff5f4;
   border: 1px solid var(--beni-300);
@@ -389,14 +389,14 @@ function onSubmit(event) {
   display: block;
   margin-bottom: 8px;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--murasaki-800);
 }
 
 .page-contact__required {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 500;
   color: var(--beni-600);
 }
@@ -407,7 +407,7 @@ function onSubmit(event) {
   width: 100%;
   padding: 12px 14px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text);
   background: #faf8f5;
   border: 1px solid var(--site-border);
@@ -448,14 +448,14 @@ function onSubmit(event) {
 .page-contact__error {
   margin: 6px 0 0;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--beni-600);
 }
 
 .page-contact__privacy {
   margin: 8px 0 28px;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.8;
   color: var(--site-text-light);
   text-align: center;
@@ -471,7 +471,7 @@ function onSubmit(event) {
   max-width: 100%;
   padding: 14px 48px;
   font-family: var(--ff-mincho);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.14em;
   color: #fff;

@@ -243,7 +243,7 @@ function submit() {
 <style scoped>
 .mmb-edit__lead {
   margin: 0 0 var(--sp-5);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
@@ -270,7 +270,7 @@ function submit() {
   background: var(--site-surface-muted);
   cursor: pointer;
   font-family: var(--ff-mincho);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--murasaki-700);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -281,7 +281,7 @@ function submit() {
 }
 
 .mmb-edit__flower-change {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 
@@ -299,7 +299,7 @@ function submit() {
   display: block;
   margin-bottom: 6px;
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 
@@ -311,7 +311,7 @@ function submit() {
   border-radius: var(--site-radius-sm);
   background: var(--site-surface);
   font-family: var(--ff-serif);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
 }
 
@@ -329,7 +329,7 @@ function submit() {
 
 .mmb-edit__error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--beni-600);
 }
 

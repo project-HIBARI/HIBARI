@@ -273,7 +273,7 @@ onUnmounted(() => {
 .fc-chat__sidebar-title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 700;
   color: var(--site-text);
 }
@@ -281,7 +281,7 @@ onUnmounted(() => {
   background: transparent;
   border: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   cursor: pointer;
 }
@@ -291,7 +291,7 @@ onUnmounted(() => {
 .fc-chat__sidebar-loading,
 .fc-chat__empty {
   padding: 16px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
   text-align: center;
 }
@@ -321,7 +321,7 @@ onUnmounted(() => {
 }
 .fc-chat__room-name {
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text);
   line-height: 1.4;
   overflow: hidden;
@@ -329,7 +329,7 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 .fc-chat__room-date {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--site-text-light);
 }
 .fc-chat__main {
@@ -351,7 +351,7 @@ onUnmounted(() => {
   border: 0;
   padding: 4px 0;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   cursor: pointer;
 }
@@ -370,13 +370,13 @@ onUnmounted(() => {
 .fc-chat__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   color: var(--murasaki-700);
 }
 .fc-chat__notice {
   padding: 8px 20px;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   line-height: 1.6;
   color: var(--site-text-muted);
   background: var(--site-bg-pink);
@@ -416,7 +416,7 @@ onUnmounted(() => {
 .fc-chat__bubble {
   padding: 10px 14px;
   max-width: 80%;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   font-family: var(--ff-serif);
   border-radius: var(--site-radius-md);
@@ -433,7 +433,7 @@ onUnmounted(() => {
   border-radius: 12px 12px 12px 4px;
 }
 .fc-chat__label {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--kin-600);
   letter-spacing: 0.12em;
   margin-bottom: 4px;
@@ -441,7 +441,7 @@ onUnmounted(() => {
 }
 .fc-chat__typing {
   color: var(--murasaki-600);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-family: var(--ff-mincho);
 }
 .fc-chat__welcome {
@@ -453,7 +453,7 @@ onUnmounted(() => {
   gap: 12px;
   text-align: center;
   color: var(--site-text-muted);
-  font-size: 13px;
+  font-size: var(--font-size-button);
 }
 .fc-chat__welcome-avatar {
   width: 72px;
@@ -466,7 +466,7 @@ onUnmounted(() => {
 .fc-chat__error {
   margin: 0;
   padding: 0 20px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: #c0453b;
 }
 .fc-chat__input-row {
@@ -481,7 +481,7 @@ onUnmounted(() => {
   min-width: 0;
   padding: 12px 14px;
   font-family: var(--ff-serif);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
   background: #f5f2ee;
   border: 1px solid var(--site-border);

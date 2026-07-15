@@ -60,6 +60,9 @@ const useDesignOverlay = computed(() => normalizedDesignId.value >= 1)
 .mmb-cover {
   position: relative;
   perspective: 800px;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 1;
 }
 
 .mmb-cover:not(.mmb-cover--with-design) {
@@ -67,18 +70,21 @@ const useDesignOverlay = computed(() => normalizedDesignId.value >= 1)
 }
 
 .mmb-cover--lg {
-  width: 220px;
-  height: 300px;
+  width: min(220px, 100%);
+  aspect-ratio: 11 / 15;
+  height: auto;
 }
 
 .mmb-cover--md {
-  width: 168px;
-  height: 228px;
+  width: min(168px, 100%);
+  aspect-ratio: 168 / 228;
+  height: auto;
 }
 
 .mmb-cover--sm {
-  width: 120px;
-  height: 164px;
+  width: min(120px, 100%);
+  aspect-ratio: 120 / 164;
+  height: auto;
 }
 
 .mmb-cover__spine {
@@ -154,7 +160,7 @@ const useDesignOverlay = computed(() => normalizedDesignId.value >= 1)
 .mmb-cover__ornament {
   position: relative;
   z-index: 1;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--kin-400);
   letter-spacing: 0.3em;
   margin-bottom: 12px;
@@ -165,7 +171,7 @@ const useDesignOverlay = computed(() => normalizedDesignId.value >= 1)
   z-index: 1;
   margin: 0 0 8px;
   font-family: var(--ff-latin);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.28em;
   color: rgba(255, 255, 255, 0.85);
 }
@@ -175,7 +181,7 @@ const useDesignOverlay = computed(() => normalizedDesignId.value >= 1)
   z-index: 1;
   margin: 0;
   font-family: var(--ff-latin);
-  font-size: 42px;
+  font-size: 2.625rem;
   font-weight: 700;
   line-height: 1;
   color: var(--kin-400);
@@ -183,7 +189,7 @@ const useDesignOverlay = computed(() => normalizedDesignId.value >= 1)
 }
 
 .mmb-cover--sm .mmb-cover__year {
-  font-size: 28px;
+  font-size: var(--font-size-heading);
 }
 
 .mmb-cover__flowers {
@@ -193,12 +199,12 @@ const useDesignOverlay = computed(() => normalizedDesignId.value >= 1)
   align-items: center;
   gap: 10px;
   margin: 16px 0 12px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: rgba(255, 255, 255, 0.55);
 }
 
 .mmb-cover__note {
-  font-size: 16px;
+  font-size: var(--font-size-body);
   color: var(--kin-500);
 }
 
@@ -216,7 +222,7 @@ const useDesignOverlay = computed(() => normalizedDesignId.value >= 1)
   z-index: 1;
   margin: 0;
   font-family: var(--ff-latin);
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.35em;
   color: rgba(255, 255, 255, 0.5);
 }

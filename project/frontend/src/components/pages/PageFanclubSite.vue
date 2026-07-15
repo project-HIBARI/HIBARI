@@ -87,10 +87,23 @@ const perks = [
   { feature: 'gallery', icon: '✧', label: '限定コンテンツ', desc: 'ハイレゾ音源・会員ギャラリー', premium: true },
 ]
 
+/** DevTools スマホ表示でも浮かぶよう、:hover ではなくクラスで制御 */
+const liftedPerk = ref(null)
+
+function liftPerk(feature) {
+  liftedPerk.value = feature
+}
+
+function unliftPerk(feature) {
+  if (liftedPerk.value === feature) liftedPerk.value = null
+}
+
 function setSection(id) {
   section.value = id
   emit('section-change', id)
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  nextTick(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  })
 }
 
 function onNeedLogin() {
@@ -127,7 +140,8 @@ function useFeature(feature) {
 }
 
 function backToBenefits() {
-  setSection('benefits')
+  // 特典詳細からの戻りはトップ（概要）へ。特典一覧は縦に長くなりやすいため
+  setSection('overview')
 }
 
 /** タブ切替後に特典カードを確実に表示 */
@@ -166,9 +180,22 @@ watch(section, () => {
             v-for="p in perks"
             :key="p.label"
             class="page-fc-site__perk motion-card"
-            :class="{ 'page-fc-site__perk--highlight': p.feature === 'ai' || p.feature === 'board' }"
+            :class="{
+              'page-fc-site__perk--highlight': p.feature === 'ai' || p.feature === 'board',
+              'page-fc-site__perk--lifted': liftedPerk === p.feature,
+            }"
+            @pointerenter="liftPerk(p.feature)"
+            @pointerleave="unliftPerk(p.feature)"
+            @mouseenter="liftPerk(p.feature)"
+            @mouseleave="unliftPerk(p.feature)"
           >
-            <button type="button" class="page-fc-site__perk-btn" @click="useFeature(p.feature)">
+            <button
+              type="button"
+              class="page-fc-site__perk-btn"
+              @focus="liftPerk(p.feature)"
+              @blur="unliftPerk(p.feature)"
+              @click="useFeature(p.feature)"
+            >
               <span class="page-fc-site__perk-icon">{{ p.icon }}</span>
               <div>
                 <h3 class="page-fc-site__perk-title">
@@ -281,7 +308,7 @@ watch(section, () => {
   padding: 12px 16px;
   max-width: 720px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.7;
   color: var(--murasaki-700);
   background: var(--murasaki-100);
@@ -292,7 +319,7 @@ watch(section, () => {
   margin: 0 0 var(--sp-6);
   max-width: 720px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.9;
   color: var(--site-text-muted);
 }
@@ -310,23 +337,50 @@ watch(section, () => {
   margin: 0 0 var(--sp-5);
   max-width: 720px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
 .page-fc-site__perk-grid {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 14px 6px 28px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--sp-4);
 }
 .page-fc-site__perk {
+  position: relative;
   border: 1px solid var(--kin-500);
   border-radius: var(--site-radius-md);
   background: linear-gradient(135deg, var(--murasaki-100) 0%, var(--site-surface) 100%);
-  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(60, 40, 30, 0.06);
+  overflow: visible;
+  isolation: isolate;
+  will-change: transform, box-shadow;
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+/* CSS :hover に加え、JS の .--lifted でも必ず浮く（DevTools スマホ表示向け） */
+.page-fc-site__perk:hover,
+.page-fc-site__perk.motion-card:hover,
+.page-fc-site__perk:focus-within,
+.page-fc-site__perk--lifted,
+.page-fc-site__perk.motion-card.page-fc-site__perk--lifted {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow:
+    0 18px 40px rgba(60, 40, 30, 0.26),
+    0 6px 14px rgba(93, 58, 107, 0.18);
+  border-color: var(--murasaki-500, #7a4d8a);
+  background: linear-gradient(135deg, #fff 0%, var(--murasaki-100) 100%);
+  z-index: 2;
+}
+.page-fc-site__perk:focus-within {
+  outline: 2px solid var(--murasaki-400, #a67fb3);
+  outline-offset: 2px;
 }
 .page-fc-site__perk-btn {
   display: flex;
@@ -338,9 +392,23 @@ watch(section, () => {
   background: transparent;
   cursor: pointer;
   text-align: left;
+  border-radius: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
-.page-fc-site__perk-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
+.page-fc-site__perk:hover .page-fc-site__perk-btn,
+.page-fc-site__perk--lifted .page-fc-site__perk-btn,
+.page-fc-site__perk:focus-within .page-fc-site__perk-btn {
+  background: rgba(255, 255, 255, 0.45);
+}
+.page-fc-site__perk:active,
+.page-fc-site__perk--lifted:active {
+  transform: translateY(-3px) scale(0.995);
+  box-shadow: 0 8px 18px rgba(60, 40, 30, 0.16);
+  border-color: var(--murasaki-500, #7a4d8a);
+  z-index: 2;
+}
+.page-fc-site__perk-btn:active {
+  background: rgba(255, 255, 255, 0.55);
 }
 .page-fc-site__perk-icon {
   flex-shrink: 0;
@@ -352,12 +420,12 @@ watch(section, () => {
   border-radius: 50%;
   background: var(--murasaki-700);
   color: var(--kin-400);
-  font-size: 16px;
+  font-size: var(--font-size-body);
 }
 .page-fc-site__perk-title {
   margin: 0 0 4px;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--murasaki-700);
   display: flex;
@@ -367,14 +435,14 @@ watch(section, () => {
 }
 .page-fc-site__perk-premium {
   font-family: var(--ff-sans-jp);
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   font-weight: 700;
   color: var(--kin-600);
   letter-spacing: 0.06em;
 }
 .page-fc-site__perk-desc {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: var(--site-text-muted);
 }

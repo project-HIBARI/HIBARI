@@ -125,18 +125,32 @@ function onClick(card) {
   background: var(--site-surface-muted);
   overflow: hidden;
 }
+/* PC横並びでも画像枠を埋め、サイズばらつきを抑える */
+.site-categories__visual :deep(.page-image-card),
+.site-categories__visual :deep(.page-image-card__media) {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+  padding: 0;
+}
+.site-categories__visual :deep(.page-image-card__img),
+.site-categories__visual :deep(img) {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: contain;
+  object-position: center;
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
 .home-category-card:hover .site-categories__visual :deep(.page-image-card__img),
 .home-category-card:hover .site-categories__visual :deep(img) {
   transform: scale(1.05);
 }
-.site-categories__visual :deep(.page-image-card__img),
-.site-categories__visual :deep(img) {
-  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
-}
 .site-categories__title {
   margin: 0 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--site-text);
@@ -144,7 +158,7 @@ function onClick(card) {
 }
 .site-categories__desc {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.55;
   color: var(--site-text-muted);
 }
@@ -152,7 +166,7 @@ function onClick(card) {
   position: absolute;
   right: 12px;
   bottom: 16px;
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   color: var(--murasaki-500);
   line-height: 1;
   transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), color 0.35s ease;
@@ -163,7 +177,7 @@ function onClick(card) {
     grid-template-columns: repeat(3, 1fr);
   }
 }
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
   .site-categories {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -171,9 +185,62 @@ function onClick(card) {
 @media (max-width: 767px) {
   .site-categories {
     grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: var(--sp-5);
   }
+
+  .site-categories__card {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .site-categories__body {
+    padding: 12px 14px 8px;
+  }
+
+  /*
+   * スマホ縦積み時: 画像は適度に見せつつ縦幅・余白を抑える。
+   * 16:9 だと画像エリアが伸びすぎるため、固定高＋contain で詰める。
+   */
   .site-categories__visual {
-    min-width: 72px;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: 132px;
+    aspect-ratio: auto;
+    background: transparent;
+  }
+
+  .site-categories__visual :deep(.page-image-card),
+  .site-categories__visual :deep(.page-image-card__media) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    aspect-ratio: auto;
+    padding: 6px 10px;
+    border-radius: 0;
+  }
+
+  .site-categories__visual :deep(.page-image-card__img),
+  .site-categories__visual :deep(img) {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .site-categories__title,
+  .site-categories__desc {
+    overflow-wrap: anywhere;
+  }
+
+  .site-categories__arrow {
+    right: 12px;
+    bottom: 10px;
   }
 }
 </style>

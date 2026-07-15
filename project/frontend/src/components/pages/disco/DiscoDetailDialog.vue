@@ -275,7 +275,7 @@ async function onJoinChat() {
 .disco-detail__year {
   display: block;
   font-family: var(--ff-mono);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.15em;
   color: var(--kin-600);
   margin-bottom: 4px;
@@ -284,14 +284,14 @@ async function onJoinChat() {
   margin: 0;
   font-family: var(--ff-latin);
   font-style: italic;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text-muted);
 }
 .disco-detail__dl {
   display: grid;
   grid-template-columns: 80px 1fr;
   gap: 10px 16px;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   margin: 0;
 }
 .disco-detail__dl dt {
@@ -305,7 +305,7 @@ async function onJoinChat() {
 }
 .disco-detail__mono {
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 .disco-detail__note {
   margin-top: var(--sp-5);
@@ -313,7 +313,7 @@ async function onJoinChat() {
   background: var(--site-surface-muted);
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-sm);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text);
 }
@@ -327,14 +327,14 @@ async function onJoinChat() {
 .disco-memory__title {
   margin: 0 0 4px;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--site-text);
 }
 .disco-memory__count {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .disco-memory__types {
@@ -354,7 +354,7 @@ async function onJoinChat() {
   border-radius: var(--site-radius-lg);
   background: var(--site-surface);
   color: var(--site-text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, color 0.2s;
 }
@@ -372,7 +372,7 @@ async function onJoinChat() {
 .disco-memory__comment-label {
   display: block;
   margin-bottom: 6px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .disco-memory__comment-input {
@@ -383,12 +383,12 @@ async function onJoinChat() {
   border-radius: var(--site-radius-sm);
   background: var(--site-surface);
   color: var(--site-text);
-  font-size: 13px;
+  font-size: var(--font-size-button);
 }
 .disco-memory__comment-count {
   display: block;
   margin: 4px 0 10px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   text-align: right;
 }
@@ -406,7 +406,7 @@ async function onJoinChat() {
   border-radius: var(--site-radius-lg);
   background: var(--site-surface);
   color: var(--site-text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   white-space: nowrap;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, color 0.2s;
@@ -421,12 +421,12 @@ async function onJoinChat() {
 }
 .disco-memory__error {
   margin: 0 0 10px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--beni-700);
 }
 .disco-memory__success {
   margin: 0 0 10px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
 }
 .disco-memory__submit {
@@ -438,7 +438,7 @@ async function onJoinChat() {
   background: var(--murasaki-700);
   color: #fff;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   letter-spacing: 0.1em;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
@@ -463,7 +463,7 @@ async function onJoinChat() {
   border-radius: var(--site-radius-lg);
   background: var(--site-surface);
   color: var(--site-text);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   cursor: pointer;
   transition: border-color 0.2s;
 }
@@ -476,7 +476,7 @@ async function onJoinChat() {
 }
 .disco-memory__list-hint {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .disco-memory__items {
@@ -496,7 +496,7 @@ async function onJoinChat() {
   padding: 8px 10px;
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-sm);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text);
 }
 .disco-memory__item-name {
@@ -529,10 +529,10 @@ async function onJoinChat() {
   }
   .disco-detail__dl dt {
     margin-top: 8px;
-    font-size: 11px;
+    font-size: var(--font-size-caption);
   }
   .disco-detail__dl dd {
-    font-size: 13px;
+    font-size: var(--font-size-button);
   }
 }
 </style>

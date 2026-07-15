@@ -154,6 +154,7 @@ onUnmounted(() => {
   width: 100%;
   max-width: 620px;
   max-height: 85vh;
+  max-height: 85dvh;
   background: var(--site-surface) !important;
   border: 1px solid var(--kin-500);
   border-radius: var(--site-radius-lg);
@@ -170,7 +171,7 @@ onUnmounted(() => {
 .terms__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--site-text) !important;
@@ -180,7 +181,7 @@ onUnmounted(() => {
   border: 0;
   color: var(--site-text-muted) !important;
   cursor: pointer;
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   line-height: 1;
 }
 .terms__close:hover {
@@ -205,7 +206,7 @@ onUnmounted(() => {
 .terms__h3 {
   margin: 0 0 14px;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--murasaki-700) !important;
@@ -213,7 +214,7 @@ onUnmounted(() => {
 .terms__p {
   margin: 0 0 12px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.9;
   color: var(--site-text) !important;
 }
@@ -226,7 +227,7 @@ onUnmounted(() => {
 .terms__hint {
   margin: 0 0 12px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   text-align: center;
   color: var(--kin-600);
 }
@@ -238,7 +239,7 @@ onUnmounted(() => {
   flex: 0 0 auto;
   padding: 13px 24px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   letter-spacing: 0.06em;
   color: var(--site-text);
   background: var(--site-surface);
@@ -255,7 +256,7 @@ onUnmounted(() => {
   flex: 1 1 auto;
   padding: 13px 24px;
   font-family: var(--ff-sans-jp);
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 500;
   letter-spacing: 0.12em;
   color: #fff;
@@ -275,13 +276,14 @@ onUnmounted(() => {
   box-shadow: none;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
   .terms {
     padding: 0;
     align-items: flex-end;
   }
   .terms__panel {
     max-height: 92vh;
+    max-height: 92dvh;
     border-radius: var(--site-radius-lg) var(--site-radius-lg) 0 0;
   }
   .terms__header {
@@ -294,7 +296,15 @@ onUnmounted(() => {
     padding: 16px 20px;
   }
   .terms__footer {
-    padding: 14px 20px 20px;
+    padding: 14px 20px max(20px, env(safe-area-inset-bottom, 0px));
+  }
+  .terms__actions {
+    flex-direction: column;
+  }
+  .terms__cancel,
+  .terms__agree {
+    width: 100%;
+    white-space: normal;
   }
 }
 </style>

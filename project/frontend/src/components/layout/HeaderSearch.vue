@@ -71,10 +71,12 @@ onUnmounted(() => {
   gap: 6px;
   min-width: 0;
   max-width: 200px;
+  min-height: 44px;
   padding: 4px 10px;
   border: 1px solid var(--site-border);
   border-radius: 999px;
   background: #fff;
+  box-sizing: border-box;
 }
 .header-search__icon {
   flex-shrink: 0;
@@ -85,7 +87,8 @@ onUnmounted(() => {
   border: 0;
   background: transparent;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-form-input);
+  line-height: 1.4;
   color: var(--site-text);
   outline: none;
 }
@@ -126,19 +129,20 @@ onUnmounted(() => {
 }
 .header-search__type {
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   padding: 2px 8px;
   background: var(--murasaki-100);
   color: var(--murasaki-700);
   border-radius: 999px;
 }
 .header-search__label {
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
+  overflow-wrap: anywhere;
 }
 .header-search__empty {
   padding: 12px 14px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 

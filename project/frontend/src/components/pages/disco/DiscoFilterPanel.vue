@@ -199,7 +199,7 @@ function isDecadeActive(start, end) {
   border: 1px solid var(--site-border-strong);
   border-radius: var(--site-radius-sm);
   font-family: var(--ff-serif);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
   outline: none;
 }
@@ -227,7 +227,7 @@ function isDecadeActive(start, end) {
   border: 1px solid var(--site-border-strong);
   border-radius: var(--site-radius-sm);
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.08em;
   color: var(--site-text-muted);
   cursor: pointer;
@@ -248,7 +248,7 @@ function isDecadeActive(start, end) {
   padding: 1px 6px;
   background: rgba(255, 255, 255, 0.25);
   border-radius: 999px;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
 }
 .disco-filter__field {
   display: flex;
@@ -257,7 +257,7 @@ function isDecadeActive(start, end) {
 }
 .disco-filter__label {
   font-family: var(--ff-mincho);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.1em;
   color: var(--site-text-muted);
 }
@@ -267,14 +267,14 @@ function isDecadeActive(start, end) {
   border: 1px solid var(--site-border-strong);
   border-radius: var(--site-radius-sm);
   font-family: var(--ff-serif);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text);
   min-width: 140px;
 }
 .disco-filter__count {
   margin-left: auto;
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--kin-600);
   letter-spacing: 0.08em;
 }
@@ -290,7 +290,7 @@ function isDecadeActive(start, end) {
   border: 1px solid var(--site-border);
   border-radius: 999px;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   cursor: pointer;
 }
@@ -305,7 +305,7 @@ function isDecadeActive(start, end) {
   gap: 10px;
   flex-wrap: wrap;
   font-family: var(--ff-mono);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .disco-filter__slider {

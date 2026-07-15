@@ -211,7 +211,7 @@ async function submitOffering() {
   align-items: center;
   gap: 8px;
   font-family: var(--ff-mincho);
-  font-size: clamp(20px, 2.2vw, 24px);
+  font-size: clamp(1.25rem, 2.2vw, 1.5rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--murasaki-800);
@@ -219,7 +219,7 @@ async function submitOffering() {
 
 .msg-offer__lead {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.8;
   color: var(--murasaki-700);
 }
@@ -228,7 +228,7 @@ async function submitOffering() {
   margin: 0;
   padding: var(--sp-5) 0;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.9;
   color: var(--murasaki-700);
   text-align: center;
@@ -277,7 +277,7 @@ async function submitOffering() {
 .msg-offer__flower-label {
   margin-top: 8px;
   font-family: var(--ff-mincho);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.04em;
   color: var(--murasaki-700);
   line-height: 1.5;
@@ -316,11 +316,12 @@ async function submitOffering() {
   display: block;
   margin-bottom: 6px;
   font-family: var(--ff-mincho);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   line-height: 1.4;
   letter-spacing: 0;
   color: var(--site-text-muted);
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .msg-offer__label-note {
@@ -335,7 +336,7 @@ async function submitOffering() {
   color: var(--site-text);
   padding: 10px 12px;
   font-family: var(--ff-serif);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   border-radius: var(--site-radius-sm);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -361,7 +362,7 @@ async function submitOffering() {
   margin-top: 6px;
   text-align: right;
   font-family: var(--ff-mono);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--site-text-light);
 }
 
@@ -372,7 +373,7 @@ async function submitOffering() {
   column-gap: 10px;
   width: 100%;
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
   cursor: pointer;
@@ -400,7 +401,7 @@ async function submitOffering() {
 
 .msg-offer__error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--beni-600);
 }
 
@@ -411,29 +412,27 @@ async function submitOffering() {
 
 .msg-offer__note {
   margin: var(--sp-5) 0 0;
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   line-height: 1.7;
   color: var(--site-text-light);
   text-align: center;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1023px) {
   .msg-offer__body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--sp-4);
+  }
+
+  .msg-offer__row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
   }
 
   .msg-offer__flower-frame {
     min-height: 140px;
-    max-width: 132px;
+    max-width: min(132px, 100%);
     margin: 0 auto;
-  }
-}
-
-@media (max-width: 480px) {
-  .msg-offer__row {
-    grid-template-columns: 1fr;
-    align-items: stretch;
   }
 }
 </style>

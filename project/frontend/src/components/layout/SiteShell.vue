@@ -777,7 +777,6 @@ function handleAiModalAuth(mode) {
 .site-shell {
   min-height: 100vh;
   font-family: var(--ff-serif);
-  font-size: var(--size-base);
   position: relative;
   overflow-x: clip;
 }

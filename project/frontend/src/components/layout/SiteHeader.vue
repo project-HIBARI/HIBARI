@@ -176,7 +176,7 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.7);
   color: var(--murasaki-700);
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 500;
   letter-spacing: 0.06em;
   cursor: pointer;
@@ -361,14 +361,16 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 6px 12px;
+  min-height: 44px;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-navigation);
   font-weight: 500;
   letter-spacing: 0.06em;
   white-space: nowrap;
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 
 .site-header__btn--login {
@@ -405,10 +407,11 @@ onUnmounted(() => {
 }
 
 .site-header__text-size :deep(.text-size-control__btn) {
-  min-width: 26px;
-  height: 26px;
-  padding: 0 4px;
-  font-size: 11px;
+  min-width: 40px;
+  min-height: 40px;
+  height: auto;
+  padding: 0 8px;
+  font-size: var(--font-size-caption);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -445,7 +448,7 @@ onUnmounted(() => {
 
   .site-header__btn {
     padding: 7px 14px;
-    font-size: 13px;
+    font-size: var(--font-size-button);
   }
 }
 
@@ -505,7 +508,7 @@ onUnmounted(() => {
     background: transparent;
     cursor: pointer;
     font-family: var(--ff-sans-jp);
-    font-size: 13px;
+    font-size: var(--font-size-button);
     font-weight: 500;
     letter-spacing: 0.05em;
     color: var(--site-text);
@@ -543,26 +546,19 @@ onUnmounted(() => {
     max-width: none;
   }
 
+  /* 横ナビ表示時はハンバーガーを消し、文字サイズをヘッダーへ */
   .site-header__text-size {
-    display: none;
+    display: flex;
     order: 2;
   }
 
-  .site-header__menu {
-    display: flex;
-    width: 38px;
-    height: 38px;
-    padding: 8px;
-    border: 1px solid rgba(93, 58, 107, 0.12);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.62);
-    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  .site-header__text-size :deep(.text-size-control__btn) {
+    min-width: 40px;
+    min-height: 40px;
   }
 
-  .site-header__menu:hover {
-    background: #fff;
-    border-color: rgba(93, 58, 107, 0.24);
-    box-shadow: 0 2px 10px rgba(40, 30, 25, 0.08);
+  .site-header__menu {
+    display: none;
   }
 }
 
@@ -593,7 +589,7 @@ onUnmounted(() => {
 
   .site-header__nav-link {
     padding: 5px 0;
-    font-size: 13px;
+    font-size: var(--font-size-button);
     letter-spacing: 0.06em;
   }
 
@@ -620,9 +616,10 @@ onUnmounted(() => {
   }
 
   .site-header__text-size :deep(.text-size-control__btn) {
-    min-width: 28px;
-    height: 28px;
-    font-size: 12px;
+    min-width: 40px;
+    min-height: 40px;
+    height: auto;
+    font-size: var(--font-size-caption);
   }
 
   .site-header__text-size :deep(.text-size-control__label) {
@@ -633,7 +630,7 @@ onUnmounted(() => {
 
   .site-header__text-size :deep(.text-size-control__label)::after {
     content: '文字';
-    font-size: 12px;
+    font-size: var(--font-size-caption);
     letter-spacing: 0.04em;
   }
 }
@@ -653,7 +650,7 @@ onUnmounted(() => {
   }
 
   .site-header__nav-link {
-    font-size: 14px;
+    font-size: var(--font-size-small);
     letter-spacing: 0.08em;
   }
 
@@ -667,7 +664,7 @@ onUnmounted(() => {
 
   .site-header__text-size :deep(.text-size-control__label) {
     display: inline;
-    font-size: 12px;
+    font-size: var(--font-size-caption);
   }
 
   .site-header__text-size :deep(.text-size-control__label)::after {

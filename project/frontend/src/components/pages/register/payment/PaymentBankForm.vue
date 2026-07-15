@@ -149,7 +149,7 @@ const accountTypeOptions = [
   display: block;
   margin-bottom: 8px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   font-weight: 500;
   color: var(--site-text) !important;
 }
@@ -157,7 +157,7 @@ const accountTypeOptions = [
   width: 100%;
   padding: 14px 16px;
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text) !important;
   background: #fffdf9 !important;
   border: 1px solid var(--site-border) !important;
@@ -195,7 +195,7 @@ const accountTypeOptions = [
   width: 100%;
   padding: 10px 12px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   text-align: left;
   color: var(--site-text);
   background: transparent;
@@ -209,18 +209,18 @@ const accountTypeOptions = [
 }
 .pay-bank__no-result {
   padding: 12px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
   text-align: center;
 }
 .pay-bank__error {
   margin: 6px 0 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: #c0453b;
 }
 .pay-bank__selected {
   margin: 8px 0 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text) !important;
 }
 .pay-bank__account {
@@ -233,14 +233,14 @@ const accountTypeOptions = [
 .pay-bank__account-title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--site-text) !important;
 }
 .pay-bank__note {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text) !important;
 }

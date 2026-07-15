@@ -1,68 +1,115 @@
 /**
- * 文字サイズ切替（全インスタンスで状態を共有）
+ * 文字サイズ切替（Music Memories 全体で状態を共有）
+ * html[data-text-size="s|m|l"] と tokens.css の変数で適用する。
  */
 import { ref, readonly } from 'vue'
 
-const STORAGE_KEY = 'hibari-text-size'
-const VALID = ['s', 'm', 'l', 'xl']
-const SIZE_PX = { s: '14px', m: '16px', l: '19px', xl: '22px' }
-const TEXT_SCALE = { s: 0.875, m: 1, l: 1.1875, xl: 1.375 }
+export const STORAGE_KEY = 'hibari-text-size'
+const VALID = ['s', 'm', 'l']
 
-function readStoredSize() {
-  if (typeof window === 'undefined') return 'm'
+const PRESETS = [
+  ['s', '小'],
+  ['m', '中'],
+  ['l', '大'],
+]
+
+/**
+ * 保存値・属性値を正規化する（xl は互換のため l へ）
+ * @param {unknown} value
+ * @returns {'s'|'m'|'l'}
+ */
+export function normalizeTextSize(value) {
+  if (value === 'xl') return 'l'
+  if (value === 's' || value === 'm' || value === 'l') return value
+  return 'm'
+}
+
+function readRawStored() {
+  if (typeof window === 'undefined') return null
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored && VALID.includes(stored)) return stored
+    return localStorage.getItem(STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+function persistSize(value) {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(STORAGE_KEY, value)
   } catch {
     /* ignore */
   }
-  const attr = document.documentElement.getAttribute('data-text-size')
-  return VALID.includes(attr) ? attr : 'm'
+}
+
+function readStoredSize() {
+  const stored = readRawStored()
+  if (stored != null) {
+    const normalized = normalizeTextSize(stored)
+    if (stored === 'xl') persistSize(normalized)
+    return normalized
+  }
+  if (typeof document !== 'undefined') {
+    return normalizeTextSize(document.documentElement.dataset.textSize)
+  }
+  return 'm'
+}
+
+function clearLegacyInlineStyles(root) {
+  root.style.removeProperty('font-size')
+  root.style.removeProperty('--text-scale')
 }
 
 function applyTextSize(value) {
   if (typeof document === 'undefined') return
-  const scale = TEXT_SCALE[value] || TEXT_SCALE.m
-  document.documentElement.setAttribute('data-text-size', value)
-  document.documentElement.style.fontSize = SIZE_PX[value] || SIZE_PX.m
-  document.documentElement.style.setProperty('--text-scale', String(scale))
-  const shell = document.querySelector('.site-shell')
-  if (shell) {
-    shell.style.fontSize = SIZE_PX[value] || SIZE_PX.m
-  }
+  const root = document.documentElement
+  const next = normalizeTextSize(value)
+  clearLegacyInlineStyles(root)
+  if (root.dataset.textSize === next) return
+  root.dataset.textSize = next
 }
 
 const size = ref(readStoredSize())
 applyTextSize(size.value)
 
-if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (event) => {
-    if (event.key !== STORAGE_KEY || !event.newValue || !VALID.includes(event.newValue)) return
-    size.value = event.newValue
-    applyTextSize(event.newValue)
-  })
+let storageListening = false
+
+function onStorage(event) {
+  if (event.key !== STORAGE_KEY) return
+  const next = event.newValue == null ? 'm' : normalizeTextSize(event.newValue)
+  if (size.value === next) {
+    applyTextSize(next)
+    return
+  }
+  size.value = next
+  applyTextSize(next)
+  if (event.newValue === 'xl') persistSize(next)
 }
+
+function ensureStorageListener() {
+  if (storageListening || typeof window === 'undefined') return
+  storageListening = true
+  window.addEventListener('storage', onStorage)
+}
+
+ensureStorageListener()
 
 export function useTextSize() {
   function setSize(value) {
-    if (!VALID.includes(value)) return
-    size.value = value
-    applyTextSize(value)
-    try {
-      localStorage.setItem(STORAGE_KEY, value)
-    } catch {
-      /* ignore */
+    if (value !== 's' && value !== 'm' && value !== 'l' && value !== 'xl') return
+    const next = normalizeTextSize(value)
+    if (size.value === next) {
+      applyTextSize(next)
+      return
     }
+    size.value = next
+    applyTextSize(next)
+    persistSize(next)
   }
 
   return {
     size: readonly(size),
     setSize,
-    presets: [
-      ['s', '小'],
-      ['m', '中'],
-      ['l', '大'],
-      ['xl', '特'],
-    ],
+    presets: PRESETS,
   }
 }

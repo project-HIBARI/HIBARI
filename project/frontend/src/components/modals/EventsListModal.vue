@@ -99,32 +99,32 @@ function openApply(ev) {
 }
 .events-modal__date {
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   color: var(--murasaki-700);
 }
 .events-modal__time {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .events-modal__title {
   margin: 8px 0 4px;
-  font-size: 15px;
+  font-size: var(--font-size-body);
   color: var(--site-text);
 }
 .events-modal__note {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .events-modal__fee {
   margin: 10px 0 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--kin-600);
 }
 .events-modal__fee-regular {
   margin-left: 6px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 .events-modal__actions {
@@ -134,7 +134,7 @@ function openApply(ev) {
   margin-top: 12px;
 }
 .events-modal__priority {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--murasaki-700);
   font-weight: 700;
 }

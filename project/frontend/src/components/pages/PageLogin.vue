@@ -67,15 +67,18 @@ const emit = defineEmits(['open-auth', 'login-success'])
   left: 50%;
   margin-left: -50vw;
   min-height: min(780px, calc(100vh - 200px));
+  min-height: min(780px, calc(100dvh - 200px));
   padding: 56px 24px 64px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: visible;
+  box-sizing: border-box;
 }
 
 .page-login--platform .page-login__hero {
   min-height: calc(100vh - 72px);
+  min-height: calc(100dvh - 72px);
   padding: 72px 24px 80px;
 }
 
@@ -104,7 +107,7 @@ const emit = defineEmits(['open-auth', 'login-success'])
 .page-login__title {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: clamp(32px, 4vw, 42px);
+  font-size: clamp(2rem, 4vw, 2.625rem);
   font-weight: 800;
   letter-spacing: 0.12em;
   color: var(--murasaki-700);
@@ -119,7 +122,7 @@ const emit = defineEmits(['open-auth', 'login-success'])
   margin: 6px 0 16px;
   font-family: var(--ff-latin);
   font-style: italic;
-  font-size: 15px;
+  font-size: var(--font-size-body);
   letter-spacing: 0.18em;
   color: var(--kin-600);
 }
@@ -131,7 +134,7 @@ const emit = defineEmits(['open-auth', 'login-success'])
 .page-login__lead {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.75;
   letter-spacing: 0.04em;
   color: var(--site-text-muted);
@@ -144,7 +147,7 @@ const emit = defineEmits(['open-auth', 'login-success'])
 .page-login__tagline {
   margin: 12px 0 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.16em;
   color: rgba(201, 169, 97, 0.85);
 }

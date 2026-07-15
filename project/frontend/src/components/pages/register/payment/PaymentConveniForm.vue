@@ -43,7 +43,7 @@ const conveniOptions = [
 .pay-conveni__note {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-light);
 }

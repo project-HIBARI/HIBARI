@@ -61,7 +61,7 @@ const markerPosition = computed(() => {
   align-items: center;
   justify-content: space-between;
   font-family: var(--ff-sans-jp);
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.03em;
   color: rgba(248, 244, 239, 0.4);
 }

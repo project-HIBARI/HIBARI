@@ -43,18 +43,18 @@ const emit = defineEmits(['close', 'view-plans'])
 }
 .sns-limit__text {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--font-size-body);
   font-weight: 600;
   color: var(--site-text);
 }
 .sns-limit__reset {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
 }
 .sns-limit__hint {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }

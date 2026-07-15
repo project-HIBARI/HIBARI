@@ -266,7 +266,7 @@ function generateLyric() {
 .ai-modal__notice {
   padding: 10px 14px;
   margin-bottom: 20px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
   background: var(--site-surface-muted);
@@ -310,7 +310,7 @@ function generateLyric() {
 .ai-modal__bubble {
   padding: 10px 14px;
   max-width: 85%;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   font-family: var(--ff-serif);
   border-radius: var(--site-radius-md);
@@ -328,7 +328,7 @@ function generateLyric() {
   border-radius: 12px 12px 12px 4px;
 }
 .ai-modal__bubble-label {
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   color: var(--kin-600);
   letter-spacing: 0.15em;
   margin-bottom: 4px;
@@ -337,7 +337,7 @@ function generateLyric() {
 .ai-modal__typing {
   color: var(--murasaki-600);
   font-family: var(--ff-mincho);
-  font-size: 13px;
+  font-size: var(--font-size-button);
 }
 .ai-modal__input-row {
   display: flex;
@@ -351,7 +351,7 @@ function generateLyric() {
   color: var(--site-text);
   padding: 10px 12px;
   font-family: var(--ff-serif);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   border-radius: var(--site-radius-sm);
   outline: none;
 }
@@ -360,13 +360,13 @@ function generateLyric() {
 }
 .ai-modal__hint {
   margin: 10px 0 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 .ai-modal__gate {
   margin: 0 0 12px;
   padding: 10px 12px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
   background: var(--site-surface-muted);
@@ -380,12 +380,12 @@ function generateLyric() {
   color: var(--murasaki-700);
   cursor: pointer;
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   text-decoration: underline;
 }
 .ai-modal__error {
   margin: 10px 0 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: #9b2c2c;
 }
@@ -395,7 +395,7 @@ function generateLyric() {
 .ai-modal__premium {
   padding: 10px 14px;
   margin-bottom: 20px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text);
   background: var(--site-bg-pink);
@@ -408,7 +408,7 @@ function generateLyric() {
   color: var(--murasaki-700);
   cursor: pointer;
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   padding: 0;
   margin-left: 4px;
 }
@@ -427,7 +427,7 @@ function generateLyric() {
   background: var(--site-surface-muted);
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-md);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text);
   line-height: 2;
   font-family: var(--ff-mincho);

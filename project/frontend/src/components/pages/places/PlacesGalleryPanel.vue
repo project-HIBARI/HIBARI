@@ -116,13 +116,13 @@ function onCardClick() {
 .places-gallery__title {
   margin: 0 0 4px;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   color: var(--site-text);
 }
 .places-gallery__caption {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.5;
   color: var(--site-text-muted);
 }
@@ -133,7 +133,7 @@ function onCardClick() {
   padding: 3px 8px;
   background: var(--murasaki-700);
   color: #fff;
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.1em;
   border-radius: 4px;
 }

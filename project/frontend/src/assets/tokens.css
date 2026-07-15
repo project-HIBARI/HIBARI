@@ -59,9 +59,35 @@
   --ff-sans-jp: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
   --ff-mono: 'JetBrains Mono', 'Courier New', monospace;
 
-  /* Size scale — honors 大中小 toggle via [data-text-size] on <html> */
+  /*
+   * Typography scale — html[data-text-size] でルート font-size を切替（方式1）
+   * rem トークンは html の基準サイズに追従する。
+   * --text-scale は固定px移行用（calc(13px * var(--text-scale))）。
+   * rem に --text-scale を掛けないこと（二重拡大防止）。
+   */
   --size-base: 16px;
+  --text-scale: 1;
   --leading: 1.85;
+
+  --font-size-caption: 0.75rem; /* 12px @ m */
+  --font-size-small: 0.875rem; /* 14px @ m */
+  --font-size-body: 1rem; /* 16px @ m */
+  --font-size-emphasis: 1.125rem; /* 18px @ m */
+  --font-size-subtitle: 1.25rem; /* 20px @ m */
+  --font-size-title: 1.5rem; /* 24px @ m */
+  --font-size-heading: 2rem; /* 32px @ m */
+
+  /* 共通部品向けエイリアス。html font-size に rem で追従（--text-scale は掛けない） */
+  --font-size-button-sm: var(--font-size-caption); /* 12px @ m */
+  --font-size-button: 0.8125rem; /* 13px @ m — 既存 md 相当 */
+  --font-size-button-lg: var(--font-size-small); /* 14px @ m */
+
+  --font-size-navigation: var(--font-size-caption); /* 12px @ m — ヘッダー／クイックナビ */
+  --font-size-navigation-small: 0.625rem; /* 10px @ m — 下部ナビ等 */
+  --font-size-form-label: 0.8125rem; /* 13px @ m */
+  --font-size-form-input: var(--font-size-small); /* 14px @ m */
+  --font-size-tab: var(--font-size-small); /* 14px @ m */
+  --font-size-badge: 0.625rem; /* 10px @ m */
 
   /* Spacing */
   --sp-1: 4px;
@@ -79,33 +105,52 @@
   --hair-heavy: 1px solid rgba(26, 20, 16, 0.22);
   --hair-gold: 1px solid var(--kin-500);
 
-  /* Breakpoints (reference) */
+  /*
+   * Breakpoints — 値の参照用（ドキュメント兼トークン）
+   * ※ @media (max-width: var(--bp-md)) は無効。メディアクエリ条件には必ず数値を書く。
+   *
+   * 方針（今後の新規／対象限定改修で使用）:
+   *   〜479px     小型スマートフォン
+   *   480〜767px  スマートフォン
+   *   768〜1023px タブレット
+   *   1024〜1279px 小型PC
+   *   1280px以上  PC
+   *   1440px以上  大型PC（必要な画面のみ）
+   */
   --bp-sm: 480px;
   --bp-md: 768px;
   --bp-lg: 1024px;
   --bp-xl: 1280px;
+  --bp-xxl: 1440px;
+
+  /* 共通レイアウト（opt-in。既存 .site-main / .main-pad と競合しない） */
+  --layout-max-width: 1280px;
+  --layout-gutter: clamp(12px, 4vw, 40px);
+
+  /* 可変ビューポート高フォールバック用（必要箇所のみ使用） */
+  --viewport-height: 100vh;
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --viewport-height: 100dvh;
+  }
 }
 
 html[data-text-size='s'] {
   --size-base: 14px;
+  --text-scale: 0.875;
   font-size: 14px;
 }
 html[data-text-size='m'] {
   --size-base: 16px;
+  --text-scale: 1;
   font-size: 16px;
 }
 html[data-text-size='l'] {
   --size-base: 19px;
+  --text-scale: 1.1875;
   font-size: 19px;
-}
-html[data-text-size='xl'] {
-  --size-base: 22px;
-  font-size: 22px;
-}
-
-/* 文字サイズ — サイト全体のスケール（rem ベース要素向け） */
-.site-shell {
-  font-size: var(--size-base);
 }
 
 /* サイト全体背景 — 和紙風 */
@@ -166,7 +211,7 @@ html[data-text-size='xl'] {
   justify-content: flex-start;
   color: var(--ink-700);
   font-family: var(--ff-mono);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   letter-spacing: 0.04em;
   padding: 8px 10px;
   overflow: hidden;

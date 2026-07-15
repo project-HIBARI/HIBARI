@@ -95,7 +95,7 @@ function isTour(ev) {
 .top-events__date {
   display: block;
   font-family: var(--ff-mincho);
-  font-size: 18px;
+  font-size: var(--font-size-emphasis);
   font-weight: 800;
   line-height: 1.25;
   color: var(--murasaki-700);
@@ -105,7 +105,7 @@ function isTour(ev) {
   display: block;
   margin-top: 4px;
   font-family: var(--ff-mono);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .top-events__body {
@@ -114,20 +114,20 @@ function isTour(ev) {
 }
 .top-events__title {
   margin: 0 0 4px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.6;
   font-weight: 500;
   color: var(--site-text);
 }
 .top-events__note {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.5;
   color: var(--site-text-light);
 }
 .top-events__badge {
   margin: 8px 0 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   color: var(--murasaki-700);
 }
@@ -144,7 +144,7 @@ function isTour(ev) {
     min-height: auto;
   }
   .top-events__date {
-    font-size: 16px;
+    font-size: var(--font-size-body);
   }
 }
 </style>

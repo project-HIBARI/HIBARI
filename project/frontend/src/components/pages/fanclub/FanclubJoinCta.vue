@@ -73,7 +73,7 @@ const emit = defineEmits(['join'])
 .fc-cta__lead {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--kin-400);
@@ -81,7 +81,7 @@ const emit = defineEmits(['join'])
 .fc-cta__title {
   margin: 0 0 14px;
   font-family: var(--ff-mincho);
-  font-size: clamp(22px, 3vw, 30px);
+  font-size: clamp(1.375rem, 3vw, 1.875rem);
   font-weight: 800;
   letter-spacing: 0.08em;
   color: #fff;
@@ -90,7 +90,7 @@ const emit = defineEmits(['join'])
   margin: 0 auto 28px;
   max-width: 520px;
   font-family: var(--ff-sans-jp);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.85;
   color: rgba(255, 255, 255, 0.9);
 }
@@ -101,7 +101,7 @@ const emit = defineEmits(['join'])
   gap: 10px;
   padding: 16px 40px;
   font-family: var(--ff-sans-jp);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 500;
   letter-spacing: 0.12em;
   color: #fff;
@@ -123,7 +123,7 @@ const emit = defineEmits(['join'])
 .fc-cta__note {
   margin: 14px 0 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: rgba(255, 255, 255, 0.7);
 }
 
@@ -134,7 +134,7 @@ const emit = defineEmits(['join'])
   .fc-cta__btn {
     width: 100%;
     padding: 14px 24px;
-    font-size: 15px;
+    font-size: var(--font-size-body);
   }
 }
 </style>

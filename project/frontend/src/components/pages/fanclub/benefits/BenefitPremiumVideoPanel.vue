@@ -74,7 +74,7 @@ function onPlay(pv) {
 <style scoped>
 .benefit-panel__lead {
   margin: 0 0 16px;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
@@ -104,7 +104,7 @@ function onPlay(pv) {
   justify-content: center;
   height: 100%;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .benefit-panel__img {
@@ -117,7 +117,7 @@ function onPlay(pv) {
   top: 8px;
   left: 8px;
   padding: 3px 8px;
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   font-weight: 700;
   color: #fff;
   background: var(--kin-600);
@@ -127,18 +127,18 @@ function onPlay(pv) {
   padding: 12px 14px 14px;
 }
 .benefit-panel__year {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--kin-600);
 }
 .benefit-panel__video-title {
   margin: 4px 0;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text);
 }
 .benefit-panel__note {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.6;
   color: var(--site-text-muted);
 }

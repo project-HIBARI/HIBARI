@@ -65,7 +65,7 @@ const plans = MEMBERSHIP_PLANS
 .reg-step__title {
   margin: 0 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--murasaki-700);
@@ -73,7 +73,7 @@ const plans = MEMBERSHIP_PLANS
 .reg-step__desc {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
@@ -142,13 +142,13 @@ const plans = MEMBERSHIP_PLANS
   background: var(--kin-500);
   color: var(--ink-900);
   font-family: var(--ff-mincho);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   font-weight: 700;
 }
 .reg-plan__name {
   margin: 0;
   font-family: var(--ff-mincho);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   font-weight: 700;
   color: var(--site-text);
 }
@@ -160,13 +160,13 @@ const plans = MEMBERSHIP_PLANS
 }
 .reg-plan__price-num {
   font-family: var(--ff-latin);
-  font-size: 22px;
+  font-size: var(--font-size-subtitle);
   font-weight: 700;
   color: var(--kin-600);
 }
 .reg-plan__price-unit {
   font-family: var(--ff-sans-jp);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .reg-plan__features {
@@ -179,19 +179,19 @@ const plans = MEMBERSHIP_PLANS
 }
 .reg-plan__features li {
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   line-height: 1.55;
   color: var(--site-text-muted);
 }
 .reg-plan__error {
   margin: 0;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: #c0453b;
   text-align: center;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .reg-plan-grid {
     grid-template-columns: 1fr;
   }

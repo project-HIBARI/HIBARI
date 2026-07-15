@@ -63,7 +63,7 @@ function choose(designId) {
 <style scoped>
 .mmb-cover-picker__lead {
   margin: 0 0 var(--sp-5);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
@@ -107,7 +107,7 @@ function choose(designId) {
 
 .mmb-cover-picker__label {
   font-family: var(--ff-mincho);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text);
 }
 

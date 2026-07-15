@@ -409,7 +409,7 @@ watch(() => props.openPostId, (value) => {
   border-radius: 999px;
   background: var(--beni-600);
   color: #fff;
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -426,7 +426,7 @@ watch(() => props.openPostId, (value) => {
   margin: 0;
   padding: 24px 12px;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--sns-text-muted);
 }
 
@@ -444,23 +444,26 @@ watch(() => props.openPostId, (value) => {
   border-radius: var(--site-radius-lg);
   border: 1px solid rgba(228, 190, 99, 0.35);
   background: linear-gradient(135deg, rgba(109, 61, 130, 0.3), var(--sns-bg) 80%);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .sns-feed__chat-text {
   margin: 0;
-  max-width: 80%;
+  max-width: 100%;
+  padding-right: 48px;
   font-family: var(--ff-mincho);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   line-height: 1.7;
   color: var(--sns-ivory);
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .sns-feed__chat-deco {
   position: absolute;
   right: 12px;
   bottom: -10px;
-  font-size: 56px;
+  font-size: 3.5rem;
   color: rgba(228, 190, 99, 0.16);
   pointer-events: none;
 }

@@ -111,7 +111,7 @@ function submit() {
 <style scoped>
 .mem-edit__lead {
   margin: 0 0 var(--sp-5);
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.8;
   color: var(--site-text-muted);
 }
@@ -131,7 +131,7 @@ function submit() {
 .mem-edit__label {
   display: block;
   margin-bottom: 6px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .mem-edit__input {
@@ -141,7 +141,7 @@ function submit() {
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-sm);
   font-family: var(--ff-sans-jp);
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--site-text);
   background: #fff;
 }
@@ -151,7 +151,7 @@ function submit() {
 }
 .mem-edit__error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--beni-600, #9b2c2c);
 }
 .mem-edit__actions {

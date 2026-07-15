@@ -114,18 +114,19 @@ function set(key, value) {
 }
 .pay-credit__brand-text {
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
 }
 .pay-credit__row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 14px;
+  min-width: 0;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
   .pay-credit__row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 </style>

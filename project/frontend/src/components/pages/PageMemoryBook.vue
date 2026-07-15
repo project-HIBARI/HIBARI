@@ -424,6 +424,10 @@ function backFromFilter() {
 <style scoped>
 .page-memory-book {
   color: var(--site-text);
-  min-width: 960px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: clip;
 }
 </style>

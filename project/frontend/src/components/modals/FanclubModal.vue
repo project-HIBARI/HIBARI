@@ -65,20 +65,20 @@ const plans = MEMBERSHIP_PLANS
   color: var(--ink-900);
   padding: 2px 14px;
   font-family: var(--ff-mincho);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   border-radius: var(--site-radius-sm);
 }
 .fc-modal__name {
   font-family: var(--ff-mincho);
-  font-size: 17px;
+  font-size: var(--font-size-emphasis);
   font-weight: 700;
   margin: 0 0 4px;
   color: var(--site-text);
 }
 .fc-modal__price {
   font-family: var(--ff-latin);
-  font-size: 24px;
+  font-size: var(--font-size-title);
   font-weight: 700;
   color: var(--kin-600);
   margin: 0 0 16px;
@@ -89,7 +89,7 @@ const plans = MEMBERSHIP_PLANS
   margin: 0;
 }
 .fc-modal__feat {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   padding: 4px 0;
   border-bottom: 1px solid var(--site-border);
@@ -105,13 +105,13 @@ const plans = MEMBERSHIP_PLANS
   margin-top: 20px;
 }
 .fc-modal__note {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-muted);
   line-height: 1.8;
   margin: 0;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
   .fc-modal__plans {
     grid-template-columns: 1fr;
   }

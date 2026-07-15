@@ -4,14 +4,26 @@
  * 役割: ファンクラブサイトの AppDrawerNav と同様の全画面オーバーレイナビ
  */
 import { ref, watch, nextTick } from 'vue'
+import TextSizeControl from '../ui/TextSizeControl.vue'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
   items: { type: Array, required: true },
   page: { type: String, required: true },
+  isLoggedIn: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['close', 'navigate'])
+const emit = defineEmits(['close', 'navigate', 'open-auth'])
+
+function onNavigate(id) {
+  emit('navigate', id)
+  emit('close')
+}
+
+function onOpenAuth(mode) {
+  emit('open-auth', mode)
+  emit('close')
+}
 
 const panelActive = ref(false)
 
@@ -46,6 +58,23 @@ watch(
         <div class="mm-drawer__sheet">
           <p class="mm-drawer__label mm-drawer__stagger" :style="{ '--drawer-i': 0 }">Menu</p>
 
+          <div
+            v-if="!isLoggedIn"
+            class="mm-drawer__auth mm-drawer__stagger"
+            :style="{ '--drawer-i': 1 }"
+          >
+            <button type="button" class="mm-drawer__auth-btn" @click="onOpenAuth('login')">
+              ログイン
+            </button>
+            <button
+              type="button"
+              class="mm-drawer__auth-btn mm-drawer__auth-btn--primary"
+              @click="onOpenAuth('register')"
+            >
+              新規会員登録
+            </button>
+          </div>
+
           <nav class="mm-drawer__nav" aria-label="モバイルナビゲーション">
             <button
               v-for="(n, index) in items"
@@ -53,14 +82,21 @@ watch(
               type="button"
               class="mm-drawer__link mm-drawer__stagger"
               :class="{ 'mm-drawer__link--active': page === n.id }"
-              :style="{ '--drawer-i': index + 1 }"
+              :style="{ '--drawer-i': index + 2 }"
               :aria-current="page === n.id ? 'page' : undefined"
-              @click="emit('navigate', n.id)"
+              @click="onNavigate(n.id)"
             >
               <span class="mm-drawer__link-text">{{ n.label }}</span>
               <span v-if="page === n.id" class="mm-drawer__link-mark" aria-hidden="true" />
             </button>
           </nav>
+
+          <div
+            class="mm-drawer__text-size mm-drawer__stagger"
+            :style="{ '--drawer-i': items.length + 2 }"
+          >
+            <TextSizeControl tone="paper" variant="default" />
+          </div>
         </div>
       </div>
     </Transition>
@@ -112,7 +148,7 @@ watch(
 .mm-drawer__label {
   margin: 0 0 clamp(20px, 4vh, 36px);
   font-family: var(--ff-latin, var(--ff-sans-jp));
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 500;
   letter-spacing: 0.32em;
   text-transform: uppercase;
@@ -163,11 +199,13 @@ watch(
 
 .mm-drawer__link-text {
   font-family: var(--ff-sans-jp);
-  font-size: clamp(20px, 5vw, 28px);
+  font-size: clamp(1.25rem, 5vw, 1.75rem);
   font-weight: 600;
   letter-spacing: 0.08em;
   line-height: 1.35;
   opacity: 1;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .mm-drawer__link-mark {
@@ -180,6 +218,67 @@ watch(
 
 .mm-drawer__link--active {
   color: #e0bd75;
+}
+
+.mm-drawer__auth {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 clamp(16px, 3vh, 22px);
+}
+
+.mm-drawer__auth-btn {
+  flex: 1 1 8rem;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: transparent;
+  color: #f8f4ef;
+  font-family: var(--ff-sans-jp);
+  font-size: var(--font-size-small, 0.875rem);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.mm-drawer__auth-btn--primary {
+  background: var(--murasaki-700, #5d3a6b);
+  border-color: rgba(228, 190, 99, 0.35);
+}
+
+.mm-drawer__auth-btn:focus-visible {
+  outline: 2px solid #c8a96b;
+  outline-offset: 2px;
+}
+
+.mm-drawer__text-size {
+  margin: clamp(8px, 2vh, 16px) 0 0;
+  padding: clamp(18px, 3vh, 24px) 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.mm-drawer__text-size :deep(.text-size-control) {
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+
+.mm-drawer__text-size :deep(.text-size-control__label) {
+  display: block;
+  width: 100%;
+  font-size: var(--font-size-caption);
+  letter-spacing: 0.14em;
+}
+
+.mm-drawer__text-size :deep(.text-size-control__group) {
+  width: 100%;
+  justify-content: stretch;
+}
+
+.mm-drawer__text-size :deep(.text-size-control__btn) {
+  flex: 1 1 0;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .mm-drawer__stagger {

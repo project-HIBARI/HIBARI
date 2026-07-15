@@ -67,7 +67,7 @@ function playVideo() {
   padding: 3px 12px;
   margin-bottom: 10px;
   font-family: var(--ff-sans-jp);
-  font-size: 10px;
+  font-size: var(--font-size-badge);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--murasaki-700);
@@ -78,7 +78,7 @@ function playVideo() {
 .home-promo__title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
-  font-size: clamp(16px, 1.8vw, 19px);
+  font-size: clamp(1rem, 1.8vw, 1.1875rem);
   font-weight: 700;
   line-height: 1.55;
   letter-spacing: 0.06em;
@@ -86,7 +86,7 @@ function playVideo() {
 }
 .home-promo__desc {
   margin: 0 0 14px;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.75;
   color: var(--site-text-muted);
   letter-spacing: 0.03em;
@@ -137,7 +137,7 @@ function playVideo() {
   left: 12px;
   padding: 4px 10px;
   font-family: var(--ff-latin);
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   font-weight: 700;
   letter-spacing: 0.18em;
   color: rgba(255, 255, 255, 0.92);
@@ -149,7 +149,7 @@ function playVideo() {
   bottom: 12px;
   right: 12px;
   font-family: var(--ff-latin);
-  font-size: 9px;
+  font-size: var(--font-size-badge);
   letter-spacing: 0.14em;
   color: rgba(255, 255, 255, 0.75);
 }

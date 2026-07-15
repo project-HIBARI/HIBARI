@@ -181,12 +181,12 @@ onMounted(loadComments)
   background: transparent;
   border: 0;
   color: var(--murasaki-700);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   cursor: pointer;
 }
 .sns-detail__state {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--site-text-muted);
   text-align: center;
   padding: 8px 0;
@@ -217,7 +217,7 @@ onMounted(loadComments)
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 .sns-detail__avatar img {
   width: 100%;
@@ -226,29 +226,38 @@ onMounted(loadComments)
 }
 .sns-detail__comment-body {
   flex: 1;
+  min-width: 0;
 }
 .sns-detail__comment-meta {
   margin: 0 0 2px;
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: baseline;
+  min-width: 0;
 }
 .sns-detail__comment-name {
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 600;
   color: var(--site-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 .sns-detail__comment-time {
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
 }
 .sns-detail__comment-text {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.7;
   color: var(--site-text);
   white-space: pre-wrap;
   word-break: break-word;
+  overflow-wrap: anywhere;
 }
 .sns-detail__comment-delete {
   background: transparent;
@@ -259,19 +268,24 @@ onMounted(loadComments)
 }
 .sns-detail__form {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
 }
 .sns-detail__input {
-  flex: 1;
+  flex: 1 1 160px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--site-border);
   border-radius: 999px;
   padding: 8px 16px;
-  font-size: 13px;
+  font-size: var(--font-size-body);
   color: var(--site-text);
 }
 .sns-detail__error {
   margin: 0;
   color: var(--beni-600);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 </style>

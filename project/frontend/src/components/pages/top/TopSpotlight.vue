@@ -97,7 +97,7 @@ function onOpenDisco() {
   align-items: center;
   gap: 6px;
   font-family: var(--ff-sans-jp);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--murasaki-700);
@@ -125,7 +125,7 @@ function onOpenDisco() {
 .spotlight__year {
   display: inline-block;
   font-family: var(--ff-mono);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   color: var(--site-text-light);
   letter-spacing: 0.05em;
   margin-bottom: 4px;
@@ -133,14 +133,14 @@ function onOpenDisco() {
 .spotlight__title {
   margin: 0 0 6px;
   font-family: var(--ff-mincho);
-  font-size: 24px;
+  font-size: var(--font-size-title);
   font-weight: 800;
   color: var(--site-text);
   letter-spacing: 0.05em;
 }
 .spotlight__note {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   line-height: 1.7;
   color: var(--site-text-muted);
 }
