@@ -11,6 +11,16 @@ import { getMediaKind, validateBoardMediaFile, revokeMediaPreview } from '../../
 
 const songs = HIBARU_DATA.discography.map((d) => d.title)
 
+const PREFECTURES = [
+  '北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県',
+  '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県',
+  '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県', '岐阜県',
+  '静岡県', '愛知県', '三重県', '滋賀県', '京都府', '大阪府', '兵庫県',
+  '奈良県', '和歌山県', '鳥取県', '島根県', '岡山県', '広島県', '山口県',
+  '徳島県', '香川県', '愛媛県', '高知県', '福岡県', '佐賀県', '長崎県',
+  '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県',
+]
+
 const props = defineProps({
   postData: { type: Object, required: true },
   errors: { type: Object, default: () => ({}) },
@@ -153,13 +163,15 @@ function onSubmit() {
             aria-label="お名前"
             @input="patch({ name: $event.target.value })"
           />
-          <input
+          <select
             :value="postData.pref"
             class="board-form__input"
-            placeholder="都道府県"
             aria-label="都道府県"
-            @input="patch({ pref: $event.target.value })"
-          />
+            @change="patch({ pref: $event.target.value })"
+          >
+            <option value="">都道府県を選択（任意）</option>
+            <option v-for="pref in PREFECTURES" :key="pref" :value="pref">{{ pref }}</option>
+          </select>
           <div>
             <input
               :value="postData.title"

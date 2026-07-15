@@ -18,6 +18,7 @@ from sqlalchemy import text
 
 from usage_limits import (
     FEATURE_AI_CHAT,
+    FEATURE_ARTIST_DIAGNOSIS,
     FEATURE_BOARD_POST,
     UsageLimitError,
     build_usage_status,
@@ -1402,6 +1403,7 @@ def chat():
 USAGE_FEATURE_SLUGS = {
     "ai-chat": FEATURE_AI_CHAT,
     "board-post": FEATURE_BOARD_POST,
+    "artist-diagnosis": FEATURE_ARTIST_DIAGNOSIS,
 }
 
 
@@ -1499,6 +1501,7 @@ def get_posts():
                 "location": row.location,
                 "image_path": row.image_path,
                 "video_path": getattr(row, "video_path", None),
+                "account_id": getattr(row, "account_id", None),
                 "like_count": row.like_count
             })
 

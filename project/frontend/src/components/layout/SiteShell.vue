@@ -30,6 +30,7 @@ import GalleryModal from '../modals/GalleryModal.vue'
 import PremiumVideoModal from '../modals/PremiumVideoModal.vue'
 
 import AuthNoticeModal from '../modals/AuthNoticeModal.vue'
+import AccountModal from '../modals/AccountModal.vue'
 
 import PageTop from '../pages/PageTop.vue'
 
@@ -123,7 +124,7 @@ const siteReady = ref(false)
 
 const auth = useAuth()
 
-const { membership, isLoggedIn, isFanclubMember, user, setUser, refreshUser } = auth
+const { membership, isLoggedIn, isFanclubMember, user, setUser, refreshUser, logout } = auth
 
 const { startPolling: startOpenChatNotify, stopPolling: stopOpenChatNotify, setActiveRoomId } =
   useOpenChatNotifications()
@@ -423,6 +424,21 @@ function openMemberFeature(mode) {
 
 
 
+function openAccount() {
+  modal.value = 'account'
+  drawerOpen.value = false
+}
+
+async function handleAccountLogout() {
+  drawerOpen.value = false
+  modal.value = null
+  await logout()
+}
+
+function handleUserUpdated(account) {
+  if (account) setUser(account)
+}
+
 function openAuth(mode) {
 
   if (mode === 'login') {
@@ -515,6 +531,8 @@ function handleAiModalAuth(mode) {
 
       :membership="membership"
 
+      :avatar-path="user?.avatar_path || ''"
+
       :menu-open="drawerOpen"
 
       show-platform-back
@@ -528,6 +546,8 @@ function handleAiModalAuth(mode) {
       @toggle-drawer="drawerOpen = !drawerOpen"
 
       @open-auth="openAuth"
+
+      @open-account="openAccount"
 
       @go-fanclub="goTo(isLoggedIn ? 'fanclub-site' : 'fanclub')"
 
@@ -737,6 +757,14 @@ function handleAiModalAuth(mode) {
     />
 
     <AuthNoticeModal v-if="authMode" :mode="authMode" @close="closeAuth" />
+
+    <AccountModal
+      v-if="modal === 'account'"
+      @close="modal = null"
+      @need-login="modal = null; requestPlatformAuth('login')"
+      @logout="handleAccountLogout"
+      @user-updated="handleUserUpdated"
+    />
 
   </div>
 

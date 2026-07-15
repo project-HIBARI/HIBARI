@@ -11,9 +11,14 @@ defineProps({
   items: { type: Array, required: true },
   songs: { type: Array, required: true },
   tagFilter: { type: String, required: true },
+  showMineFilter: { type: Boolean, default: true },
 })
 
-const emit = defineEmits(['update:tagFilter', 'like'])
+const emit = defineEmits(['update:tagFilter', 'like', 'edit', 'delete', 'need-auth'])
+
+function onMineClick() {
+  emit('update:tagFilter', 'mine')
+}
 </script>
 
 <template>
@@ -30,6 +35,15 @@ const emit = defineEmits(['update:tagFilter', 'like'])
         全て
       </button>
       <button
+        v-if="showMineFilter"
+        type="button"
+        class="mem-panel__tag"
+        :class="{ 'mem-panel__tag--active': tagFilter === 'mine' }"
+        @click="onMineClick"
+      >
+        自分の投稿
+      </button>
+      <button
         v-for="s in songs.slice(0, 6)"
         :key="s"
         type="button"
@@ -41,7 +55,12 @@ const emit = defineEmits(['update:tagFilter', 'like'])
       </button>
     </div>
 
-    <MemoriesBoard :items="items" @like="emit('like', $event)" />
+    <MemoriesBoard
+      :items="items"
+      @like="emit('like', $event)"
+      @edit="emit('edit', $event)"
+      @delete="emit('delete', $event)"
+    />
   </section>
 </template>
 

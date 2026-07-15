@@ -7,6 +7,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import TextSizeControl from '../ui/TextSizeControl.vue'
 import HeaderSearch from './HeaderSearch.vue'
 import FanclubMembershipBadge from './FanclubMembershipBadge.vue'
+import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
 import { SITE_NAME, HIBARI_FANCLUB_NAME } from '../../constants/site.js'
 
 defineProps({
@@ -16,12 +17,13 @@ defineProps({
   userName: { type: String, default: '' },
   membership: { type: String, default: 'general' },
   isFanclubMember: { type: Boolean, default: false },
+  avatarPath: { type: String, default: '' },
   menuOpen: { type: Boolean, default: false },
   showPlatformBack: { type: Boolean, default: false },
   authOnPlatformOnly: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['logo', 'navigate', 'toggle-drawer', 'open-auth', 'exit-platform'])
+const emit = defineEmits(['logo', 'navigate', 'toggle-drawer', 'open-auth', 'open-account', 'exit-platform'])
 
 const logoSrc = '/images/misorahibari-logo-cropped.png'
 const scrolled = ref(false)
@@ -74,8 +76,8 @@ onUnmounted(() => {
           <FanclubMembershipBadge
             v-if="authOnPlatformOnly && isLoggedIn"
             :user-name="userName"
-            :membership="membership"
-            :is-fanclub-member="isFanclubMember"
+            :avatar-path="avatarPath"
+            @open-account="emit('open-account')"
           />
         </div>
 
@@ -103,7 +105,7 @@ onUnmounted(() => {
           :aria-label="`${SITE_NAME}へ戻る`"
           @click="emit('exit-platform')"
         >
-          <span class="site-header__platform-back-icon" aria-hidden="true">←</span>
+          <MusicMemoriesLogo variant="mark" size="sm" class="site-header__platform-back-icon" />
           <span class="site-header__platform-back-text">{{ SITE_NAME }}</span>
         </button>
 
@@ -188,8 +190,16 @@ onUnmounted(() => {
 }
 
 .site-header__platform-back-icon {
-  font-size: 12px;
-  line-height: 1;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+}
+
+.site-header__platform-back :deep(.mm-logo--mark.mm-logo--sm) {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
 }
 
 .site-header__platform-back-text {
@@ -523,7 +533,8 @@ onUnmounted(() => {
     max-width: 168px;
   }
 
-  .site-header__actions-bar :deep(.fc-membership-badge__text) {
+  .site-header__actions-bar :deep(.fc-membership-badge__name),
+  .site-header__actions-bar :deep(.fc-membership-badge__chevron) {
     display: none;
   }
 
@@ -594,13 +605,14 @@ onUnmounted(() => {
     max-width: 188px;
   }
 
-  .site-header__actions-bar :deep(.fc-membership-badge__text) {
-    display: flex;
+  .site-header__actions-bar :deep(.fc-membership-badge__name),
+  .site-header__actions-bar :deep(.fc-membership-badge__chevron) {
+    display: inline;
   }
 
   .site-header__actions-bar :deep(.fc-membership-badge) {
-    padding: 4px 12px 4px 4px;
-    max-width: 200px;
+    padding: 4px 10px 4px 4px;
+    max-width: 180px;
   }
 
   .site-header__text-size {
