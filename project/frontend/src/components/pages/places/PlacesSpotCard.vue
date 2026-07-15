@@ -10,6 +10,8 @@ import UiButton from '../../ui/UiButton.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 import { aosAttrs } from '../../../lib/aos.js'
 
+const imageFailed = ref(false)
+
 const props = defineProps({
   spot: { type: Object, required: true },
   isFavorite: { type: Boolean, default: false },
@@ -52,7 +54,23 @@ function onShareClick(e) {
 <template>
   <article class="places-spot-card motion-card" v-bind="aosAttrs(index * 80)">
     <div class="places-spot-card__photo motion-image">
-      <Photo :w="320" :h="160" :caption="spot.name" variant="sepia" class="places-spot-card__ph" />
+      <img
+        v-if="spot.image && !imageFailed"
+        :src="spot.image"
+        :alt="spot.name"
+        class="places-spot-card__img"
+        loading="lazy"
+        decoding="async"
+        @error="imageFailed = true"
+      />
+      <Photo
+        v-else
+        :w="320"
+        :h="160"
+        :caption="spot.name"
+        variant="sepia"
+        class="places-spot-card__ph"
+      />
       <span class="places-spot-card__cat">{{ categoryLabel }}</span>
       <span v-if="spot.visitable" class="places-spot-card__badge places-spot-card__badge--open">見学可</span>
       <span v-else class="places-spot-card__badge places-spot-card__badge--closed">閉館</span>
@@ -121,6 +139,13 @@ function onShareClick(e) {
 .places-spot-card__ph {
   width: 100% !important;
   height: 160px !important;
+}
+.places-spot-card__img {
+  display: block;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  object-position: center;
 }
 .places-spot-card__cat {
   position: absolute;
