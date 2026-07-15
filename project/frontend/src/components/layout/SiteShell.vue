@@ -545,6 +545,8 @@ function handleAiModalAuth(mode) {
 
       @close="drawerOpen = false"
 
+      @navigate="handleNav"
+
       @open-modal="openModal"
 
       @open-auth="openAuth"
