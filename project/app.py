@@ -43,6 +43,7 @@ from sns_profile import register_sns_profile_routes
 from sns_dm import register_sns_dm_routes
 from sns_moderation import register_sns_moderation_routes
 from sns_search import register_sns_search_routes
+from song_memories import ensure_song_memories_schema, register_song_memory_routes
 from password_utils import (
     hash_password,
     normalize_email,
@@ -262,6 +263,7 @@ ensure_account_settings_schema(engine)
 ensure_event_applications_schema(engine)
 ensure_open_chat_schema(engine)
 ensure_sns_schema(engine)
+ensure_song_memories_schema(engine)
 
 
 def ensure_contact_schema():
@@ -2360,6 +2362,19 @@ register_sns_profile_routes(
 )
 
 register_sns_dm_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+register_song_memory_routes(
     app,
     engine,
     fetch_all=fetch_all,

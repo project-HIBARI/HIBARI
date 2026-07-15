@@ -19,7 +19,7 @@ import { loadDiscoFavoriteIdSet, toggleDiscoFavorite } from '../../lib/discoFavo
 
 const PAGE_SIZE = 8
 
-const emit = defineEmits(['navigate', 'open-auth', 'open-modal'])
+const emit = defineEmits(['navigate', 'open-auth', 'open-modal', 'open-song-chat', 'search-song-fans'])
 
 const query = ref('')
 const typeFilter = ref('all')
@@ -154,7 +154,13 @@ function onDownload(song) {
       @coming-soon="(mode) => emit('open-auth', mode)"
     />
 
-    <DiscoDetailDialog :detail="detail" @close="detail = null" />
+    <DiscoDetailDialog
+      :detail="detail"
+      @close="detail = null"
+      @need-auth="(m) => emit('open-auth', m)"
+      @open-song-chat="(roomId) => emit('open-song-chat', roomId)"
+      @search-song-fans="(song) => emit('search-song-fans', song)"
+    />
     <DiscoDownloadDialog
       :song="downloadSong"
       @close="downloadSong = null"

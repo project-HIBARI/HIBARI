@@ -14,6 +14,7 @@ const platformView = ref('hub')
 const registerPlan = ref(MEMBERSHIP.GENERAL)
 const pendingReturn = ref(null)
 const sitePendingFeature = ref(null)
+const pendingDiscoverSong = ref(null)
 
 const auth = useAuth()
 const { refreshUser, setUser, logout, isLoggedIn, user, membership } = auth
@@ -31,6 +32,13 @@ function enterHibariSite() {
 function exitToPlatform() {
   appView.value = 'platform'
   platformView.value = 'hub'
+  window.scrollTo({ top: 0 })
+}
+
+function goToSongSearch(song) {
+  pendingDiscoverSong.value = song
+  appView.value = 'platform'
+  platformView.value = 'discover'
   window.scrollTo({ top: 0 })
 }
 
@@ -112,6 +120,7 @@ function handleUserUpdated(account) {
     :user-name="user?.name || ''"
     :membership="membership"
     :register-plan="registerPlan"
+    :pending-discover-song="pendingDiscoverSong"
     @update:view="platformView = $event"
     @enter-site="enterHibariSite"
     @login-success="handleLoginSuccess"
@@ -119,6 +128,7 @@ function handleUserUpdated(account) {
     @logout="handleLogout"
     @open-auth="openPlatformAuth"
     @user-updated="handleUserUpdated"
+    @discover-song-consumed="pendingDiscoverSong = null"
   />
   <SiteShell
     v-else
@@ -126,5 +136,6 @@ function handleUserUpdated(account) {
     @exit-platform="exitToPlatform"
     @need-platform-auth="onSiteNeedPlatformAuth"
     @clear-pending-feature="sitePendingFeature = null"
+    @search-song-fans="goToSongSearch"
   />
 </template>

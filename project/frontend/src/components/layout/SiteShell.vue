@@ -73,7 +73,7 @@ const props = defineProps({
   pendingFeature: { type: String, default: null },
 })
 
-const emit = defineEmits(['exit-platform', 'need-platform-auth', 'clear-pending-feature'])
+const emit = defineEmits(['exit-platform', 'need-platform-auth', 'clear-pending-feature', 'search-song-fans'])
 
 
 
@@ -114,6 +114,9 @@ const authMode = ref(null)
 /** プラットフォーム認証後に開く特典 */
 const postLoginRedirect = ref(null)
 
+/** 楽曲チャットへのディープリンク先ルームID */
+const pendingChatRoomId = ref(null)
+
 /** ファンクラブ会員サイト内の表示セクション */
 const fanclubSection = ref('overview')
 
@@ -149,6 +152,7 @@ watch([isLoggedIn, membership], syncOpenChatNotifications, { immediate: true })
 watch([page, fanclubSection], ([currentPage, currentSection]) => {
   if (currentPage !== 'fanclub-site' || currentSection !== 'open-chat') {
     setActiveRoomId(null)
+    pendingChatRoomId.value = null
   }
 })
 
@@ -305,6 +309,12 @@ function openModal(kind) {
 }
 
 
+
+function openSongChat(roomId) {
+  pendingChatRoomId.value = roomId
+  fanclubSection.value = 'open-chat'
+  goTo('fanclub-site')
+}
 
 function openMemberFeature(mode) {
 
@@ -605,6 +615,10 @@ function handleAiModalAuth(mode) {
 
         @open-modal="openModal"
 
+        @open-song-chat="openSongChat"
+
+        @search-song-fans="(song) => emit('search-song-fans', song)"
+
       />
 
       <PageProfile
@@ -677,6 +691,8 @@ function handleAiModalAuth(mode) {
         v-else-if="page === 'fanclub-site'"
 
         :active-section="fanclubSection"
+
+        :initial-chat-room-id="pendingChatRoomId"
 
         @navigate="goTo"
 

@@ -33,6 +33,7 @@ const props = defineProps({
   userName: { type: String, default: '' },
   membership: { type: String, default: null },
   registerPlan: { type: String, default: MEMBERSHIP.GENERAL },
+  pendingDiscoverSong: { type: Object, default: null },
 })
 
 const emit = defineEmits([
@@ -43,6 +44,7 @@ const emit = defineEmits([
   'logout',
   'open-auth',
   'user-updated',
+  'discover-song-consumed',
 ])
 
 const modal = ref(null)
@@ -56,6 +58,7 @@ const navItems = [
   { id: 'sns', label: 'みんなの投稿' },
   { id: 'discover', label: '検索' },
   { id: 'open-chat', label: 'オープンチャット' },
+  { id: 'connections', label: '曲の繋がり' },
   { id: 'artist-encyclopedia', label: 'アーティスト図鑑' },
   { id: 'artist-diagnosis', label: 'アーティスト診断' },
 ]
@@ -332,8 +335,10 @@ function onUserUpdated(account) {
 
     <PageSnsDiscover
       v-else-if="view === 'discover'"
+      :pending-song="pendingDiscoverSong"
       @need-auth="onSnsNeedAuth"
       @open-profile="openProfile"
+      @song-consumed="emit('discover-song-consumed')"
     />
 
     <PageSnsProfile
