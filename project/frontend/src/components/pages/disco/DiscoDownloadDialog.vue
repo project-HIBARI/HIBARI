@@ -2,17 +2,28 @@
 /**
  * 部品名: ディスコグラフィ — 音声DL拡張子選択モーダル
  * 用途: プレミアム会員向けに .mp3 / .wav の偽造ファイルをダウンロードする
+ *       権限がない場合はプレミアム案内を表示する
  */
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import ModalShell from '../../modals/ModalShell.vue'
+import { useMemberAccess } from '../../../composables/useMemberAccess.js'
+import { PERMISSION } from '../../../constants/membership.js'
 
 const props = defineProps({
   song: { type: Object, default: null },
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'need-auth'])
+
+const { canUse, isLoggedIn } = useMemberAccess()
 
 const format = ref('mp3')
+
+const canDownload = computed(() => canUse(PERMISSION.AUDIO_DOWNLOAD))
+
+const modalTitle = computed(() =>
+  canDownload.value ? '楽曲ダウンロード' : 'ダウンロード',
+)
 
 watch(
   () => props.song,
@@ -41,15 +52,27 @@ function downloadFakeAudio(title, ext) {
 }
 
 function onDownload() {
-  if (!props.song) return
+  if (!props.song || !canDownload.value) return
   downloadFakeAudio(props.song.title, format.value)
+  emit('close')
+}
+
+function onSubscribe() {
+  emit('need-auth', isLoggedIn.value ? 'register-premium' : 'login')
   emit('close')
 }
 </script>
 
 <template>
-  <ModalShell v-if="song" title="楽曲ダウンロード" @close="emit('close')">
-    <div class="disco-dl">
+  <ModalShell v-if="song" :title="modalTitle" @close="emit('close')">
+    <div v-if="!canDownload" class="disco-dl disco-dl--gate">
+      <p class="disco-dl__gate-msg">この機能はプレミアム会員限定です</p>
+      <button type="button" class="disco-dl__submit motion-button" @click="onSubscribe">
+        プレミアム会員購読
+      </button>
+    </div>
+
+    <div v-else class="disco-dl">
       <p class="disco-dl__song">{{ song.title }}</p>
       <p class="disco-dl__hint">ダウンロードする形式を選択してください</p>
 
@@ -75,6 +98,16 @@ function onDownload() {
 </template>
 
 <style scoped>
+.disco-dl__gate-msg {
+  margin: 0 0 var(--sp-5);
+  font-family: var(--ff-mincho);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+  color: var(--site-text);
+  text-align: center;
+}
 .disco-dl__song {
   margin: 0 0 var(--sp-2);
   font-family: var(--ff-mincho);

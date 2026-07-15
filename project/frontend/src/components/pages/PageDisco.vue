@@ -15,7 +15,6 @@ import DiscoDetailDialog from './disco/DiscoDetailDialog.vue'
 import DiscoDownloadDialog from './disco/DiscoDownloadDialog.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
 import { refreshAosHard } from '../../lib/aos.js'
-import { useMemberAccess } from '../../composables/useMemberAccess.js'
 
 const FAV_KEY = 'hbr-disco-favorites'
 const PAGE_SIZE = 8
@@ -32,8 +31,6 @@ const currentPage = ref(1)
 const detail = ref(null)
 const downloadSong = ref(null)
 const favorites = ref(new Set())
-
-const { canUse, isLoggedIn, PERMISSION } = useMemberAccess()
 
 onMounted(() => {
   try {
@@ -119,10 +116,6 @@ function openDetail(song) {
 }
 
 function onDownload(song) {
-  if (!canUse(PERMISSION.AUDIO_DOWNLOAD)) {
-    emit('open-auth', isLoggedIn.value ? 'register-premium' : 'login')
-    return
-  }
   downloadSong.value = song
 }
 </script>
@@ -181,7 +174,11 @@ function onDownload(song) {
     />
 
     <DiscoDetailDialog :detail="detail" @close="detail = null" />
-    <DiscoDownloadDialog :song="downloadSong" @close="downloadSong = null" />
+    <DiscoDownloadDialog
+      :song="downloadSong"
+      @close="downloadSong = null"
+      @need-auth="(m) => emit('open-auth', m)"
+    />
   </div>
 </template>
 
