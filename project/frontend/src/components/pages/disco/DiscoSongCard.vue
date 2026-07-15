@@ -1,7 +1,7 @@
 <script setup>
 /**
  * 部品名: ディスコグラフィ — 楽曲カード
- * 用途: 一覧グリッド内の1曲分カード（レコードチップ・メタデータ・お気に入り）
+ * 用途: 一覧グリッド内の1曲分カード（レコードチップ・メタデータ・お気に入り・DL）
  */
 import RecordChip from '../../ui/RecordChip.vue'
 import UiIco from '../../ui/UiIco.vue'
@@ -13,7 +13,7 @@ const props = defineProps({
   isFavorite: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['open', 'toggle-favorite'])
+const emit = defineEmits(['open', 'toggle-favorite', 'download'])
 
 const chipColors = ['var(--beni-700)', '#3a2a1a', 'var(--murasaki-700)']
 const chipColor = chipColors[props.index % chipColors.length]
@@ -22,6 +22,11 @@ const hasAward = props.song.note && props.song.note.includes('賞')
 function onFavoriteClick(e) {
   e.stopPropagation()
   emit('toggle-favorite', props.song.id)
+}
+
+function onDownloadClick(e) {
+  e.stopPropagation()
+  emit('download', props.song)
 }
 
 function onOpenDetail(e) {
@@ -62,6 +67,16 @@ function onPlayClick(e) {
       <div class="disco-song-card__actions">
         <button
           type="button"
+          class="disco-song-card__fav motion-button"
+          :class="{ 'disco-song-card__fav--on': isFavorite }"
+          :aria-label="isFavorite ? 'お気に入りから外す' : 'お気に入りに追加'"
+          :aria-pressed="isFavorite"
+          @click="onFavoriteClick"
+        >
+          <UiIco name="heart" :size="16" :color="isFavorite ? 'var(--beni-600)' : 'var(--site-text-muted)'" />
+        </button>
+        <button
+          type="button"
           class="disco-song-card__play motion-button"
           :aria-label="song.title + 'を再生'"
           :disabled="!song.audioUrl"
@@ -69,19 +84,17 @@ function onPlayClick(e) {
         >
           <UiIco name="play" :size="13" color="var(--murasaki-700)" />
         </button>
+        <button
+          type="button"
+          class="disco-song-card__dl motion-button"
+          :aria-label="song.title + 'をダウンロード'"
+          @click="onDownloadClick"
+        >
+          <UiIco name="download" :size="16" color="var(--site-text-muted)" />
+        </button>
         <span v-if="hasAward" class="disco-song-card__award">受賞</span>
       </div>
     </div>
-    <button
-      type="button"
-      class="disco-song-card__fav motion-button"
-      :class="{ 'disco-song-card__fav--on': isFavorite }"
-      :aria-label="isFavorite ? 'お気に入りから外す' : 'お気に入りに追加'"
-      :aria-pressed="isFavorite"
-      @click="onFavoriteClick"
-    >
-      <UiIco name="heart" :size="16" :color="isFavorite ? 'var(--beni-600)' : 'var(--site-text-muted)'" />
-    </button>
   </article>
 </template>
 
@@ -95,7 +108,8 @@ function onPlayClick(e) {
 }
 .disco-song-card__chip,
 .disco-song-card__play,
-.disco-song-card__fav {
+.disco-song-card__fav,
+.disco-song-card__dl {
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), color 0.4s ease, background 0.4s ease;
 }
 .disco-song-card__meta,
@@ -111,7 +125,6 @@ function onPlayClick(e) {
   gap: var(--sp-4);
   width: 100%;
   padding: var(--sp-4);
-  padding-right: 44px;
   align-items: center;
 }
 .disco-song-card__chip,
@@ -175,6 +188,7 @@ function onPlayClick(e) {
   flex-direction: column;
   gap: 8px;
   align-items: center;
+  flex-shrink: 0;
 }
 .disco-song-card__play {
   width: 40px;
@@ -187,6 +201,7 @@ function onPlayClick(e) {
   background: var(--murasaki-100);
   cursor: pointer;
   padding: 0;
+  margin-left: -40px;
   transition: background 0.2s, border-color 0.2s;
 }
 .disco-song-card__play:hover:not(:disabled) {
@@ -205,10 +220,8 @@ function onPlayClick(e) {
   letter-spacing: 0.1em;
   font-family: var(--ff-mincho);
 }
-.disco-song-card__fav {
-  position: absolute;
-  top: 12px;
-  right: 12px;
+.disco-song-card__fav,
+.disco-song-card__dl {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -218,6 +231,7 @@ function onPlayClick(e) {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
   transition: background 0.2s, border-color 0.2s;
 }
 .disco-song-card__fav:hover {
@@ -228,13 +242,22 @@ function onPlayClick(e) {
   border-color: var(--beni-500);
   background: rgba(252, 232, 236, 0.8);
 }
+.disco-song-card__dl:hover {
+  border-color: var(--murasaki-500);
+  background: rgba(232, 223, 240, 0.5);
+}
 
 @media (max-width: 600px) {
   .disco-song-card__main {
-    grid-template-columns: 72px 1fr;
+    grid-template-columns: 72px 1fr auto;
+    gap: var(--sp-3);
   }
   .disco-song-card__actions {
-    display: none;
+    gap: 6px;
+  }
+  .disco-song-card__play {
+    width: 36px;
+    height: 36px;
   }
 }
 </style>

@@ -24,6 +24,7 @@ export const PERMISSION = {
   BOARD_POST_UNLIMITED: 'board_post_unlimited',
   PRIORITY_DISCOUNT: 'priority_discount',
   OPEN_CHAT: 'open_chat',
+  AUDIO_DOWNLOAD: 'audio_download',
 }
 
 /** プラン別の利用可能権限 */
@@ -46,6 +47,7 @@ export const MEMBERSHIP_PERMISSIONS = {
     PERMISSION.AI_CHAT_UNLIMITED,
     PERMISSION.BOARD_POST_UNLIMITED,
     PERMISSION.PRIORITY_DISCOUNT,
+    PERMISSION.AUDIO_DOWNLOAD,
   ],
 }
 
@@ -62,7 +64,7 @@ export const MEMBERSHIP_PLANS = [
       '月10回 AIひばり対話',
       'オープンチャット',
     ],
-    locked: ['プレミアム限定映像', '限定コンテンツ', '優先申込＋会員割引'],
+    locked: ['プレミアム限定映像', '限定コンテンツ', '優先申込＋会員割引', '高音質音声ダウンロード'],
   },
   {
     id: MEMBERSHIP.PREMIUM,
@@ -76,6 +78,7 @@ export const MEMBERSHIP_PLANS = [
       'AIひばり対話 無制限',
       '掲示板投稿 無制限',
       '優先申込＋会員割引',
+      '高音質音声ダウンロード',
     ],
     locked: [],
     recommended: true,
