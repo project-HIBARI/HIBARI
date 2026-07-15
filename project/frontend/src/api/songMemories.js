@@ -21,3 +21,7 @@ export function createSongMemory(songId, { memoryType, comment = '', visibility 
 export function fetchSongChatRoom(songId) {
   return apiRequest(`/api/open-chats/by-song/${songId}`)
 }
+
+export function fetchAccountSongMemories(accountId) {
+  return apiRequest(`/api/accounts/${accountId}/song-memories`)
+}

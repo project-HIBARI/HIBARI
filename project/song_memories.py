@@ -165,3 +165,41 @@ def register_song_memory_routes(app, engine, **deps):
         except Exception as e:
             print(e)
             return jsonify({"error": "一覧の取得に失敗しました"}), 500
+
+    @app.route("/api/accounts/<int:account_id>/song-memories", methods=["GET"])
+    def get_account_song_memories(account_id):
+        try:
+            viewer_id = _optional_account_id()
+            if viewer_id == account_id:
+                visibility_clause = "TRUE"
+            elif viewer_id:
+                visibility_clause = "sm.visibility IN ('public', 'members')"
+            else:
+                visibility_clause = "sm.visibility = 'public'"
+
+            rows = fetch_all(
+                f"""
+                SELECT sm.memory_id, sm.song_id, sm.memory_type, sm.comment,
+                       sm.visibility, sm.created_at, s.title, s.release_year
+                FROM song_memories sm
+                JOIN songs s ON s.song_id = sm.song_id
+                WHERE sm.account_id = :account_id
+                  AND {visibility_clause}
+                ORDER BY sm.created_at DESC
+                """,
+                {"account_id": account_id},
+            )
+            memories = [{
+                "memory_id": _row_val(r, "memory_id"),
+                "song_id": _row_val(r, "song_id"),
+                "title": _row_val(r, "title"),
+                "release_year": _row_val(r, "release_year"),
+                "memory_type": _row_val(r, "memory_type"),
+                "comment": _row_val(r, "comment"),
+                "visibility": _row_val(r, "visibility"),
+                "created_at": to_jst_str(_row_val(r, "created_at")),
+            } for r in rows]
+            return jsonify({"memories": memories})
+        except Exception as e:
+            print(e)
+            return jsonify({"error": "一覧の取得に失敗しました"}), 500
