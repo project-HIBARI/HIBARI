@@ -23,7 +23,7 @@ const iconMap = {
   music: 'disc',
 }
 
-const emit = defineEmits(['back', 'open-detail', 'open-fanclub', 'coming-soon', 'change-cover', 'retry'])
+const emit = defineEmits(['back', 'open-detail', 'open-fanclub', 'export-pdf', 'share', 'open-recap', 'change-cover', 'retry'])
 
 const crumbs = computed(() => [
   { label: 'Music Memory Book', action: 'top' },
@@ -119,14 +119,14 @@ function openItem(item) {
         </section>
 
         <div class="mmb-year__actions" v-bind="aosAttrs(400)">
-          <UiButton variant="outline" size="md" @click="emit('coming-soon', 'pdf')">
+          <UiButton variant="outline" size="md" @click="emit('export-pdf')">
             このアルバムをPDFで保存
           </UiButton>
-          <UiButton variant="outline" size="md" @click="emit('coming-soon', 'share')">
+          <UiButton variant="outline" size="md" @click="emit('share')">
             <UiIco name="share" :size="14" />
             アルバムをシェアする
           </UiButton>
-          <UiButton variant="primary" size="md" @click="emit('coming-soon', 'ai-recap')">
+          <UiButton variant="primary" size="md" @click="emit('open-recap')">
             AIによる1年の振り返りを見る
           </UiButton>
         </div>

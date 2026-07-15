@@ -7,8 +7,24 @@ export function createPost(payload) {
   })
 }
 
-export function fetchPosts() {
-  return apiRequest('/api/posts')
+export function fetchPosts(options = {}) {
+  const query = options.mine ? '?mine=1' : ''
+  return apiRequest(`/api/posts${query}`)
+}
+
+export function fetchMyPosts() {
+  return fetchPosts({ mine: true })
+}
+
+export function updatePost(postId, payload) {
+  return apiRequest(`/api/posts/${postId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deletePost(postId) {
+  return apiRequest(`/api/posts/${postId}`, { method: 'DELETE' })
 }
 
 /**

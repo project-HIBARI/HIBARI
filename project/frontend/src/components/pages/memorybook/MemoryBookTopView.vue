@@ -42,11 +42,16 @@ const currentYear = computed(() => props.summary?.currentYear ?? {
   total: 0,
 })
 
-const yearAlbums = computed(() =>
-  props.years.length
-    ? props.years
-    : [{ year: new Date().getFullYear(), total: 0, tone: 'purple' }],
-)
+const yearAlbums = computed(() => {
+  const withData = props.years.filter((y) => y.total > 0)
+  if (withData.length) return withData
+  const currentYear = new Date().getFullYear()
+  return [{ year: currentYear, total: 0, tone: 'purple' }]
+})
+
+function onOpenYear(year) {
+  emit('open-year', Number(year))
+}
 
 function coverDesignForYear(year) {
   void props.coversByYear
@@ -152,7 +157,7 @@ const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year
             <li>AI会話：<strong>{{ displaySummary.categories.aiChats }}</strong>件</li>
             <li>思い出総数：<strong>{{ currentYear.total }}</strong>件</li>
           </ul>
-          <UiButton variant="primary" size="md" @click="emit('open-year', currentYear.year)">
+          <UiButton variant="primary" size="md" @click="onOpenYear(currentYear.year)">
             {{ currentYear.year }}年のアルバムを見る
             <UiIco name="arrow" :size="14" color="#fff" />
           </UiButton>
@@ -170,22 +175,26 @@ const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year
       <h2 class="mmb-top__shelf-title" v-bind="aosAttrs()">年別アルバム一覧</h2>
       <p class="mmb-top__shelf-desc">本棚のように、年ごとの思い出アルバムが並びます。</p>
       <div class="mmb-top__shelf-row">
-        <button
+        <div
           v-for="(y, i) in yearAlbums"
           :key="y.year"
-          type="button"
-          class="mmb-top__shelf-item"
+          class="mmb-top__shelf-wrap"
           v-bind="aosAttrs(i * 80)"
-          @click="emit('open-year', y.year)"
         >
-          <MemoryBookAlbumCover
-            :year="y.year"
-            :design-id="coverDesignForYear(y.year)"
-            size="sm"
-          />
-          <p class="mmb-top__shelf-label">{{ y.year }}年 Music Memories</p>
-          <p class="mmb-top__shelf-count">{{ y.total }}件の思い出</p>
-        </button>
+          <button
+            type="button"
+            class="mmb-top__shelf-item"
+            @click="onOpenYear(y.year)"
+          >
+            <MemoryBookAlbumCover
+              :year="y.year"
+              :design-id="coverDesignForYear(y.year)"
+              size="sm"
+            />
+            <p class="mmb-top__shelf-label">{{ y.year }}年 Music Memories</p>
+            <p class="mmb-top__shelf-count">{{ y.total }}件の思い出</p>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -534,13 +543,21 @@ const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year
   margin-bottom: var(--sp-2);
 }
 
+.mmb-top__shelf-wrap {
+  min-width: 0;
+}
+
 .mmb-top__shelf-item {
+  width: 100%;
   padding: var(--sp-4) var(--sp-3) var(--sp-5);
   border: 0;
   background: transparent;
   cursor: pointer;
   text-align: center;
   transition: transform 0.3s ease;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .mmb-top__shelf-item:hover {

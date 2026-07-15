@@ -7,6 +7,7 @@ import MemoryBookBreadcrumb from './MemoryBookBreadcrumb.vue'
 import UiButton from '../../ui/UiButton.vue'
 import UiIco from '../../ui/UiIco.vue'
 import { aosAttrs } from '../../../lib/aos.js'
+import { isMemoryItemManageable } from '../../../lib/memoryBookFromApi.js'
 
 const props = defineProps({
   loading: { type: Boolean, default: false },
@@ -14,7 +15,9 @@ const props = defineProps({
   memory: { type: Object, default: null },
 })
 
-const emit = defineEmits(['back', 'back-year', 'open-detail', 'open-fanclub', 'coming-soon', 'retry'])
+const emit = defineEmits(['back', 'back-year', 'open-detail', 'open-fanclub', 'retry', 'edit', 'delete', 'filter-related'])
+
+const canManage = computed(() => isMemoryItemManageable(props.memory))
 
 const displayMemory = computed(() => props.memory ?? {
   title: '思い出が見つかりません',
@@ -77,10 +80,13 @@ function goNext() {
       <UiButton variant="ghost" size="sm" @click="emit('back-year')">
         ‹ 戻る
       </UiButton>
-      <div class="mmb-detail__edit">
-        <button type="button" class="mmb-detail__edit-btn" @click="emit('coming-soon', 'edit')">編集</button>
-        <span class="mmb-detail__edit-sep">|</span>
-        <button type="button" class="mmb-detail__edit-btn mmb-detail__edit-btn--danger" @click="emit('coming-soon', 'delete')">削除</button>
+      <div v-if="canManage" class="mmb-detail__edit">
+        <UiButton variant="outline" size="sm" class="mmb-detail__edit-action" @click="emit('edit')">
+          編集
+        </UiButton>
+        <UiButton variant="outline" size="sm" class="mmb-detail__edit-action mmb-detail__edit-action--danger" @click="emit('delete')">
+          削除
+        </UiButton>
       </div>
     </div>
 
@@ -154,9 +160,9 @@ function goNext() {
         <section class="mmb-detail__panel">
           <h3 class="mmb-detail__panel-title">関連項目</h3>
           <ul class="mmb-detail__links">
-            <li><button type="button" @click="emit('coming-soon', 'same-day')">同じ日の思い出をすべて見る</button></li>
-            <li><button type="button" @click="emit('coming-soon', 'same-place')">同じ場所の思い出をすべて見る</button></li>
-            <li><button type="button" @click="emit('coming-soon', 'same-cat')">同じカテゴリの思い出をすべて見る</button></li>
+            <li><button type="button" @click="emit('filter-related', 'same-day')">同じ日の思い出をすべて見る</button></li>
+            <li><button type="button" @click="emit('filter-related', 'same-place')">同じ場所の思い出をすべて見る</button></li>
+            <li><button type="button" @click="emit('filter-related', 'same-category')">同じカテゴリの思い出をすべて見る</button></li>
           </ul>
         </section>
 
@@ -186,29 +192,27 @@ function goNext() {
 .mmb-detail__edit {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 10px;
 }
 
-.mmb-detail__edit-btn {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--site-text-muted);
-  cursor: pointer;
+.mmb-detail__edit-action {
+  min-width: 72px;
   font-family: var(--ff-mincho);
+  letter-spacing: 0.06em;
+  background: color-mix(in srgb, var(--site-surface) 88%, var(--murasaki-100));
+  box-shadow: 0 2px 8px rgba(61, 36, 80, 0.08);
 }
 
-.mmb-detail__edit-btn:hover {
-  color: var(--murasaki-700);
+.mmb-detail__edit-action--danger {
+  color: var(--beni-700);
+  border-color: color-mix(in srgb, var(--beni-500) 55%, var(--site-border));
+  background: color-mix(in srgb, var(--site-surface) 90%, #fde8ec);
 }
 
-.mmb-detail__edit-btn--danger:hover {
-  color: var(--beni-600);
-}
-
-.mmb-detail__edit-sep {
-  color: var(--site-border-strong);
+.mmb-detail__edit-action--danger:hover:not(:disabled) {
+  color: var(--beni-800);
+  border-color: var(--beni-500);
+  background: color-mix(in srgb, #fde8ec 70%, var(--site-surface));
 }
 
 .mmb-detail__head {

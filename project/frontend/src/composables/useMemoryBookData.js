@@ -52,6 +52,14 @@ function getItemDetail(id) {
   return bookApi?.getItemDetail(id) ?? null
 }
 
+function getFilterViewData(mode, memoryId) {
+  return bookApi?.getFilterViewData(mode, memoryId) ?? null
+}
+
+function getCategoryViewData(categoryId) {
+  return bookApi?.getCategoryViewData(categoryId) ?? null
+}
+
 export function useMemoryBookData() {
   return {
     loading: readonly(loading),
@@ -63,5 +71,7 @@ export function useMemoryBookData() {
     fetchMemoryBook,
     getYearDetail,
     getItemDetail,
+    getFilterViewData,
+    getCategoryViewData,
   }
 }

@@ -13,6 +13,7 @@ import {
   hasPermission,
 } from '../../constants/membership.js'
 import { bindAiUsageRef, refreshAiUsageStatus, consumeAiUsage } from '../../lib/aiUsage.js'
+import { sendChatMessage } from '../../lib/chatApi.js'
 import { HIBARI_AVATAR_SRC, HIBARI_AVATAR_ALT } from '../../lib/hibariAvatar.js'
 
 const props = defineProps({
@@ -34,6 +35,7 @@ const usageStatus = ref(null)
 const lyricForm = ref({ theme: '', mood: '', scene: '' })
 const lyricResult = ref('')
 const lyricLoading = ref(false)
+const currentRoomId = ref(null)
 
 bindAiUsageRef(usageStatus)
 
@@ -104,6 +106,34 @@ async function send() {
   }
 
   loading.value = true
+
+    if (props.isLoggedIn) {
+    try {
+      const data = await sendChatMessage({
+        message: userMsg,
+        roomId: currentRoomId.value,
+      })
+      if (data.room_id) currentRoomId.value = Number(data.room_id)
+      messages.value.push({
+        role: 'ai',
+        text: data.message,
+      })
+    } catch (err) {
+      messages.value.push({
+        role: 'ai',
+        text: getDemoReply(userMsg),
+      })
+      if (err.status === 401) {
+        chatError.value = 'ログインが必要です。簡易応答を表示しています。'
+      } else {
+        chatError.value = 'AIサーバーに接続できなかったため、簡易応答を表示しています。'
+      }
+    } finally {
+      loading.value = false
+    }
+    return
+  }
+
   window.setTimeout(() => {
     messages.value.push({
       role: 'ai',
