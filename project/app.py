@@ -2323,7 +2323,7 @@ def create_fanclub():
         return jsonify({"error": "ファンクラブ登録エラー", "detail": str(e)}), 500
     
     
-    QUIZ_FILE = "quizzes.json"
+QUIZ_FILE = "quizzes.json"
 RANKING_FILE = "ranking.json"
 
 def load_quizzes():
