@@ -98,13 +98,37 @@ const plans = MEMBERSHIP_PLANS
   border-color: var(--murasaki-400);
 }
 .reg-plan--active {
-  border-color: var(--murasaki-600);
-  background: var(--murasaki-100);
-  box-shadow: 0 0 0 3px rgba(122, 80, 136, 0.1);
+  border: 3px solid #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
 }
+
 .reg-plan--premium.reg-plan--active {
-  border-color: var(--kin-500);
-  background: linear-gradient(135deg, #fff9f6 0%, var(--murasaki-100) 100%);
+  border: 3px solid #d97706;
+  background: #fff3cd;
+  box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.2);
+}
+
+/* 500円 */
+.reg-plan--active .reg-plan__name,
+.reg-plan--active .reg-plan__price-num {
+  color: #1d4ed8;
+}
+
+.reg-plan--active .reg-plan__price-unit,
+.reg-plan--active .reg-plan__features li {
+  color: #1f2937;
+}
+
+/* 1500円*/
+.reg-plan--premium.reg-plan--active .reg-plan__name,
+.reg-plan--premium.reg-plan--active .reg-plan__price-num {
+  color: #92400e;
+}
+
+.reg-plan--premium.reg-plan--active .reg-plan__price-unit,
+.reg-plan--premium.reg-plan--active .reg-plan__features li {
+  color: #451a03;
 }
 .reg-plan__radio {
   position: absolute;

@@ -63,13 +63,16 @@ function onToggleAgree() {
       />
 
       <div class="reg-step__terms">
-        <input
-          id="reg-agree"
-          type="checkbox"
-          class="reg-step__checkbox"
-          :checked="form.agreeTerms"
-          @click.prevent="onToggleAgree"
-        />
+        <span class="reg-step__checkbox-wrap">
+          <input
+            id="reg-agree"
+            type="checkbox"
+            class="reg-step__checkbox"
+            :checked="form.agreeTerms"
+            @click.prevent="onToggleAgree"
+          />
+          <span class="reg-step__checkbox-mark" aria-hidden="true"></span>
+        </span>
         <span>
           <button type="button" class="reg-step__link" @click="emit('request-terms')">利用規約</button>
           および
@@ -123,23 +126,64 @@ function onToggleAgree() {
   font-family: var(--ff-sans-jp);
   font-size: 12px;
   line-height: 1.75;
-  color: var(--site-text-muted);
+  color: var(--site-text) !important;
   cursor: pointer;
 }
-.reg-step__checkbox {
-  width: 16px;
-  height: 16px;
-  margin-top: 3px;
+.reg-step__checkbox-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
   flex-shrink: 0;
-  accent-color: var(--murasaki-600);
+}
+.reg-step__checkbox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
   cursor: pointer;
+}
+.reg-step__checkbox-mark {
+  display: inline-flex;
+  position: relative;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--site-border-strong);
+  background: #fff;
+  border-radius: 4px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.reg-step__checkbox-mark::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 10px;
+  border-right: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  transform: translate(-50%, -50%) rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+.reg-step__checkbox:checked + .reg-step__checkbox-mark::after {
+  border-color: var(--site-text);
+  opacity: 1;
 }
 .reg-step__terms-note {
   margin: -12px 0 0;
   font-family: var(--ff-sans-jp);
   font-size: 11px;
   line-height: 1.6;
-  color: var(--site-text-light);
+  color: var(--site-text) !important;
 }
 .reg-step__link {
   background: transparent;

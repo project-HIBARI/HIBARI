@@ -88,14 +88,14 @@ function currentType() {
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: var(--site-text);
+  color: var(--murasaki-700);
 }
 .reg-field__required {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: #fff;
-  background: var(--murasaki-600);
+  background: var(--murasaki-700);
   padding: 1px 7px;
   border-radius: 999px;
 }
@@ -117,7 +117,8 @@ function currentType() {
   padding-right: 48px;
 }
 .reg-field__input::placeholder {
-  color: var(--site-text-light);
+  color: var(--site-text-muted);
+  opacity: 1;
 }
 .reg-field__input:focus {
   outline: none;
@@ -149,7 +150,7 @@ function currentType() {
   font-family: var(--ff-sans-jp);
   font-size: 11px;
   line-height: 1.6;
-  color: var(--site-text-light);
+  color: var(--site-text) !important;
 }
 .reg-field__error {
   margin: 0;
