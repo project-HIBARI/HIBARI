@@ -473,6 +473,24 @@ def is_fanclub_member_account(account_id):
     return get_membership_for_account(account_id) is not None
 
 
+def get_avatar_path_for_account(account_id):
+    try:
+        rows = fetch_all(
+            """
+            SELECT avatar_path
+            FROM sns_profiles
+            WHERE account_id = :account_id
+            LIMIT 1
+            """,
+            {"account_id": account_id},
+        )
+    except Exception:
+        return None
+    if not rows:
+        return None
+    return rows[0].avatar_path or None
+
+
 def build_user_response(account_id, name, email):
     membership = get_membership_for_account(account_id)
     return {
@@ -482,6 +500,7 @@ def build_user_response(account_id, name, email):
         "membership": membership,
         "is_fanclub_member": membership is not None,
         "is_premium": membership == "premium",
+        "avatar_path": get_avatar_path_for_account(account_id),
     }
 
 

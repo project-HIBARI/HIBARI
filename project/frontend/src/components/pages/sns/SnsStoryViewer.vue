@@ -319,7 +319,7 @@ onUnmounted(() => {
         </button>
         <div class="sns-story-viewer__head-actions">
           <button v-if="isOwner" type="button" class="sns-story-viewer__icon-btn" aria-label="削除" @click="onDelete">
-            <UiIco name="close" :size="16" />
+            <UiIco name="trash" :size="18" color="var(--beni-600)" />
           </button>
           <button type="button" class="sns-story-viewer__icon-btn" aria-label="閉じる" @click="emit('close')">
             <UiIco name="close" :size="20" />

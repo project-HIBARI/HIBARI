@@ -10,6 +10,7 @@ const props = defineProps({
   isLoggedIn: { type: Boolean, default: false },
   userName: { type: String, default: '' },
   membership: { type: String, default: 'general' },
+  avatarPath: { type: String, default: '' },
 })
 
 const emit = defineEmits(['open-auth', 'open-account', 'logout', 'go-fanclub'])
@@ -19,6 +20,7 @@ const rootRef = ref(null)
 
 const planLabel = computed(() => MEMBERSHIP_LABELS[props.membership] || '一般会員')
 const displayName = computed(() => props.userName || '会員')
+const hasAvatar = computed(() => Boolean(props.avatarPath))
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value
@@ -53,7 +55,15 @@ onUnmounted(() => {
         aria-haspopup="true"
         @click.stop="toggleMenu"
       >
-        <span class="header-account__avatar" aria-hidden="true">{{ displayName.charAt(0) }}</span>
+        <span class="header-account__avatar" aria-hidden="true">
+          <img
+            v-if="hasAvatar"
+            :src="avatarPath"
+            :alt="displayName"
+            class="header-account__avatar-img"
+          />
+          <template v-else>{{ displayName.charAt(0) }}</template>
+        </span>
         <span class="header-account__name">{{ displayName }}</span>
         <span class="header-account__chevron" :class="{ 'header-account__chevron--open': menuOpen }">▾</span>
       </button>
@@ -149,6 +159,13 @@ onUnmounted(() => {
   color: #fff;
   font-size: 12px;
   font-weight: 700;
+  overflow: hidden;
+}
+.header-account__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .header-account__name {
   overflow: hidden;

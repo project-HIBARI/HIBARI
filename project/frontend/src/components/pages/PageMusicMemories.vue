@@ -273,7 +273,7 @@ function onEnterSite(siteId) {
 
 .music-memories__today-visual {
   min-height: 220px;
-  background: linear-gradient(145deg, rgba(90, 58, 107, 0.4), rgba(26, 20, 24, 0.7));
+  background: #1e161e;
   overflow: hidden;
 }
 
@@ -283,6 +283,7 @@ function onEnterSite(siteId) {
   object-fit: cover;
   object-position: center top;
   display: block;
+  background: #1e161e;
 }
 
 .music-memories__today-body {
