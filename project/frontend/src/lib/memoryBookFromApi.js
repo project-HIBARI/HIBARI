@@ -23,6 +23,16 @@ export function isMemoryItemManageable(item) {
   return item?.category === 'flowers' || item?.category === 'posts'
 }
 
+export function isMemoryItemSong(item) {
+  return item?.category === 'songs'
+}
+
+export function parseSongMemoryId(id) {
+  if (!id) return null
+  const match = String(id).match(/^song-(.+)$/)
+  return match ? match[1] : null
+}
+
 const WEEKDAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 const YEAR_THEME_COLORS = ['purple', 'blue', 'green', 'brown']
 
@@ -41,10 +51,28 @@ const CATEGORY_ICONS = {
 }
 
 function parseDate(isoOrStr) {
-  if (!isoOrStr) return null
-  const normalized = String(isoOrStr).replace(' ', 'T')
+  if (isoOrStr == null || isoOrStr === '') return null
+
+  if (isoOrStr instanceof Date) {
+    return Number.isNaN(isoOrStr.getTime()) ? null : isoOrStr
+  }
+
+  const raw = String(isoOrStr).trim()
+  if (!raw || raw === '—') return null
+
+  const dotMatch = raw.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})/)
+  if (dotMatch) {
+    const d = new Date(Number(dotMatch[1]), Number(dotMatch[2]) - 1, Number(dotMatch[3]))
+    return Number.isNaN(d.getTime()) ? null : d
+  }
+
+  const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T')
   const d = new Date(normalized)
   return Number.isNaN(d.getTime()) ? null : d
+}
+
+function resolveItemDate(item) {
+  return parseDate(item?.occurredAt) || parseDate(item?.date)
 }
 
 export function formatDateDot(isoOrStr) {
@@ -327,7 +355,7 @@ function buildYears(items) {
 function buildSummary(items) {
   const counts = countByCategory(items)
   const dates = items
-    .map((i) => parseDate(i.occurredAt))
+    .map((i) => resolveItemDate(i))
     .filter(Boolean)
     .sort((a, b) => a.getTime() - b.getTime())
   const startedAt = dates.length ? formatDateDot(dates[0]) : '—'
@@ -336,6 +364,7 @@ function buildSummary(items) {
   return {
     total: items.length,
     startedAt,
+    startedAtRaw: dates[0] ?? null,
     categories: counts,
     currentYear: { year: currentYear, total: currentYearTotal },
   }
@@ -488,6 +517,31 @@ function enrichMonthPosition(item, allItems) {
   }
 }
 
+export function createMemoryBookApi(rawItems) {
+  const items = attachPrevNext(rawItems)
+  const itemMap = Object.fromEntries(items.map((i) => [i.id, i]))
+
+  return {
+    items,
+    itemMap,
+    summary: buildSummary(items),
+    categories: buildCategories(countByCategory(items)),
+    years: buildYears(items),
+    getYearDetail: (year) => buildYearDetail(items, year),
+    getItemDetail: (id) => {
+      const item = itemMap[id]
+      if (!item) return null
+      return enrichMonthPosition(item, items)
+    },
+    getFilterViewData: (mode, memoryId) => {
+      const memory = itemMap[memoryId]
+      if (!memory) return null
+      return buildFilterViewData(items, mode, memory)
+    },
+    getCategoryViewData: (categoryId) => buildCategoryViewData(items, categoryId),
+  }
+}
+
 /**
  * 既存API（献花・思い出投稿）から思い出帳データを構築
  */
@@ -512,27 +566,8 @@ export async function loadMemoryBookFromApi() {
     ? aiResult.value
     : []
 
-  const items = attachPrevNext([...flowers, ...posts, ...songs, ...aiChats])
-  const itemMap = Object.fromEntries(items.map((i) => [i.id, i]))
-
   return {
-    items,
-    itemMap,
-    summary: buildSummary(items),
-    categories: buildCategories(countByCategory(items)),
-    years: buildYears(items),
-    getYearDetail: (year) => buildYearDetail(items, year),
-    getItemDetail: (id) => {
-      const item = itemMap[id]
-      if (!item) return null
-      return enrichMonthPosition(item, items)
-    },
-    getFilterViewData: (mode, memoryId) => {
-      const memory = itemMap[memoryId]
-      if (!memory) return null
-      return buildFilterViewData(items, mode, memory)
-    },
-    getCategoryViewData: (categoryId) => buildCategoryViewData(items, categoryId),
+    ...createMemoryBookApi([...flowers, ...posts, ...songs, ...aiChats]),
     errors: {
       flowers: flowersResult.status === 'rejected' ? flowersResult.reason : null,
       posts: postsResult.status === 'rejected' ? postsResult.reason : null,

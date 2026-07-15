@@ -9,6 +9,7 @@ import UiButton from '../../ui/UiButton.vue'
 import UiIco from '../../ui/UiIco.vue'
 import { pageImageUrl, PROFILE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import { aosAttrs } from '../../../lib/aos.js'
+import { canViewMemoryBookYear } from '../../../lib/memoryBookAccess.js'
 
 const props = defineProps({
   loading: { type: Boolean, default: false },
@@ -16,6 +17,8 @@ const props = defineProps({
   summary: { type: Object, default: null },
   categories: { type: Array, default: () => [] },
   years: { type: Array, default: () => [] },
+  isPremium: { type: Boolean, default: false },
+  isLoggedIn: { type: Boolean, default: false },
   getCoverDesign: { type: Function, required: true },
   coversByYear: { type: Object, default: () => ({}) },
 })
@@ -29,13 +32,29 @@ const iconMap = {
   calendar: 'calendar',
 }
 
-const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-category', 'retry'])
+const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-category', 'open-premium', 'retry'])
 
 const displaySummary = computed(() => props.summary ?? {
   total: 0,
   startedAt: '—',
   categories: { flowers: 0, posts: 0, songs: 0, aiChats: 0 },
 })
+
+const memoryAccess = computed(() => ({
+  isPremium: props.isPremium,
+}))
+
+function isYearLocked(year) {
+  return !canViewMemoryBookYear(memoryAccess.value, year)
+}
+
+function onOpenYear(year) {
+  if (isYearLocked(year)) {
+    emit('open-premium')
+    return
+  }
+  emit('open-year', Number(year))
+}
 
 const currentYear = computed(() => props.summary?.currentYear ?? {
   year: new Date().getFullYear(),
@@ -49,16 +68,22 @@ const yearAlbums = computed(() => {
   return [{ year: currentYear, total: 0, tone: 'purple' }]
 })
 
-function onOpenYear(year) {
-  emit('open-year', Number(year))
-}
-
 function coverDesignForYear(year) {
   void props.coversByYear
   return props.getCoverDesign(year)
 }
 
 const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year))
+
+const membershipBadge = computed(() => {
+  if (props.isPremium) {
+    return { title: 'プレミアム会員', note: '全機能ご利用可', tone: 'premium' }
+  }
+  if (props.isLoggedIn) {
+    return { title: '一般会員', note: '一部機能制限あり', tone: 'general' }
+  }
+  return { title: '会員限定', note: '', tone: 'guest' }
+})
 </script>
 
 <template>
@@ -73,6 +98,21 @@ const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year
     </div>
 
     <template v-else>
+    <div
+      v-if="isLoggedIn && !isPremium"
+      class="mmb-top__limit-banner"
+      role="note"
+    >
+      <UiIco name="crown" :size="16" color="var(--murasaki-600)" />
+      <p>
+        一般会員の方は、当年のアルバム閲覧と思い出の確認までご利用いただけます。
+        PDF保存・シェア・AI振り返り・表紙変更は<strong>プレミアム会員限定</strong>です。
+      </p>
+      <button type="button" class="mmb-top__limit-link" @click="emit('open-premium')">
+        プレミアム詳細 ›
+      </button>
+    </div>
+
     <!-- Hero -->
     <section class="mmb-top__hero" aria-labelledby="mmb-top-title">
       <div class="mmb-top__hero-bg" aria-hidden="true" />
@@ -100,16 +140,33 @@ const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year
 
         <aside class="mmb-top__hero-aside" v-bind="aosAttrs(120)" aria-label="あなたのアルバム">
           <article class="mmb-top__hero-tile mmb-top__stats-card">
-            <span class="mmb-top__stats-badge">
-              <UiIco name="crown" :size="14" color="var(--kin-600)" />
-              プレミアム会員限定
-            </span>
-            <h2 class="mmb-top__stats-label">あなたの思い出総数</h2>
-            <p class="mmb-top__stats-num">
-              {{ displaySummary.total }}<span class="mmb-top__stats-unit">件</span>
-            </p>
-            <hr class="hr-gold mmb-top__stats-rule" />
-            <p class="mmb-top__stats-since">はじめた日：{{ displaySummary.startedAt }}</p>
+            <header class="mmb-top__stats-head">
+              <span
+                class="mmb-top__stats-badge"
+                :class="`mmb-top__stats-badge--${membershipBadge.tone}`"
+              >
+                <UiIco name="crown" :size="13" color="currentColor" />
+                {{ membershipBadge.title }}
+              </span>
+              <p v-if="membershipBadge.note" class="mmb-top__stats-badge-note">
+                {{ membershipBadge.note }}
+              </p>
+            </header>
+
+            <div class="mmb-top__stats-body">
+              <p class="mmb-top__stats-label">あなたの思い出総数</p>
+              <p class="mmb-top__stats-num" aria-label="思い出総数">
+                <span class="mmb-top__stats-num-value">{{ displaySummary.total }}</span>
+                <span class="mmb-top__stats-unit">件</span>
+              </p>
+            </div>
+
+            <footer class="mmb-top__stats-foot">
+              <span class="mmb-top__stats-foot-label">はじめた日</span>
+              <time class="mmb-top__stats-foot-date" :datetime="displaySummary.startedAt">
+                {{ displaySummary.startedAt }}
+              </time>
+            </footer>
           </article>
 
           <div class="mmb-top__hero-tile mmb-top__hero-album" aria-hidden="true">
@@ -184,6 +241,7 @@ const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year
           <button
             type="button"
             class="mmb-top__shelf-item"
+            :class="{ 'mmb-top__shelf-item--locked': isYearLocked(y.year) }"
             @click="onOpenYear(y.year)"
           >
             <MemoryBookAlbumCover
@@ -192,18 +250,59 @@ const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year
               size="sm"
             />
             <p class="mmb-top__shelf-label">{{ y.year }}年 Music Memories</p>
-            <p class="mmb-top__shelf-count">{{ y.total }}件の思い出</p>
+            <p class="mmb-top__shelf-count">
+              <template v-if="isYearLocked(y.year)">プレミアム限定</template>
+              <template v-else>{{ y.total }}件の思い出</template>
+            </p>
           </button>
         </div>
       </div>
     </section>
 
-    <MemoryBookPremiumBand @open-fanclub="emit('open-fanclub')" />
+    <MemoryBookPremiumBand v-if="!isPremium" @open-fanclub="emit('open-fanclub')" />
     </template>
   </div>
 </template>
 
 <style scoped>
+.mmb-top__limit-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--site-radius-lg);
+  border: 1px solid rgba(122, 80, 136, 0.22);
+  background: linear-gradient(135deg, rgba(245, 235, 248, 0.95), rgba(252, 248, 250, 0.95));
+}
+
+.mmb-top__limit-banner p {
+  margin: 0;
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--site-text-muted);
+}
+
+.mmb-top__limit-banner strong {
+  color: var(--murasaki-700);
+}
+
+.mmb-top__limit-link {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--ff-mincho);
+  font-size: 12px;
+  color: var(--murasaki-700);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mmb-top__limit-link:hover {
+  text-decoration: underline;
+}
+
 .mmb-top__hero {
   position: relative;
   margin-bottom: var(--sp-8);
@@ -310,8 +409,129 @@ const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year
 }
 
 .mmb-top__stats-card {
-  padding: var(--sp-5) var(--sp-4);
+  padding: 0;
   text-align: center;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.mmb-top__stats-head {
+  width: 100%;
+  padding: var(--sp-4) var(--sp-3) var(--sp-3);
+  border-bottom: 1px solid rgba(122, 80, 136, 0.08);
+  background: linear-gradient(180deg, rgba(245, 235, 248, 0.55), transparent);
+}
+
+.mmb-top__stats-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--sp-2) var(--sp-3);
+}
+
+.mmb-top__stats-foot {
+  width: 100%;
+  padding: var(--sp-3) var(--sp-3) var(--sp-4);
+  border-top: 1px solid rgba(201, 169, 97, 0.28);
+  background: linear-gradient(180deg, transparent, rgba(201, 169, 97, 0.08));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mmb-top__stats-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: var(--ff-mincho);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.mmb-top__stats-badge--premium {
+  background: var(--murasaki-100);
+  border: 1px solid rgba(122, 80, 136, 0.22);
+  color: var(--murasaki-700);
+}
+
+.mmb-top__stats-badge--general {
+  background: rgba(201, 169, 97, 0.14);
+  border: 1px solid rgba(201, 169, 97, 0.38);
+  color: #8a6a2e;
+}
+
+.mmb-top__stats-badge--guest {
+  background: var(--site-surface-muted);
+  border: 1px solid var(--site-border);
+  color: var(--site-text-muted);
+}
+
+.mmb-top__stats-badge-note {
+  margin: 8px 0 0;
+  font-family: var(--ff-sans-jp);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  color: var(--site-text-light);
+}
+
+.mmb-top__stats-label {
+  margin: 0 0 10px;
+  font-family: var(--ff-mincho);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--site-text-muted);
+}
+
+.mmb-top__stats-num {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1;
+}
+
+.mmb-top__stats-num-value {
+  font-family: var(--ff-mincho);
+  font-size: clamp(36px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--murasaki-700);
+}
+
+.mmb-top__stats-unit {
+  font-size: 16px;
+  font-family: var(--ff-mincho);
+  font-weight: 700;
+  color: var(--murasaki-600);
+  transform: translateY(-2px);
+}
+
+.mmb-top__stats-foot-label {
+  font-family: var(--ff-mincho);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--site-text-light);
+}
+
+.mmb-top__stats-foot-date {
+  font-family: var(--ff-mono);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--murasaki-800);
 }
 
 .mmb-top__hero-album {
@@ -325,59 +545,6 @@ const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year
 
 .mmb-top__hero-album :deep(.mmb-cover--with-design) {
   filter: none;
-}
-
-.mmb-top__stats-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: var(--murasaki-100);
-  border: 1px solid rgba(122, 80, 136, 0.2);
-  font-family: var(--ff-mincho);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--murasaki-700);
-  margin-bottom: var(--sp-4);
-}
-
-.mmb-top__stats-label {
-  margin: 0 0 var(--sp-3);
-  font-family: var(--ff-mincho);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--site-text);
-}
-
-.mmb-top__stats-num {
-  margin: 0;
-  font-family: var(--ff-mincho);
-  font-size: clamp(32px, 3vw, 40px);
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: var(--murasaki-700);
-  line-height: 1.1;
-}
-
-.mmb-top__stats-rule {
-  width: 48px;
-  margin: var(--sp-3) auto;
-}
-
-.mmb-top__stats-unit {
-  font-size: 18px;
-  font-weight: 700;
-  margin-left: 4px;
-}
-
-.mmb-top__stats-since {
-  margin: 0;
-  font-family: var(--ff-mono);
-  font-size: 12px;
-  color: var(--site-text-light);
 }
 
 .mmb-top__categories {
@@ -562,6 +729,14 @@ const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year
 
 .mmb-top__shelf-item:hover {
   transform: translateY(-6px);
+}
+
+.mmb-top__shelf-item--locked {
+  opacity: 0.72;
+}
+
+.mmb-top__shelf-item--locked :deep(.mmb-cover) {
+  filter: grayscale(0.35);
 }
 
 .mmb-top__shelf-item :deep(.mmb-cover) {

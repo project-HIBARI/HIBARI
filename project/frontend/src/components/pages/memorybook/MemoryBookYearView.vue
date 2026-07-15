@@ -15,6 +15,7 @@ const props = defineProps({
   error: { type: String, default: '' },
   data: { type: Object, required: true },
   coverDesignId: { type: Number, default: 1 },
+  isPremium: { type: Boolean, default: false },
 })
 
 const iconMap = {
@@ -23,7 +24,7 @@ const iconMap = {
   music: 'disc',
 }
 
-const emit = defineEmits(['back', 'open-detail', 'open-fanclub', 'export-pdf', 'share', 'open-recap', 'change-cover', 'retry'])
+const emit = defineEmits(['back', 'open-detail', 'open-fanclub', 'open-premium', 'export-pdf', 'share', 'open-recap', 'change-cover', 'retry'])
 
 const crumbs = computed(() => [
   { label: 'Music Memory Book', action: 'top' },
@@ -37,6 +38,14 @@ function onCrumb(action) {
 
 function openItem(item) {
   emit('open-detail', item.id)
+}
+
+function onPremiumAction(action) {
+  if (props.isPremium) {
+    emit(action)
+    return
+  }
+  emit('open-premium')
 }
 </script>
 
@@ -52,6 +61,10 @@ function openItem(item) {
     </div>
 
     <template v-else>
+    <div v-if="!isPremium" class="mmb-year__limit-banner" role="note">
+      一般会員の方は閲覧のみ可能です。PDF保存・シェア・AI振り返り・表紙変更はプレミアム会員限定です。
+    </div>
+
     <MemoryBookBreadcrumb :items="crumbs" @navigate="onCrumb" />
 
     <header class="mmb-year__head" v-bind="aosAttrs()">
@@ -66,8 +79,14 @@ function openItem(item) {
       <!-- Left: album -->
       <aside class="mmb-year__aside" v-bind="aosAttrs(80)">
         <MemoryBookAlbumCover :year="data.year" :design-id="coverDesignId" size="lg" />
-        <UiButton variant="outline" size="sm" class="mmb-year__cover-btn" @click="emit('change-cover')">
-          アルバムの表紙を変更する
+        <UiButton
+          variant="outline"
+          size="sm"
+          class="mmb-year__cover-btn"
+          :class="{ 'mmb-year__btn--locked': !isPremium }"
+          @click="onPremiumAction('change-cover')"
+        >
+          {{ isPremium ? 'アルバムの表紙を変更する' : '表紙変更（プレミアム限定）' }}
         </UiButton>
       </aside>
 
@@ -119,26 +138,56 @@ function openItem(item) {
         </section>
 
         <div class="mmb-year__actions" v-bind="aosAttrs(400)">
-          <UiButton variant="outline" size="md" @click="emit('export-pdf')">
-            このアルバムをPDFで保存
+          <UiButton
+            variant="outline"
+            size="md"
+            :class="{ 'mmb-year__btn--locked': !isPremium }"
+            @click="onPremiumAction('export-pdf')"
+          >
+            {{ isPremium ? 'このアルバムをPDFで保存' : 'PDF保存（プレミアム限定）' }}
           </UiButton>
-          <UiButton variant="outline" size="md" @click="emit('share')">
+          <UiButton
+            variant="outline"
+            size="md"
+            :class="{ 'mmb-year__btn--locked': !isPremium }"
+            @click="onPremiumAction('share')"
+          >
             <UiIco name="share" :size="14" />
-            アルバムをシェアする
+            {{ isPremium ? 'アルバムをシェアする' : 'シェア（プレミアム限定）' }}
           </UiButton>
-          <UiButton variant="primary" size="md" @click="emit('open-recap')">
-            AIによる1年の振り返りを見る
+          <UiButton
+            variant="primary"
+            size="md"
+            :class="{ 'mmb-year__btn--locked': !isPremium }"
+            @click="onPremiumAction('open-recap')"
+          >
+            {{ isPremium ? 'AIによる1年の振り返りを見る' : 'AI振り返り（プレミアム限定）' }}
           </UiButton>
         </div>
       </div>
     </div>
 
-    <MemoryBookPremiumBand compact @open-fanclub="emit('open-fanclub')" />
+    <MemoryBookPremiumBand v-if="!isPremium" compact @open-fanclub="emit('open-fanclub')" />
     </template>
   </div>
 </template>
 
 <style scoped>
+.mmb-year__limit-banner {
+  margin-bottom: var(--sp-5);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--site-radius-lg);
+  border: 1px solid rgba(122, 80, 136, 0.18);
+  background: rgba(245, 235, 248, 0.65);
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--site-text-muted);
+}
+
+.mmb-year__btn--locked {
+  opacity: 0.88;
+}
+
 .mmb-year__head {
   margin-bottom: var(--sp-7);
 }

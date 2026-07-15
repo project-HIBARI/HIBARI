@@ -7,7 +7,7 @@ import MemoryBookBreadcrumb from './MemoryBookBreadcrumb.vue'
 import UiButton from '../../ui/UiButton.vue'
 import UiIco from '../../ui/UiIco.vue'
 import { aosAttrs } from '../../../lib/aos.js'
-import { isMemoryItemManageable } from '../../../lib/memoryBookFromApi.js'
+import { isMemoryItemManageable, isMemoryItemSong } from '../../../lib/memoryBookFromApi.js'
 
 const props = defineProps({
   loading: { type: Boolean, default: false },
@@ -15,9 +15,11 @@ const props = defineProps({
   memory: { type: Object, default: null },
 })
 
-const emit = defineEmits(['back', 'back-year', 'open-detail', 'open-fanclub', 'retry', 'edit', 'delete', 'filter-related'])
+const emit = defineEmits(['back', 'back-year', 'open-detail', 'open-fanclub', 'retry', 'edit', 'delete', 'unfavorite-song', 'filter-related'])
 
 const canManage = computed(() => isMemoryItemManageable(props.memory))
+const canUnfavorite = computed(() => isMemoryItemSong(props.memory))
+const showActions = computed(() => canManage.value || canUnfavorite.value)
 
 const displayMemory = computed(() => props.memory ?? {
   title: '思い出が見つかりません',
@@ -80,12 +82,34 @@ function goNext() {
       <UiButton variant="ghost" size="sm" @click="emit('back-year')">
         ‹ 戻る
       </UiButton>
-      <div v-if="canManage" class="mmb-detail__edit">
-        <UiButton variant="outline" size="sm" class="mmb-detail__edit-action" @click="emit('edit')">
+      <div v-if="showActions" class="mmb-detail__edit">
+        <UiButton
+          v-if="canManage"
+          variant="outline"
+          size="sm"
+          class="mmb-detail__edit-action"
+          @click="emit('edit')"
+        >
           編集
         </UiButton>
-        <UiButton variant="outline" size="sm" class="mmb-detail__edit-action mmb-detail__edit-action--danger" @click="emit('delete')">
+        <UiButton
+          v-if="canManage"
+          variant="outline"
+          size="sm"
+          class="mmb-detail__edit-action mmb-detail__edit-action--danger"
+          @click="emit('delete')"
+        >
           削除
+        </UiButton>
+        <UiButton
+          v-if="canUnfavorite"
+          variant="outline"
+          size="sm"
+          class="mmb-detail__edit-action mmb-detail__edit-action--unfavorite"
+          @click="emit('unfavorite-song')"
+        >
+          <UiIco name="heart" :size="14" />
+          いいねを外す
         </UiButton>
       </div>
     </div>
@@ -213,6 +237,19 @@ function goNext() {
   color: var(--beni-800);
   border-color: var(--beni-500);
   background: color-mix(in srgb, #fde8ec 70%, var(--site-surface));
+}
+
+.mmb-detail__edit-action--unfavorite {
+  color: var(--murasaki-700);
+  border-color: color-mix(in srgb, var(--murasaki-500) 45%, var(--site-border));
+  background: color-mix(in srgb, var(--site-surface) 88%, var(--murasaki-100));
+  gap: 6px;
+}
+
+.mmb-detail__edit-action--unfavorite:hover:not(:disabled) {
+  color: var(--murasaki-800);
+  border-color: var(--murasaki-500);
+  background: color-mix(in srgb, var(--murasaki-100) 75%, var(--site-surface));
 }
 
 .mmb-detail__head {

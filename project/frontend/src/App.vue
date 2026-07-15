@@ -23,8 +23,11 @@ onMounted(() => {
   refreshUser()
 })
 
-function enterHibariSite() {
+function enterHibariSite(_siteId = 'hibari', options = {}) {
   appView.value = 'hibari'
+  if (options?.page) {
+    sitePendingFeature.value = options.page
+  }
   window.scrollTo({ top: 0 })
 }
 

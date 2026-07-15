@@ -14,13 +14,19 @@ import MemoryBookCoverPicker from './memorybook/MemoryBookCoverPicker.vue'
 import MemoryBookEditModal from './memorybook/MemoryBookEditModal.vue'
 import MemoryBookShareModal from './memorybook/MemoryBookShareModal.vue'
 import MemoryBookAiRecapModal from './memorybook/MemoryBookAiRecapModal.vue'
-import { parseMemoryItemRef } from '../../lib/memoryBookFromApi.js'
+import { parseMemoryItemRef, parseSongMemoryId } from '../../lib/memoryBookFromApi.js'
+import { toggleDiscoFavorite } from '../../lib/discoFavorites.js'
 import { updatePost, deletePost } from '../../api/posts.js'
 import { updateFlowerOffering, deleteFlowerOffering } from '../../api/flowers.js'
 import { exportYearAlbumPdf } from '../../lib/memoryBookPdf.js'
 import { COVER_DESIGNS } from '../../lib/memoryBookCoverDesigns.js'
+import { useMemberAccess } from '../../composables/useMemberAccess.js'
+import { getMemoryBookAccess, canViewMemoryBookYear } from '../../lib/memoryBookAccess.js'
 
 const emit = defineEmits(['navigate', 'open-auth', 'open-modal'])
+
+const { isLoggedIn, isPremium, membership } = useMemberAccess()
+const memoryBookAccess = computed(() => getMemoryBookAccess(membership.value))
 
 const {
   loading,
@@ -28,7 +34,9 @@ const {
   summary,
   categories,
   years,
+  bookVersion,
   fetchMemoryBook,
+  removeItemLocally,
   getYearDetail,
   getItemDetail,
   getFilterViewData,
@@ -80,7 +88,13 @@ onMounted(() => {
 })
 
 function openYear(year) {
-  selectedYear.value = Number(year)
+  const y = Number(year)
+  if (!canViewMemoryBookYear(memoryBookAccess.value, y)) {
+    window.alert(memoryBookAccess.value.premiumFeatureNotice)
+    emit('open-auth', 'register-premium')
+    return
+  }
+  selectedYear.value = y
   selectedItemId.value = null
   filterMode.value = null
   filterSourceId.value = null
@@ -103,6 +117,18 @@ function goYear() {
 
 function openFanclub() {
   emit('navigate', 'fanclub')
+}
+
+function openPremiumUpgrade() {
+  window.alert(memoryBookAccess.value.premiumFeatureNotice)
+  emit('open-auth', 'register-premium')
+}
+
+function requirePremiumFeature(featureLabel) {
+  if (memoryBookAccess.value.isPremium) return true
+  window.alert(`${featureLabel}は${memoryBookAccess.value.premiumFeatureNotice}`)
+  emit('open-auth', 'register-premium')
+  return false
 }
 
 function onCategory(catId) {
@@ -131,6 +157,7 @@ function onRetry() {
 }
 
 function openCoverPicker(year) {
+  if (!requirePremiumFeature('表紙の変更')) return
   selectedYear.value = year
   showCoverPicker.value = true
 }
@@ -166,7 +193,7 @@ async function onSaveEdit({ category, payload }) {
     } else if (category === 'posts') {
       await updatePost(refInfo.sourceId, payload)
     }
-    await fetchMemoryBook()
+    await fetchMemoryBook({ silent: true })
     showEditModal.value = false
   } catch (err) {
     editError.value = err?.message || '保存に失敗しました。'
@@ -175,14 +202,42 @@ async function onSaveEdit({ category, payload }) {
   }
 }
 
+async function onUnfavoriteSong() {
+  const memory = itemDetail.value
+  const songId = parseSongMemoryId(memory?.id)
+  const itemId = selectedItemId.value
+  if (!songId || !itemId) return
+
+  const label = memory?.memo || memory?.title || 'この楽曲'
+  const confirmed = window.confirm(`「${label}」のお気に入りを解除しますか？\n思い出帳からも削除されます。`)
+  if (!confirmed) return
+
+  removeItemLocally(itemId)
+  selectedItemId.value = null
+  goYear()
+
+  toggleDiscoFavorite(songId)
+  try {
+    await fetchMemoryBook({ silent: true })
+  } catch {
+    await fetchMemoryBook({ silent: true })
+    window.alert('お気に入りの更新に失敗しました。')
+  }
+}
+
 async function onDeleteMemory() {
   const memory = itemDetail.value
   const refInfo = parseMemoryItemRef(selectedItemId.value)
-  if (!memory || !refInfo) return
+  const itemId = selectedItemId.value
+  if (!memory || !refInfo || !itemId) return
 
   const label = memory.category === 'flowers' ? '献花の記録' : '思い出の投稿'
   const confirmed = window.confirm(`この${label}を削除しますか？\n削除すると元に戻せません。`)
   if (!confirmed) return
+
+  removeItemLocally(itemId)
+  selectedItemId.value = null
+  goYear()
 
   try {
     if (refInfo.category === 'flowers') {
@@ -190,15 +245,15 @@ async function onDeleteMemory() {
     } else if (refInfo.category === 'posts') {
       await deletePost(refInfo.sourceId)
     }
-    await fetchMemoryBook()
-    selectedItemId.value = null
-    goYear()
+    await fetchMemoryBook({ silent: true })
   } catch (err) {
+    await fetchMemoryBook({ silent: true })
     window.alert(err?.message || '削除に失敗しました。')
   }
 }
 
 function onExportPdf() {
+  if (!requirePremiumFeature('PDF保存')) return
   try {
     exportYearAlbumPdf({
       year: selectedYear.value,
@@ -212,10 +267,12 @@ function onExportPdf() {
 }
 
 function onShareAlbum() {
+  if (!requirePremiumFeature('アルバムのシェア')) return
   showShareModal.value = true
 }
 
 function onOpenRecap() {
+  if (!requirePremiumFeature('AIによる1年の振り返り')) return
   showRecapModal.value = true
 }
 
@@ -252,29 +309,36 @@ function backFromFilter() {
   <div class="page-memory-book">
     <MemoryBookTopView
       v-if="view === 'top'"
+      :key="`top-${bookVersion}`"
       :loading="loading"
       :error="error"
       :summary="summary"
       :categories="categories"
       :years="years"
+      :is-premium="memoryBookAccess.isPremium"
+      :is-logged-in="isLoggedIn"
       :get-cover-design="getCoverDesign"
       :covers-by-year="coversByYear"
       @open-year="openYear"
       @open-detail="openDetail"
       @open-fanclub="openFanclub"
+      @open-premium="openPremiumUpgrade"
       @open-category="onCategory"
       @retry="onRetry"
     />
 
     <MemoryBookYearView
       v-else-if="view === 'year'"
+      :key="`year-${selectedYear}-${bookVersion}`"
       :loading="loading"
       :error="error"
       :data="yearData"
       :cover-design-id="selectedCoverDesign"
+      :is-premium="memoryBookAccess.isPremium"
       @back="goTop"
       @open-detail="openDetail"
       @open-fanclub="openFanclub"
+      @open-premium="openPremiumUpgrade"
       @export-pdf="onExportPdf"
       @share="onShareAlbum"
       @open-recap="onOpenRecap"
@@ -284,6 +348,7 @@ function backFromFilter() {
 
     <MemoryBookDetailView
       v-else-if="view === 'detail'"
+      :key="`detail-${selectedItemId}-${bookVersion}`"
       :loading="loading"
       :error="error"
       :memory="itemDetail"
@@ -294,6 +359,7 @@ function backFromFilter() {
       @retry="onRetry"
       @edit="openEditModal"
       @delete="onDeleteMemory"
+      @unfavorite-song="onUnfavoriteSong"
       @filter-related="onFilterRelated"
     />
 

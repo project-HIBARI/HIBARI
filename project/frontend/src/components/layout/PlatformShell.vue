@@ -10,6 +10,7 @@ import PageArtistDiagnosis from '../pages/PageArtistDiagnosis.vue'
 import PageLogin from '../pages/PageLogin.vue'
 import PageRegister from '../pages/PageRegister.vue'
 import PagePlatformOpenChat from '../pages/PagePlatformOpenChat.vue'
+import PagePlatformMemoryBook from '../pages/PagePlatformMemoryBook.vue'
 import PageSnsFeed from '../pages/PageSnsFeed.vue'
 import PageSnsDiscover from '../pages/PageSnsDiscover.vue'
 import PageSnsProfile from '../pages/PageSnsProfile.vue'
@@ -57,6 +58,7 @@ const navItems = [
   { id: 'open-chat', label: 'オープンチャット' },
   { id: 'artist-encyclopedia', label: 'アーティスト図鑑' },
   { id: 'artist-diagnosis', label: 'アーティスト診断' },
+  { id: 'memory-book', label: '思い出帳' },
 ]
 
 const drawerPage = computed(() => (props.view === 'profile' ? 'sns' : props.view))
@@ -214,6 +216,15 @@ function onUserUpdated(account) {
             <UiIco name="spark" :size="14" />
             アーティスト診断
           </button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'memory-book' }"
+            @click="setView('memory-book')"
+          >
+            <UiIco name="bookmark" :size="14" />
+            思い出帳
+          </button>
         </nav>
 
         <nav class="platform-shell__desktop-actions" aria-label="SNS quick menu">
@@ -287,6 +298,11 @@ function onUserUpdated(account) {
       embedded
       @enter-site="(siteId) => emit('enter-site', siteId)"
       @open-chat="setView('open-chat')"
+    />
+
+    <PagePlatformMemoryBook
+      v-else-if="view === 'memory-book'"
+      @enter-memory-book="emit('enter-site', 'hibari', { page: 'memory-book' })"
     />
 
     <PageArtistEncyclopedia

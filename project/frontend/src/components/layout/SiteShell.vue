@@ -313,6 +313,11 @@ function openMemberFeature(mode) {
     return
   }
 
+  if (mode === 'memory-book') {
+    goTo('memory-book')
+    return
+  }
+
   if (mode === 'board' && !auth.isFanclubMember.value) {
     requestPlatformAuth(isLoggedIn.value ? 'register' : 'login', { feature: mode })
     return

@@ -207,6 +207,9 @@ export const TODAYS_ARTIST = {
     '可憐さと力強さをあわせ持つ歌声で、時代を超えて愛され続ける美空ひばり。ファンクラブでは楽曲・映像・思い出の記録にふれられます。',
 }
 
+/** Music Memory Book 紹介帯 — 複数アーティスト対応を見せるサムネイル */
+export const MEMORY_BOOK_SHOWCASE_ARTISTS = MUSIC_MEMORIES_ARTISTS.slice(0, 6)
+
 /** Music Memories オープンチャットのアーティストフィルタ */
 export const PLATFORM_CHAT_ARTISTS = [
   { id: 'all', label: 'すべて' },
