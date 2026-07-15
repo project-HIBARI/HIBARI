@@ -7,7 +7,7 @@ import { computed } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
 import MusicConnectionsBoard from '../common/MusicConnectionsBoard.vue'
-import { MUSIC_MEMORIES_ARTISTS, PLATFORM_CHAT_ARTISTS } from '../../data/musicMemoriesData.js'
+import { MUSIC_MEMORIES_ARTISTS, PLATFORM_CHAT_ARTISTS, TODAYS_ARTIST } from '../../data/musicMemoriesData.js'
 import { CROSS_ARTIST_CONNECTIONS } from '../../data/crossArtistConnections.js'
 import { SITE_NAME, SITE_TAGLINE } from '../../constants/site.js'
 
@@ -64,6 +64,38 @@ const featuredConnections = computed(() =>
           <UiButton variant="gold" size="md" @click="emit('open-chat')">
             オープンチャットへ
           </UiButton>
+        </div>
+      </section>
+
+      <section class="music-memories__today-section" aria-labelledby="mm-today-title">
+        <div class="music-memories__today">
+          <div class="music-memories__today-visual" aria-hidden="true">
+            <img
+              v-if="TODAYS_ARTIST.image"
+              :src="TODAYS_ARTIST.image"
+              :alt="TODAYS_ARTIST.name"
+              class="music-memories__today-image"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <div class="music-memories__today-body">
+            <p class="music-memories__today-eyebrow">Today's Artist</p>
+            <h2 id="mm-today-title" class="music-memories__today-title">今日のアーティスト</h2>
+            <p class="music-memories__today-en">{{ TODAYS_ARTIST.nameEn }}</p>
+            <h3 class="music-memories__today-name">{{ TODAYS_ARTIST.name }}</h3>
+            <p class="music-memories__today-headline">{{ TODAYS_ARTIST.headline }}</p>
+            <p class="music-memories__today-blurb">{{ TODAYS_ARTIST.blurb }}</p>
+            <UiButton
+              v-if="TODAYS_ARTIST.status === 'open'"
+              variant="gold"
+              size="md"
+              class="music-memories__today-cta"
+              @click="onArtistClick(TODAYS_ARTIST)"
+            >
+              ファンクラブをみる
+            </UiButton>
+          </div>
         </div>
       </section>
 
@@ -328,6 +360,93 @@ const featuredConnections = computed(() =>
   color: rgba(248, 244, 239, 0.68);
 }
 
+.music-memories__today-section {
+  margin-bottom: clamp(40px, 7vw, 64px);
+}
+
+.music-memories__today {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid rgba(201, 169, 97, 0.28);
+  border-radius: var(--site-radius-lg);
+  background: linear-gradient(120deg, rgba(26, 20, 24, 0.55), rgba(122, 80, 136, 0.18));
+}
+
+.music-memories__today-visual {
+  min-height: 220px;
+  background: linear-gradient(145deg, rgba(90, 58, 107, 0.4), rgba(26, 20, 24, 0.7));
+  overflow: hidden;
+}
+
+.music-memories__today-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.music-memories__today-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(24px, 4vw, 36px) clamp(22px, 4vw, 36px);
+}
+
+.music-memories__today-eyebrow {
+  margin: 0 0 8px;
+  font-family: var(--ff-latin);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--kin-400);
+}
+
+.music-memories__today-title {
+  margin: 0 0 18px;
+  font-family: var(--ff-mincho);
+  font-size: 1.35rem;
+  letter-spacing: 0.08em;
+}
+
+.music-memories__today-en {
+  margin: 0 0 4px;
+  font-family: var(--ff-latin);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(201, 169, 97, 0.85);
+}
+
+.music-memories__today-name {
+  margin: 0 0 10px;
+  font-family: var(--ff-mincho);
+  font-size: clamp(1.5rem, 3vw, 1.85rem);
+  letter-spacing: 0.06em;
+}
+
+.music-memories__today-headline {
+  margin: 0 0 10px;
+  font-family: var(--ff-sans-jp);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: rgba(248, 244, 239, 0.88);
+}
+
+.music-memories__today-blurb {
+  margin: 0 0 20px;
+  font-family: var(--ff-sans-jp);
+  font-size: 13px;
+  line-height: 1.85;
+  color: rgba(248, 244, 239, 0.65);
+}
+
+.music-memories__today-cta {
+  align-self: flex-start;
+}
+
 .music-memories__grid-title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
@@ -454,6 +573,17 @@ const featuredConnections = computed(() =>
   font-size: 11px;
   color: rgba(248, 244, 239, 0.4);
   letter-spacing: 0.08em;
+}
+
+@media (max-width: 720px) {
+  .music-memories__today {
+    grid-template-columns: 1fr;
+  }
+
+  .music-memories__today-visual {
+    aspect-ratio: 16 / 10;
+    min-height: 0;
+  }
 }
 
 @media (max-width: 640px) {

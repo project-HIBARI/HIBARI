@@ -135,5 +135,10 @@ const common = computed(() => ({
       <path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8z" />
       <line x1="5" y1="21" x2="19" y2="21" />
     </template>
+    <template v-else-if="name === 'download'">
+      <path d="M12 3v12" />
+      <polyline points="7,10 12,15 17,10" />
+      <path d="M4 19h16" />
+    </template>
   </svg>
 </template>
