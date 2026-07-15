@@ -54,8 +54,8 @@ from password_utils import (
 # 初期設定（app.py と同じディレクトリの .env / env を読み込む）
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR / ".env")
-app = Flask(__name__)
-app.secret_key = "qawsedrftgyhujikolp"
+app = Flask(__name__, static_folder="frontend/dist", static_url_path="")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "qawsedrftgyhujikolp")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=365)
 
 
@@ -428,12 +428,20 @@ def fetch_account_row(account_id):
 ### パス
 ############################################################################
 
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_vue(path):
+    full_path = os.path.join(app.static_folder, path)
+    if path and os.path.exists(full_path):
+        return send_from_directory(app.static_folder, path)
+    return send_from_directory(app.static_folder, "index.html")
+
 ############################################################################
 ### デバッグページ
 ############################################################################
 
 # デバッグ用 AI美空ひばり
-@app.route("/")
+@app.route("/debug/hibari")
 def index():
     try:
         current_user = get_current_user_from_session()
