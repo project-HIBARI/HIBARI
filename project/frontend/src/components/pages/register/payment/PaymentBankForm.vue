@@ -151,18 +151,21 @@ const accountTypeOptions = [
   font-family: var(--ff-sans-jp);
   font-size: 13px;
   font-weight: 500;
-  color: var(--site-text);
+  color: var(--site-text) !important;
 }
 .pay-bank__search-input {
   width: 100%;
   padding: 14px 16px;
   font-family: var(--ff-sans-jp);
   font-size: 14px;
-  color: var(--site-text);
-  background: #f5f2ee;
-  border: 1px solid var(--site-border);
+  color: var(--site-text) !important;
+  background: #fffdf9 !important;
+  border: 1px solid var(--site-border) !important;
   border-radius: var(--site-radius-sm);
   box-sizing: border-box;
+}
+.pay-bank__search-input::placeholder {
+  color: var(--site-text-light) !important;
 }
 .pay-bank__search-input:focus {
   outline: none;
@@ -218,7 +221,7 @@ const accountTypeOptions = [
 .pay-bank__selected {
   margin: 8px 0 0;
   font-size: 12px;
-  color: var(--murasaki-700);
+  color: var(--site-text) !important;
 }
 .pay-bank__account {
   display: flex;
@@ -232,13 +235,13 @@ const accountTypeOptions = [
   font-family: var(--ff-mincho);
   font-size: 14px;
   font-weight: 700;
-  color: var(--site-text);
+  color: var(--site-text) !important;
 }
 .pay-bank__note {
   margin: 0;
   font-family: var(--ff-sans-jp);
   font-size: 11px;
   line-height: 1.7;
-  color: var(--site-text-light);
+  color: var(--site-text) !important;
 }
 </style>

@@ -556,6 +556,16 @@ function onAgreeTerms() {
   color: rgba(248, 244, 239, 0.88);
 }
 
+.reg-card--platform :deep(.reg-field__label),
+.reg-card--platform :deep(.reg-opt__label),
+.reg-card--platform :deep(.reg-opt__name),
+.reg-card--platform :deep(.reg-field__hint),
+.reg-card--platform :deep(.pay-bank__search-label),
+.reg-card--platform :deep(.pay-bank__selected),
+.reg-card--platform :deep(.pay-bank__note) {
+  color: var(--site-text) !important;
+}
+
 .reg-card--platform :deep(.register-desc),
 .reg-card--platform :deep(.register-plan__desc),
 .reg-card--platform :deep(.reg-done__lead),
@@ -566,14 +576,24 @@ function onAgreeTerms() {
 .reg-card--platform :deep(input:not([type='checkbox'])),
 .reg-card--platform :deep(select),
 .reg-card--platform :deep(textarea) {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.16);
-  color: #f8f4ef;
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: var(--site-text);
+  -webkit-text-fill-color: var(--site-text);
 }
 
 .reg-card--platform :deep(input::placeholder),
 .reg-card--platform :deep(textarea::placeholder) {
-  color: rgba(248, 244, 239, 0.38);
+  color: var(--site-text-light);
+  -webkit-text-fill-color: var(--site-text-light);
+}
+
+.reg-card--platform :deep(input:focus),
+.reg-card--platform :deep(select:focus),
+.reg-card--platform :deep(textarea:focus) {
+  background: #fff;
+  color: var(--site-text);
+  -webkit-text-fill-color: var(--site-text);
 }
 
 .reg-card--platform :deep(.register-plan) {

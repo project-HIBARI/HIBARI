@@ -77,7 +77,7 @@ const emit = defineEmits(['update:modelValue'])
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: var(--site-text);
+  color: var(--site-text) !important;
 }
 .reg-opt__required {
   font-size: 10px;
@@ -142,13 +142,13 @@ const emit = defineEmits(['update:modelValue'])
 .reg-opt__name {
   font-family: var(--ff-sans-jp);
   font-size: 13px;
-  color: var(--site-text);
+  color: var(--site-text) !important;
 }
 .reg-opt__desc {
   font-family: var(--ff-sans-jp);
   font-size: 11px;
   line-height: 1.5;
-  color: var(--site-text-light);
+  color: var(--site-text-light) !important;
 }
 .reg-opt__error {
   margin: 0;
