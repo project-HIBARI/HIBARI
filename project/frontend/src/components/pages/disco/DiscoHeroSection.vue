@@ -3,18 +3,60 @@
  * 部品名: ディスコグラフィ — ヒーローエリア
  * 用途: ページ冒頭のコピー・肖像・AIカード・今日の一曲を表示する（歩み／ゆかりの地と同レイアウト）
  */
+import { ref, onMounted } from 'vue'
 import { pageImageUrl, PROFILE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import UiCard from '../../ui/UiCard.vue'
 import RecordChip from '../../ui/RecordChip.vue'
+import UiIco from '../../ui/UiIco.vue'
 import TopAiCard from '../top/TopAiCard.vue'
 import { HIBARU_DATA } from '../../../data/hibaruData.js'
 import { todaysSong } from '../../../utils/hibaru.js'
+import { fetchSongs } from '../../../api/songs.js'
 
 const stats = HIBARU_DATA.discographyStats
-const today = todaysSong()
+const today = ref(todaysSong())
 const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
 
 const emit = defineEmits(['open-detail', 'open-ai'])
+
+/** YouTube 埋め込み URL を通常の視聴 URL に変換する */
+function toWatchUrl(url) {
+  const m = /youtube\.com\/embed\/([\w-]+)/.exec(url || '')
+  return m ? `https://www.youtube.com/watch?v=${m[1]}` : url
+}
+
+/** DB の曲一覧から日付シードで今日の一曲を選び、静的データとマージする */
+onMounted(async () => {
+  try {
+    const songs = await fetchSongs()
+    if (!Array.isArray(songs) || songs.length === 0) return
+    const d = new Date()
+    const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
+    const dbSong = songs[seed % songs.length]
+    const local = HIBARU_DATA.discography.find((s) => s.songId === dbSong.song_id)
+    today.value = {
+      ...(local || today.value),
+      songId: dbSong.song_id,
+      title: dbSong.title,
+      romaji: dbSong.romanized_title,
+      year: dbSong.release_year,
+      lyric: dbSong.lyrics_by ?? local?.lyric,
+      music: dbSong.composed_by ?? local?.music,
+      arrangement: dbSong.arrangement ?? local?.arrangement,
+      note: dbSong.description ?? local?.note,
+      no: local?.no || `S-${String(dbSong.song_id).padStart(3, '0')}`,
+      audioUrl: toWatchUrl(dbSong.audio_path) || local?.audioUrl,
+    }
+  } catch (e) {
+    // 取得失敗時は静的データのままフォールバック
+    console.warn('今日の一曲のDB取得に失敗しました:', e)
+  }
+})
+
+function onPlayClick() {
+  if (!today.value.audioUrl) return
+  window.open(today.value.audioUrl, '_blank', 'noopener,noreferrer')
+}
 </script>
 
 <template>
@@ -65,19 +107,30 @@ const emit = defineEmits(['open-detail', 'open-ai'])
 
     <UiCard tone="pink" padding="md" class="disco-hero__today">
       <p class="disco-hero__today-label">TODAY'S SONG · 今日の一曲</p>
-      <button
-        type="button"
-        class="disco-hero__today-btn"
-        :aria-label="today.title + 'の詳細を見る'"
-        @click="emit('open-detail', today)"
-      >
-        <RecordChip :no="today.no" color="var(--beni-700)" />
-        <div class="disco-hero__today-meta">
-          <span class="disco-hero__today-year">{{ today.year }} · {{ today.genre }}</span>
-          <span class="disco-hero__today-title">{{ today.title }}</span>
-          <span class="disco-hero__today-romaji">{{ today.romaji }}</span>
-        </div>
-      </button>
+      <div class="disco-hero__today-row">
+        <button
+          type="button"
+          class="disco-hero__today-btn"
+          :aria-label="today.title + 'の詳細を見る'"
+          @click="emit('open-detail', today)"
+        >
+          <RecordChip :no="today.no" color="var(--beni-700)" />
+          <div class="disco-hero__today-meta">
+            <span class="disco-hero__today-year">{{ today.year }} · {{ today.genre }}</span>
+            <span class="disco-hero__today-title">{{ today.title }}</span>
+            <span class="disco-hero__today-romaji">{{ today.romaji }}</span>
+          </div>
+        </button>
+        <button
+          type="button"
+          class="disco-hero__today-play motion-button"
+          :aria-label="today.title + 'を再生'"
+          :disabled="!today.audioUrl"
+          @click="onPlayClick"
+        >
+          <UiIco name="play" :size="16" color="var(--murasaki-700)" />
+        </button>
+      </div>
     </UiCard>
   </section>
 </template>
@@ -227,11 +280,17 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   letter-spacing: 0.25em;
   color: var(--kin-600);
 }
+.disco-hero__today-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
 .disco-hero__today-btn {
   display: flex;
   align-items: center;
   gap: var(--sp-4);
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -239,6 +298,29 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   text-align: left;
   color: inherit;
   transition: opacity 0.2s;
+}
+.disco-hero__today-play {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  margin-right: var(--sp-4);
+  border-radius: 50%;
+  border: 1px solid var(--murasaki-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--murasaki-100);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+.disco-hero__today-play:hover:not(:disabled) {
+  background: var(--murasaki-200, #e8dff0);
+  border-color: var(--murasaki-500);
+}
+.disco-hero__today-play:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 .disco-hero__today-btn:hover {
   opacity: 0.85;
