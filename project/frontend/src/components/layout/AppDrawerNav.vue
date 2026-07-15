@@ -81,7 +81,7 @@ watch(
               :class="{ 'drawer__link--active': page === n.id }"
               :style="{ '--drawer-i': index + 1 }"
               :aria-current="page === n.id ? 'page' : undefined"
-              @click="emit('navigate', n.id)"
+              @click="emit('navigate', n.id); emit('close')"
             >
               <span class="drawer__link-text">{{ n.label }}</span>
               <span v-if="page === n.id" class="drawer__link-mark" aria-hidden="true" />
@@ -99,12 +99,12 @@ watch(
                 <UiButton variant="outline" size="md" @click="emit('open-account'); emit('close')">
                   アカウント設定
                 </UiButton>
-                <UiButton variant="ghost" size="md" @click="emit('logout'); emit('close')">ログアウト</UiButton>
+                <UiButton variant="ghost" size="md" @click="emit('logout')">ログアウト</UiButton>
               </div>
             </div>
             <div v-else-if="!authOnPlatformOnly" class="drawer__auth drawer__stagger" :style="{ '--drawer-i': items.length + 2 }">
-              <UiButton variant="outline" size="md" @click="emit('open-auth', 'login')">ログイン</UiButton>
-              <UiButton variant="primary" size="md" @click="emit('open-auth', 'register')">ファンクラブ加入</UiButton>
+              <UiButton variant="outline" size="md" @click="emit('open-auth', 'login'); emit('close')">ログイン</UiButton>
+              <UiButton variant="primary" size="md" @click="emit('open-auth', 'register'); emit('close')">ファンクラブ加入</UiButton>
             </div>
 
             <div class="drawer__search drawer__stagger" :style="{ '--drawer-i': items.length + 3 }">
@@ -120,7 +120,7 @@ watch(
                 type="button"
                 class="drawer__sub drawer__stagger"
                 :style="{ '--drawer-i': items.length + 5 }"
-                @click="emit('open-modal', 'fanclub')"
+                @click="emit('open-modal', 'fanclub'); emit('close')"
               >
                 ファンクラブ
               </button>
@@ -128,7 +128,7 @@ watch(
                 type="button"
                 class="drawer__sub drawer__stagger"
                 :style="{ '--drawer-i': items.length + 6 }"
-                @click="emit('open-modal', 'ai')"
+                @click="emit('open-modal', 'ai'); emit('close')"
               >
                 AI美空ひばり
               </button>
@@ -154,7 +154,9 @@ watch(
   background: rgba(28, 22, 18, 0.42);
   backdrop-filter: blur(4px);
   opacity: 0;
+  pointer-events: auto;
   transition: opacity 0.5s ease;
+  z-index: 0;
 }
 
 .drawer--active .drawer__overlay {
@@ -164,12 +166,14 @@ watch(
 .drawer__sheet {
   position: absolute;
   inset: 0;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   padding: clamp(88px, 18vh, 120px) clamp(24px, 7vw, 64px) clamp(32px, 6vh, 48px);
   background: linear-gradient(165deg, #fffefb 0%, #f8f3ec 48%, #f3ebe3 100%);
   overflow-y: auto;
   overscroll-behavior: contain;
+  pointer-events: auto;
   transform: translateY(-3%);
   opacity: 0;
   transition:
