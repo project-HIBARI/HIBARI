@@ -42,6 +42,7 @@ from sns_stories import register_sns_story_routes
 from sns_profile import register_sns_profile_routes
 from sns_dm import register_sns_dm_routes
 from sns_moderation import register_sns_moderation_routes
+from sns_search import register_sns_search_routes
 from password_utils import (
     hash_password,
     normalize_email,
@@ -57,13 +58,9 @@ app = Flask(__name__, static_folder="frontend/dist", static_url_path="")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "qawsedrftgyhujikolp")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=365)
 
-# Cloud Run + Firebase Hosting プロキシ経由の HTTPS / Cookie 設定
-if os.environ.get("K_SERVICE"):
-    from werkzeug.middleware.proxy_fix import ProxyFix
 
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
-    app.config["SESSION_COOKIE_SECURE"] = True
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+def keep_login_session():
+    session.permanent = True
 
 # DB接続設定
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -612,6 +609,7 @@ def create_account():
 
         membership = "premium" if is_premium_val else "general"
 
+        keep_login_session()
         session["account_id"] = account_id
         session["name"] = name_val
         session["email"] = email_val
@@ -651,6 +649,7 @@ def complete_login(user, password, stored_hash, cached=False):
             print("password upgrade:", e)
 
     membership = get_membership_for_account(user["account_id"])
+    keep_login_session()
     session["account_id"] = user["account_id"]
     session["name"] = user["name"]
     session["email"] = user["email"]
@@ -742,6 +741,7 @@ def me():
             "login": False
         }), 401
 
+    keep_login_session()
     return jsonify({
         "login": True,
         "user": build_user_response(
@@ -2029,7 +2029,20 @@ register_sns_moderation_routes(
     to_jst_str=to_jst_str,
 )
 
- 
+register_sns_search_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+
 ############################################################################
 ### 実行制御
 ############################################################################

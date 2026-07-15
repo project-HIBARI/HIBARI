@@ -5,10 +5,13 @@
  */
 import { ref, watch } from 'vue'
 import PageMusicMemories from '../pages/PageMusicMemories.vue'
+import PageArtistEncyclopedia from '../pages/PageArtistEncyclopedia.vue'
+import PageArtistDiagnosis from '../pages/PageArtistDiagnosis.vue'
 import PageLogin from '../pages/PageLogin.vue'
 import PageRegister from '../pages/PageRegister.vue'
 import PagePlatformOpenChat from '../pages/PagePlatformOpenChat.vue'
 import PageSnsFeed from '../pages/PageSnsFeed.vue'
+import PageSnsDiscover from '../pages/PageSnsDiscover.vue'
 import PageSnsProfile from '../pages/PageSnsProfile.vue'
 import PageSnsDm from '../pages/PageSnsDm.vue'
 import HeaderAccountMenu from './HeaderAccountMenu.vue'
@@ -152,11 +155,72 @@ function onUserUpdated(account) {
           <button
             type="button"
             class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'discover' }"
+            @click="setView('discover')"
+          >
+            <UiIco name="search" :size="14" />
+            検索
+          </button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
             :class="{ 'platform-shell__nav-btn--active': view === 'open-chat' }"
             @click="setView('open-chat')"
           >
             <UiIco name="chat" :size="14" />
             オープンチャット
+          </button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'artist-encyclopedia' }"
+            @click="setView('artist-encyclopedia')"
+          >
+            <UiIco name="book" :size="14" />
+            アーティスト図鑑
+          </button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'artist-diagnosis' }"
+            @click="setView('artist-diagnosis')"
+          >
+            <UiIco name="spark" :size="14" />
+            アーティスト診断
+          </button>
+        </nav>
+
+        <nav class="platform-shell__desktop-actions" aria-label="SNS quick menu">
+          <button
+            type="button"
+            class="platform-shell__quick-btn"
+            @click="setView('sns'); snsCreateIntent++"
+          >
+            <UiIco name="plus" :size="16" />
+            <span>謚慕ｨｿ</span>
+          </button>
+          <button
+            type="button"
+            class="platform-shell__quick-btn"
+            :class="{ 'platform-shell__quick-btn--active': view === 'dm' }"
+            @click="openDm()"
+          >
+            <span class="platform-shell__quick-icon">
+              <UiIco name="mail" :size="16" />
+              <span v-if="dmUnreadCount > 0" class="platform-shell__quick-badge">
+                {{ dmUnreadCount > 9 ? '9+' : dmUnreadCount }}
+              </span>
+            </span>
+            <span>DM</span>
+          </button>
+          <button
+            type="button"
+            class="platform-shell__quick-btn"
+            :class="{ 'platform-shell__quick-btn--active': view === 'profile' }"
+            @click="openMyProfile"
+          >
+            <UiIco name="user" :size="16" />
+            <span>繝槭う繝壹・繧ｸ</span>
           </button>
         </nav>
 
@@ -180,6 +244,17 @@ function onUserUpdated(account) {
       @open-chat="setView('open-chat')"
     />
 
+    <PageArtistEncyclopedia
+      v-else-if="view === 'artist-encyclopedia'"
+      @enter-site="(siteId) => emit('enter-site', siteId)"
+    />
+
+    <PageArtistDiagnosis
+      v-else-if="view === 'artist-diagnosis'"
+      @enter-site="(siteId) => emit('enter-site', siteId)"
+      @open-encyclopedia="setView('artist-encyclopedia')"
+    />
+
     <PagePlatformOpenChat
       v-else-if="view === 'open-chat'"
       @need-auth="(mode) => emit('open-auth', { mode, returnTo: { feature: 'open-chat' } })"
@@ -191,6 +266,12 @@ function onUserUpdated(account) {
       @need-auth="onSnsNeedAuth"
       @open-chat="setView('open-chat')"
       @open-dm="openDm()"
+      @open-profile="openProfile"
+    />
+
+    <PageSnsDiscover
+      v-else-if="view === 'discover'"
+      @need-auth="onSnsNeedAuth"
       @open-profile="openProfile"
     />
 
@@ -259,6 +340,15 @@ function onUserUpdated(account) {
       <button
         type="button"
         class="platform-shell__tab"
+        :class="{ 'platform-shell__tab--active': view === 'discover' }"
+        @click="setView('discover')"
+      >
+        <UiIco name="search" :size="20" />
+        <span>検索</span>
+      </button>
+      <button
+        type="button"
+        class="platform-shell__tab"
         :class="{ 'platform-shell__tab--active': view === 'hub' }"
         @click="setView('hub')"
       >
@@ -323,7 +413,7 @@ function onUserUpdated(account) {
   margin: 0 auto;
   padding: 16px 24px;
   display: grid;
-  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto) minmax(0, auto);
   align-items: center;
   gap: 16px;
   min-width: 0;
@@ -367,6 +457,65 @@ function onUserUpdated(account) {
   border-color: rgba(228, 190, 99, 0.35);
   color: var(--sns-gold);
   font-weight: 600;
+}
+
+.platform-shell__desktop-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.platform-shell__quick-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  margin: 0;
+  padding: 7px 12px;
+  border: 1px solid var(--sns-border);
+  border-radius: 999px;
+  background: var(--sns-card);
+  color: var(--sns-ivory);
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.platform-shell__quick-btn:hover,
+.platform-shell__quick-btn--active {
+  background: rgba(228, 190, 99, 0.1);
+  border-color: rgba(228, 190, 99, 0.4);
+  color: var(--sns-gold);
+}
+
+.platform-shell__quick-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.platform-shell__quick-badge {
+  position: absolute;
+  top: -10px;
+  right: -11px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--beni-600);
+  color: #fff;
+  font-size: 9px;
+  line-height: 16px;
+  text-align: center;
+  border: 2px solid rgba(22, 15, 24, 0.96);
 }
 
 .platform-shell__brand {
@@ -494,16 +643,16 @@ function onUserUpdated(account) {
   color: var(--sns-text-muted);
   font-family: var(--ff-sans-jp);
   font-size: 10px;
-  padding: 4px 6px;
+  padding: 4px 4px;
   min-height: 44px;
-  min-width: 56px;
+  min-width: 46px;
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
 }
 
 .platform-shell__tab span {
-  max-width: 64px;
+  max-width: 54px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -590,14 +739,14 @@ function onUserUpdated(account) {
 
   .platform-shell__nav {
     grid-area: nav;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 6px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     width: 100%;
   }
 
   .platform-shell__nav-btn {
-    flex: 1 1 0;
+    flex: 1 1 calc(50% - 6px);
     justify-content: center;
     padding: 7px 4px;
     min-height: 44px;
@@ -607,6 +756,10 @@ function onUserUpdated(account) {
 
   .platform-shell__nav-btn svg {
     flex: 0 0 auto;
+  }
+
+  .platform-shell__desktop-actions {
+    display: none;
   }
 
   .platform-shell__auth {
@@ -623,6 +776,14 @@ function onUserUpdated(account) {
   .platform-shell__nav-btn {
     padding-inline: 10px;
   }
+
+  .platform-shell__desktop-actions {
+    gap: 6px;
+  }
+
+  .platform-shell__quick-btn {
+    padding-inline: 10px;
+  }
 }
 
 @media (max-width: 374px) {
@@ -636,13 +797,13 @@ function onUserUpdated(account) {
   }
 
   .platform-shell__tab {
-    min-width: 50px;
-    padding-inline: 4px;
+    min-width: 40px;
+    padding-inline: 2px;
   }
 
   .platform-shell__tab span {
-    max-width: 54px;
-    font-size: 9px;
+    max-width: 44px;
+    font-size: 8.5px;
   }
 }
 </style>

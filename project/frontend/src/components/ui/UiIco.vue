@@ -1,7 +1,7 @@
 <script setup>
 /**
- * 部品名: アイコン（線画 SVG セット）
- * 用途: 検索・再生・矢印など UI 全体で共通利用
+ * 驛ｨ蜩∝錐: 繧｢繧､繧ｳ繝ｳ・育ｷ夂判 SVG 繧ｻ繝・ヨ・・
+ * 逕ｨ騾・ 讀懃ｴ｢繝ｻ蜀咲函繝ｻ遏｢蜊ｰ縺ｪ縺ｩ UI 蜈ｨ菴薙〒蜈ｱ騾壼茜逕ｨ
  */
 import { computed } from 'vue'
 
@@ -139,6 +139,26 @@ const common = computed(() => ({
       <path d="M12 3v12" />
       <polyline points="7,10 12,15 17,10" />
       <path d="M4 19h16" />
+    </template>
+    <template v-else-if="name === 'copy'">
+      <rect x="3" y="3" width="13" height="13" rx="1.5" />
+      <path d="M8 16v3a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-3" />
+    </template>
+    <template v-else-if="name === 'book'">
+      <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H12v18H6.5A2.5 2.5 0 0 0 4 22.5z" />
+      <path d="M20 4.5A2.5 2.5 0 0 0 17.5 2H12v18h5.5A2.5 2.5 0 0 1 20 22.5z" />
+      <line x1="12" y1="2" x2="12" y2="20" />
+    </template>
+    <template v-else-if="name === 'spark'">
+      <path d="M12 2v4" />
+      <path d="M12 18v4" />
+      <path d="M2 12h4" />
+      <path d="M18 12h4" />
+      <path d="M5 5l2.5 2.5" />
+      <path d="M16.5 16.5 19 19" />
+      <path d="M19 5l-2.5 2.5" />
+      <path d="M7.5 16.5 5 19" />
+      <circle cx="12" cy="12" r="2.2" />
     </template>
   </svg>
 </template>

@@ -1,7 +1,7 @@
 <script setup>
 /**
  * 部品名: ディスコグラフィ — ヒーローエリア
- * 用途: ページ冒頭のコピー・肖像・AIカード・80周年バッジ・今日の一曲を表示する
+ * 用途: ページ冒頭のコピー・肖像・AIカード・今日の一曲を表示する（歩み／ゆかりの地と同レイアウト）
  */
 import { pageImageUrl, PROFILE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import UiCard from '../../ui/UiCard.vue'
@@ -18,7 +18,6 @@ const emit = defineEmits(['open-detail', 'open-ai'])
 </script>
 
 <template>
-  <!-- ディスコグラフィページのファーストビュー（デザイン準拠） -->
   <section class="disco-hero" aria-label="ディスコグラフィ紹介">
     <div class="disco-hero__bg" aria-hidden="true" />
 
@@ -47,26 +46,19 @@ const emit = defineEmits(['open-detail', 'open-ai'])
         </ul>
       </div>
 
-      <div class="disco-hero__visual">
-        <img
-          :src="heroImg"
-          alt=""
-          class="disco-hero__photo"
-          width="360"
-          decoding="async"
-        />
-      </div>
+      <div class="disco-hero__aside">
+        <div class="disco-hero__visual">
+          <img
+            :src="heroImg"
+            alt=""
+            class="disco-hero__photo"
+            width="360"
+            decoding="async"
+          />
+        </div>
 
-      <div class="disco-hero__side">
         <div class="disco-hero__ai">
           <TopAiCard @open-ai="emit('open-ai')" />
-        </div>
-        <div class="disco-hero__anniversary" aria-label="芸能生活80周年記念">
-          <div class="disco-hero__anniversary-ring">
-            <span class="disco-hero__anniversary-num">80</span>
-            <span class="disco-hero__anniversary-unit">周年</span>
-          </div>
-          <p class="disco-hero__anniversary-text">芸能生活<br />80周年<br />記念サイト</p>
         </div>
       </div>
     </div>
@@ -94,9 +86,10 @@ const emit = defineEmits(['open-detail', 'open-ai'])
 .disco-hero {
   position: relative;
   margin-bottom: var(--sp-7);
-  padding: var(--sp-6) var(--sp-5);
+  padding: var(--sp-7) var(--sp-5);
   border-radius: var(--site-radius-lg);
   overflow: hidden;
+  min-height: 380px;
 }
 .disco-hero__bg {
   position: absolute;
@@ -110,14 +103,16 @@ const emit = defineEmits(['open-detail', 'open-ai'])
 }
 .disco-hero__inner {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr 360px auto;
+  display: flex;
+  align-items: center;
   gap: var(--sp-6);
-  align-items: stretch;
+  z-index: 1;
   margin-bottom: var(--sp-5);
 }
 .disco-hero__copy {
-  align-self: center;
+  flex: 1 1 auto;
+  min-width: 240px;
+  max-width: 400px;
 }
 .disco-hero__eyebrow {
   margin: 0 0 10px;
@@ -134,7 +129,6 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   letter-spacing: 0.06em;
   color: var(--site-text);
   line-height: 1.3;
-  white-space: nowrap;
 }
 .disco-hero__desc {
   margin: 0 0 var(--sp-5);
@@ -146,10 +140,9 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: 1fr 1.35fr 1fr;
+  display: flex;
   gap: var(--sp-3);
-  max-width: 440px;
+  flex-wrap: wrap;
 }
 .disco-hero__stat {
   display: flex;
@@ -157,11 +150,11 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: var(--sp-3) var(--sp-2);
-  background: rgba(255, 255, 255, 0.7);
+  padding: var(--sp-3) var(--sp-4);
+  background: rgba(255, 255, 255, 0.75);
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-md);
-  min-width: 0;
+  min-width: 80px;
 }
 .disco-hero__stat-num {
   display: block;
@@ -184,12 +177,20 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   letter-spacing: 0.1em;
   color: var(--site-text-muted);
 }
+.disco-hero__aside {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-4);
+  flex-shrink: 0;
+  margin-left: auto;
+}
 .disco-hero__visual {
-  position: relative;
+  flex-shrink: 0;
+  width: 360px;
+  align-self: stretch;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  align-self: stretch;
   overflow: hidden;
 }
 .disco-hero__photo {
@@ -202,13 +203,6 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   transform-origin: left bottom;
   filter: drop-shadow(var(--site-shadow-md));
 }
-.disco-hero__side {
-  display: flex;
-  flex-direction: row;
-  gap: var(--sp-4);
-  align-items: stretch;
-  align-self: stretch;
-}
 .disco-hero__ai {
   display: flex;
   width: 320px;
@@ -219,52 +213,9 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   max-width: none;
   height: 100%;
 }
-.disco-hero__anniversary {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid var(--kin-500);
-  border-radius: var(--site-radius-md);
-  box-shadow: var(--site-shadow);
-  flex-shrink: 0;
-  align-self: flex-end;
-}
-.disco-hero__anniversary-ring {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 2px solid var(--kin-500);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle, #fff 0%, var(--site-surface-muted) 100%);
-  flex-shrink: 0;
-}
-.disco-hero__anniversary-num {
-  font-family: var(--ff-latin);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--kin-600);
-  line-height: 1;
-}
-.disco-hero__anniversary-unit {
-  font-family: var(--ff-mincho);
-  font-size: 9px;
-  color: var(--kin-600);
-}
-.disco-hero__anniversary-text {
-  margin: 0;
-  font-family: var(--ff-mincho);
-  font-size: 10px;
-  line-height: 1.6;
-  letter-spacing: 0.08em;
-  color: var(--site-text-muted);
-}
 .disco-hero__today {
   position: relative;
+  z-index: 1;
   background:
     radial-gradient(ellipse at 100% 0%, rgba(243, 235, 246, 0.8) 0%, transparent 55%),
     var(--site-surface);
@@ -318,30 +269,31 @@ const emit = defineEmits(['open-detail', 'open-ai'])
   color: var(--site-text-muted);
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .disco-hero__inner {
-    grid-template-columns: 1fr;
-    gap: var(--sp-7);
-  }
-  .disco-hero__stats {
-    max-width: none;
-  }
-  .disco-hero__side {
     flex-direction: column;
     align-items: stretch;
-    justify-content: center;
   }
-  .disco-hero__anniversary {
-    align-self: flex-start;
-  }
-  .disco-hero__ai {
-    width: 100%;
+
+  .disco-hero__copy {
     max-width: none;
   }
-  .disco-hero__visual {
-    order: -1;
-    min-height: 280px;
+
+  .disco-hero__aside {
+    flex-direction: column;
+    margin-left: 0;
+    order: 2;
+    align-items: stretch;
   }
+
+  .disco-hero__visual {
+    width: 100%;
+    max-width: 360px;
+    min-height: 280px;
+    margin: 0 auto;
+    align-self: center;
+  }
+
   .disco-hero__photo {
     width: 100%;
     max-width: 360px;
@@ -350,6 +302,11 @@ const emit = defineEmits(['open-detail', 'open-ai'])
     object-position: left bottom;
     transform: scale(1.12);
     transform-origin: left bottom;
+  }
+
+  .disco-hero__ai {
+    width: 100%;
+    max-width: none;
   }
 }
 </style>

@@ -307,26 +307,25 @@ onUnmounted(() => {
   box-shadow: none;
 }
 
-@media (max-width: 1099px) {
-  .site-header--menu-open .site-header__row--top .site-header__start,
-  .site-header--menu-open .site-header__row--top .site-header__actions-bar {
-    visibility: hidden;
-    pointer-events: none;
-  }
+.site-header--menu-open .site-header__row--top .site-header__start,
+.site-header--menu-open .site-header__row--top .site-header__actions-bar,
+.site-header--menu-open .site-header__nav {
+  visibility: hidden;
+  pointer-events: none;
+}
 
-  .site-header--menu-open .site-header__row--top {
-    justify-content: flex-end;
-  }
+.site-header--menu-open .site-header__row--top {
+  justify-content: flex-end;
+}
 
-  .site-header--menu-open .site-header__menu {
-    position: fixed;
-    top: 14px;
-    right: 14px;
-    padding: 10px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.75);
-    box-shadow: 0 2px 12px rgba(40, 30, 25, 0.12);
-  }
+.site-header--menu-open .site-header__menu {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  padding: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 2px 12px rgba(40, 30, 25, 0.12);
 }
 
 .site-header__search {
@@ -539,7 +538,20 @@ onUnmounted(() => {
   }
 
   .site-header__menu {
-    display: none;
+    display: flex;
+    width: 38px;
+    height: 38px;
+    padding: 8px;
+    border: 1px solid rgba(93, 58, 107, 0.12);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.62);
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .site-header__menu:hover {
+    background: #fff;
+    border-color: rgba(93, 58, 107, 0.24);
+    box-shadow: 0 2px 10px rgba(40, 30, 25, 0.08);
   }
 }
 

@@ -1,7 +1,7 @@
 <script setup>
 /**
  * 部品名: 思い出 — ヒーローエリア
- * 用途: ページ冒頭のコピー・肖像・AIカード・80周年バッジを表示する
+ * 用途: ページ冒頭のコピー・肖像・AIカードを表示する（歩み／ゆかりの地と同レイアウト）
  */
 import { pageImageUrl, PROFILE_HERO_IMAGE } from '../../../lib/pageImages.js'
 import TopAiCard from '../top/TopAiCard.vue'
@@ -31,26 +31,19 @@ const emit = defineEmits(['open-ai'])
         </p>
       </div>
 
-      <div class="memories-hero__visual">
-        <img
-          :src="heroImg"
-          alt=""
-          class="memories-hero__photo"
-          width="360"
-          decoding="async"
-        />
-      </div>
+      <div class="memories-hero__aside">
+        <div class="memories-hero__visual">
+          <img
+            :src="heroImg"
+            alt=""
+            class="memories-hero__photo"
+            width="360"
+            decoding="async"
+          />
+        </div>
 
-      <div class="memories-hero__side">
         <div class="memories-hero__ai">
           <TopAiCard @open-ai="emit('open-ai')" />
-        </div>
-        <div class="memories-hero__anniversary" aria-label="芸能生活80周年記念">
-          <div class="memories-hero__anniversary-ring">
-            <span class="memories-hero__anniversary-num">80</span>
-            <span class="memories-hero__anniversary-unit">周年</span>
-          </div>
-          <p class="memories-hero__anniversary-text">芸能生活<br />80周年<br />記念サイト</p>
         </div>
       </div>
     </div>
@@ -61,9 +54,10 @@ const emit = defineEmits(['open-ai'])
 .memories-hero {
   position: relative;
   margin-bottom: var(--sp-7);
-  padding: var(--sp-6) var(--sp-5);
+  padding: var(--sp-7) var(--sp-5);
   border-radius: var(--site-radius-lg);
   overflow: hidden;
+  min-height: 380px;
 }
 .memories-hero__bg {
   position: absolute;
@@ -77,15 +71,15 @@ const emit = defineEmits(['open-ai'])
 }
 .memories-hero__inner {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px auto;
+  display: flex;
+  align-items: center;
   gap: var(--sp-6);
-  align-items: stretch;
-  min-width: 0;
+  z-index: 1;
 }
 .memories-hero__copy {
-  align-self: center;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 240px;
+  max-width: 400px;
 }
 .memories-hero__eyebrow {
   margin: 0 0 10px;
@@ -95,14 +89,13 @@ const emit = defineEmits(['open-ai'])
   color: var(--kin-600);
 }
 .memories-hero__title {
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   font-family: var(--ff-mincho);
-  font-size: clamp(28px, 3.5vw, 38px);
+  font-size: clamp(32px, 4vw, 42px);
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
   color: var(--site-text);
-  line-height: 1.3;
-  white-space: nowrap;
+  line-height: 1.2;
 }
 .memories-hero__subtitle {
   margin: 0 0 14px;
@@ -112,7 +105,6 @@ const emit = defineEmits(['open-ai'])
   letter-spacing: 0.04em;
   color: var(--murasaki-700);
   line-height: 1.5;
-  white-space: nowrap;
 }
 .memories-hero__desc {
   margin: 0 0 var(--sp-5);
@@ -136,12 +128,20 @@ const emit = defineEmits(['open-ai'])
   height: 32px;
   background: linear-gradient(180deg, var(--kin-500), transparent);
 }
+.memories-hero__aside {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-4);
+  flex-shrink: 0;
+  margin-left: auto;
+}
 .memories-hero__visual {
-  position: relative;
+  flex-shrink: 0;
+  width: 360px;
+  align-self: stretch;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  align-self: stretch;
   overflow: hidden;
 }
 .memories-hero__photo {
@@ -154,13 +154,6 @@ const emit = defineEmits(['open-ai'])
   transform-origin: left bottom;
   filter: drop-shadow(var(--site-shadow-md));
 }
-.memories-hero__side {
-  display: flex;
-  flex-direction: row;
-  gap: var(--sp-4);
-  align-items: stretch;
-  align-self: stretch;
-}
 .memories-hero__ai {
   display: flex;
   width: 320px;
@@ -171,77 +164,32 @@ const emit = defineEmits(['open-ai'])
   max-width: none;
   height: 100%;
 }
-.memories-hero__anniversary {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid var(--kin-500);
-  border-radius: var(--site-radius-md);
-  box-shadow: var(--site-shadow);
-  flex-shrink: 0;
-  align-self: flex-end;
-}
-.memories-hero__anniversary-ring {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 2px solid var(--kin-500);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle, #fff 0%, var(--site-surface-muted) 100%);
-  flex-shrink: 0;
-}
-.memories-hero__anniversary-num {
-  font-family: var(--ff-latin);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--kin-600);
-  line-height: 1;
-}
-.memories-hero__anniversary-unit {
-  font-family: var(--ff-mincho);
-  font-size: 9px;
-  color: var(--kin-600);
-}
-.memories-hero__anniversary-text {
-  margin: 0;
-  font-family: var(--ff-mincho);
-  font-size: 10px;
-  line-height: 1.6;
-  letter-spacing: 0.08em;
-  color: var(--site-text-muted);
-  white-space: nowrap;
-}
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .memories-hero__inner {
-    grid-template-columns: 1fr;
-    gap: var(--sp-7);
-  }
-  .memories-hero__subtitle {
-    font-size: clamp(13px, 3.6vw, 17px);
-    letter-spacing: 0.03em;
-  }
-  .memories-hero__side {
     flex-direction: column;
     align-items: stretch;
-    justify-content: center;
   }
-  .memories-hero__anniversary {
-    align-self: flex-start;
-  }
-  .memories-hero__ai {
-    width: 100%;
+
+  .memories-hero__copy {
     max-width: none;
   }
-  .memories-hero__visual {
-    order: -1;
-    min-height: 280px;
+
+  .memories-hero__aside {
+    flex-direction: column;
+    margin-left: 0;
+    order: 2;
+    align-items: stretch;
   }
+
+  .memories-hero__visual {
+    width: 100%;
+    max-width: 360px;
+    min-height: 280px;
+    margin: 0 auto;
+    align-self: center;
+  }
+
   .memories-hero__photo {
     width: 100%;
     max-width: 360px;
@@ -251,6 +199,12 @@ const emit = defineEmits(['open-ai'])
     transform: scale(1.12);
     transform-origin: left bottom;
   }
+
+  .memories-hero__ai {
+    width: 100%;
+    max-width: none;
+  }
+
   .memories-hero__scroll {
     display: none;
   }
