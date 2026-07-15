@@ -135,7 +135,10 @@ const featuredConnections = computed(() =>
           こちらは代表的な例です。
         </p>
 
-        <MusicConnectionsBoard :connections="featuredConnections" />
+        <MusicConnectionsBoard
+          :connections="featuredConnections"
+          @enter-site="(artistId) => emit('enter-site', artistId)"
+        />
 
         <UiButton
           variant="gold"

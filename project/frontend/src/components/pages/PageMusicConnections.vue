@@ -6,6 +6,8 @@
  */
 import MusicConnectionsBoard from '../common/MusicConnectionsBoard.vue'
 import { CROSS_ARTIST_CONNECTIONS } from '../../data/crossArtistConnections.js'
+
+const emit = defineEmits(['enter-site'])
 </script>
 
 <template>
@@ -23,7 +25,10 @@ import { CROSS_ARTIST_CONNECTIONS } from '../../data/crossArtistConnections.js'
       </section>
 
       <section class="music-connections__board-section" aria-label="作家別のつながり一覧">
-        <MusicConnectionsBoard :connections="CROSS_ARTIST_CONNECTIONS" />
+        <MusicConnectionsBoard
+          :connections="CROSS_ARTIST_CONNECTIONS"
+          @enter-site="(artistId) => emit('enter-site', artistId)"
+        />
       </section>
     </main>
   </div>

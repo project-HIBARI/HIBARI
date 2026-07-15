@@ -191,7 +191,10 @@ function onUserUpdated(account) {
       @open-connections="setView('connections')"
     />
 
-    <PageMusicConnections v-else-if="view === 'connections'" />
+    <PageMusicConnections
+      v-else-if="view === 'connections'"
+      @enter-site="(siteId) => emit('enter-site', siteId)"
+    />
 
     <PagePlatformOpenChat
       v-else-if="view === 'open-chat'"
