@@ -170,6 +170,40 @@ function onUserUpdated(account) {
           </button>
         </nav>
 
+        <nav class="platform-shell__desktop-actions" aria-label="SNS quick menu">
+          <button
+            type="button"
+            class="platform-shell__quick-btn"
+            @click="setView('sns'); snsCreateIntent++"
+          >
+            <UiIco name="plus" :size="16" />
+            <span>謚慕ｨｿ</span>
+          </button>
+          <button
+            type="button"
+            class="platform-shell__quick-btn"
+            :class="{ 'platform-shell__quick-btn--active': view === 'dm' }"
+            @click="openDm()"
+          >
+            <span class="platform-shell__quick-icon">
+              <UiIco name="mail" :size="16" />
+              <span v-if="dmUnreadCount > 0" class="platform-shell__quick-badge">
+                {{ dmUnreadCount > 9 ? '9+' : dmUnreadCount }}
+              </span>
+            </span>
+            <span>DM</span>
+          </button>
+          <button
+            type="button"
+            class="platform-shell__quick-btn"
+            :class="{ 'platform-shell__quick-btn--active': view === 'profile' }"
+            @click="openMyProfile"
+          >
+            <UiIco name="user" :size="16" />
+            <span>繝槭う繝壹・繧ｸ</span>
+          </button>
+        </nav>
+
         <HeaderAccountMenu
           class="platform-shell__account"
           :is-logged-in="isLoggedIn"
@@ -348,7 +382,7 @@ function onUserUpdated(account) {
   margin: 0 auto;
   padding: 16px 24px;
   display: grid;
-  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto) minmax(0, auto);
   align-items: center;
   gap: 16px;
   min-width: 0;
@@ -392,6 +426,65 @@ function onUserUpdated(account) {
   border-color: rgba(228, 190, 99, 0.35);
   color: var(--sns-gold);
   font-weight: 600;
+}
+
+.platform-shell__desktop-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.platform-shell__quick-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  margin: 0;
+  padding: 7px 12px;
+  border: 1px solid var(--sns-border);
+  border-radius: 999px;
+  background: var(--sns-card);
+  color: var(--sns-ivory);
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.platform-shell__quick-btn:hover,
+.platform-shell__quick-btn--active {
+  background: rgba(228, 190, 99, 0.1);
+  border-color: rgba(228, 190, 99, 0.4);
+  color: var(--sns-gold);
+}
+
+.platform-shell__quick-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.platform-shell__quick-badge {
+  position: absolute;
+  top: -10px;
+  right: -11px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--beni-600);
+  color: #fff;
+  font-size: 9px;
+  line-height: 16px;
+  text-align: center;
+  border: 2px solid rgba(22, 15, 24, 0.96);
 }
 
 .platform-shell__brand {
@@ -634,6 +727,10 @@ function onUserUpdated(account) {
     flex: 0 0 auto;
   }
 
+  .platform-shell__desktop-actions {
+    display: none;
+  }
+
   .platform-shell__auth {
     min-height: calc(100vh - 112px);
   }
@@ -646,6 +743,14 @@ function onUserUpdated(account) {
   }
 
   .platform-shell__nav-btn {
+    padding-inline: 10px;
+  }
+
+  .platform-shell__desktop-actions {
+    gap: 6px;
+  }
+
+  .platform-shell__quick-btn {
     padding-inline: 10px;
   }
 }

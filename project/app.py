@@ -58,6 +58,10 @@ app = Flask(__name__)
 app.secret_key = "qawsedrftgyhujikolp"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=365)
 
+
+def keep_login_session():
+    session.permanent = True
+
 # DB接続設定
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
@@ -597,6 +601,7 @@ def create_account():
 
         membership = "premium" if is_premium_val else "general"
 
+        keep_login_session()
         session["account_id"] = account_id
         session["name"] = name_val
         session["email"] = email_val
@@ -636,6 +641,7 @@ def complete_login(user, password, stored_hash, cached=False):
             print("password upgrade:", e)
 
     membership = get_membership_for_account(user["account_id"])
+    keep_login_session()
     session["account_id"] = user["account_id"]
     session["name"] = user["name"]
     session["email"] = user["email"]
@@ -727,6 +733,7 @@ def me():
             "login": False
         }), 401
 
+    keep_login_session()
     return jsonify({
         "login": True,
         "user": build_user_response(
