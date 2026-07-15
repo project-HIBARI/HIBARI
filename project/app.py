@@ -1,6 +1,8 @@
 import os
 import sys
 import uuid
+import json
+import random
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -2316,6 +2318,276 @@ def create_fanclub():
     except Exception as e:
         print(e)
         return jsonify({"error": "ファンクラブ登録エラー", "detail": str(e)}), 500
+    
+    
+    QUIZ_FILE = "quizzes.json"
+RANKING_FILE = "ranking.json"
+
+def load_quizzes():
+    """JSONファイルからクイズデータを読み込む。なければ初期データを保存して返す。"""
+    if not os.path.exists(QUIZ_FILE):
+        initial_quizzes = [
+            {
+                "quiz_id": 1,
+                "question": "美空ひばりさんが9歳でデビューした際、最初に名乗っていたステージ名は次のうちどれでしょう？",
+                "option_a": "美空ひばり",
+                "option_b": "美空風童",
+                "option_c": "美空ひばり子",
+                "option_d": "美空ひばり美",
+                "correct_answer": "B",
+                "explanation": "デビュー当初は「美空風童（みそらふうどう）」を名乗っていました。その後、劇場の支配人から「美空ひばり」の名を贈られました。"
+            },
+            {
+                "quiz_id": 2,
+                "question": "美空ひばりさんの大ヒット曲であり、映画の主題歌にもなった「リンゴ追分」。この曲のイントロや間奏に入る有名なセリフといえば何でしょう？",
+                "option_a": "「お父さん、私やるわ」",
+                "option_b": "「リンゴの花びらが風に舞う」",
+                "option_c": "「お岩木山のふもとでね」",
+                "option_d": "「あぁ、懐かしき我が故郷」",
+                "correct_answer": "C",
+                "explanation": "「お岩木山のふもとでね、リンゴの花びらが風に散るのが…」という、故郷を想う切ないナレーション（セリフ）が非常に有名です。"
+            },
+            {
+                "quiz_id": 3,
+                "question": "昭和20年代後半から30年代にかけて、美空ひばり・江利チエミ・雪村いづみの3人は、その絶大な人気から「何人娘」と呼ばれたでしょう？",
+                "option_a": "三人娘",
+                "option_b": "昭和三姉妹",
+                "option_c": "レトロガールズ",
+                "option_d": "歌謡三羽烏",
+                "correct_answer": "A",
+                "explanation": "昭和の歌謡界を牽引した3人は「三人娘（元祖三人娘）」として映画やステージで大活躍し、一世を風靡しました。"
+            },
+            {
+                "quiz_id": 4,
+                "question": "美空ひばりさんの生前最後のシングルであり、後に昭和を代表する不朽の名曲となった曲のタイトルは何でしょう？",
+                "option_a": "哀愁波止場",
+                "option_b": "悲しき口笛",
+                "option_c": "川の流れのように",
+                "option_d": "みだれ髪",
+                "correct_answer": "C",
+                "explanation": "1989年に発表された「川の流れのように」が最後のシングルとなり、ひばりさんの代名詞にして昭和歌謡の頂点として愛され続けています。"
+            },
+            {
+                "quiz_id": 5,
+                "question": "美空ひばりさんが、映画『悲しき口笛』の劇中でシルクハットをかぶり、男装姿で歌って大ヒットさせた当時の年齢はいくつだったでしょう？",
+                "option_a": "12歳",
+                "option_b": "15歳",
+                "option_c": "18歳",
+                "option_d": "20歳",
+                "correct_answer": "A",
+                "explanation": "わずか12歳（小学6年生の年齢）にして、大人顔負けの男装姿と抜群の歌唱力で歌い上げ、天才少女として日本中を驚かせました。"
+            },
+            {
+                "quiz_id": 6,
+                "question": "昭和レトロな街並みでおなじみ。かつて東京・新宿にあり、美空ひばりさんも数々の名ステージを踏んだ、昭和のエンタメの殿堂といえばどこでしょう？",
+                "option_a": "浅草ロック座",
+                "option_b": "新宿コマ劇場",
+                "option_c": "日本劇場（日劇）",
+                "option_d": "浅草国際劇場",
+                "correct_answer": "B",
+                "explanation": "「演歌の殿堂」とも呼ばれた新宿コマ劇場は、美空ひばりさんをはじめとする大物歌手の座長公演が数多く行われた伝説の劇場です。"
+            },
+            {
+                "quiz_id": 7,
+                "question": "美空ひばりさんが昭和64年（1989年）に女性として「初めて」受賞した、国から贈られる最高の栄誉は何でしょう？",
+                "option_a": "文化勲章",
+                "option_b": "紫綬褒章",
+                "option_c": "国民栄誉賞",
+                "option_d": "日本レコード大賞 功労賞",
+                "correct_answer": "C",
+                "explanation": "ひばりさんは逝去後の1989年7月に、女性として、また歌手として「初」の国民栄誉賞を受賞しました。"
+            },
+            {
+                "quiz_id": 8,
+                "question": "美空ひばりさんのシングル売上の中で、最も売上枚数が多かった（約200万枚）とされる名曲はどれでしょう？",
+                "option_a": "柔（やわら）",
+                "option_b": "真赤な太陽",
+                "option_c": "港町十三番地",
+                "option_d": "川の流れのように",
+                "correct_answer": "A",
+                "explanation": "1964年の東京オリンピックの年にリリースされた「柔」が、約190万〜200万枚を超える自己最大のミリオンセラーを記録しました。"
+            },
+            {
+                "quiz_id": 9,
+                "question": "グループサウンズ風の軽快なリズムに乗り、ミニスカート姿のダンサーを従えて歌った、1967年発売のひばりさんの大ヒットポップスナンバーは何でしょう？",
+                "option_a": "お祭りマンボ",
+                "option_b": "真赤な太陽",
+                "option_c": "車屋さん",
+                "option_d": "愛燦燦（あいさんさん）",
+                "correct_answer": "B",
+                "explanation": "ジャッキー吉川とブルー・コメッツをバックに従えて歌った「真赤な太陽」は、それまでの演歌・歌謡曲のイメージを覆すモダンな大ヒット曲となりました。"
+            },
+            {
+                "quiz_id": 10,
+                "question": "昭和の家庭の定番レトロ家電。当時は「チリチリ…」とぜんまいを巻く音とともに、テレビの前にみんなが集まった『時間制限』を測る道具は何でしょう？",
+                "option_a": "蓄音機",
+                "option_b": "ダイヤル式電話",
+                "option_c": "キッチンタイマー（砂時計）",
+                "option_d": "ぜんまい式タイマー",
+                "correct_answer": "D",
+                "explanation": "昭和の家庭の台所や居間で活躍した「ぜんまい式タイマー」は、ベルの素朴な音がレトロで愛らしい、当時の生活の必需品でした。"
+            }
+        ]
+        save_json(QUIZ_FILE, initial_quizzes)
+        return initial_quizzes
+    
+    with open(QUIZ_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def load_ranking():
+    """JSONファイルからランキングデータを読み込む"""
+    if not os.path.exists(RANKING_FILE):
+        initial_data = [
+            {"name": "銀座のすずめ", "score": 2380, "created_at": "2026-01-01 12:00:00"},
+            {"name": "リンゴ並木", "score": 1820, "created_at": "2026-01-02 15:30:00"},
+            {"name": "コマ劇場通い", "score": 1410, "created_at": "2026-01-03 18:45:00"},
+            {"name": "蓄音機ロマン", "score": 950, "created_at": "2026-01-04 20:10:00"}
+        ]
+        save_json(RANKING_FILE, initial_data)
+        return initial_data
+    
+    with open(RANKING_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def save_json(filepath, data):
+    """データをJSONファイルに書き込む"""
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+# クイズ一覧を取得
+@app.route("/api/quizzes", methods=["GET"])
+def get_quizzes():
+    try:
+        quizzes = load_quizzes()
+        random_quizzes = list(quizzes)
+        random.shuffle(random_quizzes)
+        return jsonify(random_quizzes)
+    except Exception as e:
+        return jsonify({"error": f"クイズの取得エラー: {str(e)}"}), 500
+
+# クイズ解答判定
+@app.route("/api/quizzes/answer", methods=["POST"])
+def answer_quiz():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "JSONデータが空です"}), 400
+            
+        quiz_id = data.get("quiz_id")
+        user_answer = data.get("user_answer")
+
+        if quiz_id is None or user_answer is None:
+            return jsonify({"error": "クイズIDと回答は必須項目です"}), 400
+
+        quizzes = load_quizzes()
+        quiz = next((q for q in quizzes if q["quiz_id"] == int(quiz_id)), None)
+
+        if not quiz:
+            return jsonify({"error": "該当するクイズが見つかりません"}), 404
+
+        correct_answer = quiz["correct_answer"]
+        explanation = quiz["explanation"]
+        is_correct = (user_answer.strip().upper() == correct_answer.strip().upper())
+
+        return jsonify({
+            "quiz_id": quiz_id,
+            "is_correct": is_correct,
+            "correct_answer": correct_answer,
+            "explanation": explanation
+        })
+    except Exception as e:
+        return jsonify({"error": f"クイズ解答処理エラー: {str(e)}"}), 500
+
+# ランキング取得
+@app.route("/api/quizzes/ranking", methods=["GET"])
+def get_quiz_ranking():
+    try:
+        ranking = load_ranking()
+        sorted_ranking = sorted(ranking, key=lambda x: x.get("score", 0), reverse=True)
+        
+        ranking_list = []
+        current_rank = 1
+        for index, item in enumerate(sorted_ranking):
+            if index > 0 and item.get("score") < sorted_ranking[index - 1].get("score"):
+                current_rank = index + 1
+                
+            ranking_list.append({
+                "rank": current_rank,
+                "name": item.get("name", "匿名希望"),
+                "score": item.get("score", 0),
+                "created_at": item.get("created_at", "---")
+            })
+        return jsonify(ranking_list[:10])
+    except Exception as e:
+        return jsonify({"error": f"ランキング情報の取得エラー: {str(e)}"}), 500
+
+# スコア登録
+@app.route("/api/quizzes/ranking", methods=["POST"])
+def submit_ranking_score():
+    try:
+        data = request.get_json()
+        if not data or "score" not in data:
+            return jsonify({"error": "スコアは必須項目です"}), 400
+
+        name = data.get("name", "匿名希望")
+        score = int(data["score"])
+        name_val = name.strip() if name.strip() else "匿名希望"
+
+        ranking = load_ranking()
+        
+        jst = timezone(timedelta(hours=9))
+        now_jst = datetime.now(jst).strftime("%Y-%m-%d %H:%M:%S")
+
+        new_record = {
+            "name": name_val[:15],
+            "score": score,
+            "created_at": now_jst
+        }
+        ranking.append(new_record)
+        save_json(RANKING_FILE, ranking)
+
+        return jsonify({
+            "message": "ランキングに登録されました！",
+            "name": name_val,
+            "score": score
+        })
+    except Exception as e:
+        return jsonify({"error": f"ランキング登録エラー: {str(e)}"}), 500
+
+# 通常表示用
+from flask import render_template
+@app.route("/quiz")
+def quiz_view():
+    return render_template("quiz.html")
+
+@app.route('/debug/quizzes')
+def debug_quizzes():
+    try:
+        # セッション等からログインユーザーを判定
+        current_user = None
+        if 'get_current_user_from_session' in globals():
+            current_user = get_current_user_from_session()
+        elif 'session' in globals() and 'user' in session:
+            current_user = session['user']
+
+        # 埋め込み文字列の作成
+        user_str = str(current_user) if current_user else ""
+        logged_in_str = "true" if current_user else "false"
+
+        # HTMLを直接テキストとして安全にロード（Jinja2エンジンを通さない）
+        template_path = os.path.join(app.root_path, 'templates', 'debug_quiz.html')
+        with open(template_path, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+
+        # HTML内のプレースホルダーを単純かつ安全に文字列置換
+        html_content = html_content.replace('{% if current_user %}{{ current_user }}{% endif %}', user_str)
+        html_content = html_content.replace('{% if is_logged_in %}true{% else %}false{% endif %}', logged_in_str)
+
+        return html_content
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return f"テンプレート読み込みエラー: {e}", 500
 
 
 register_open_chat_routes(

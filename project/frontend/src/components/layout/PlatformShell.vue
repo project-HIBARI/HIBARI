@@ -3,6 +3,22 @@
  * 部品名: Music Memories プラットフォームシェル
  * 役割: ハブ・ログイン・新規登録・アカウント設定を束ねる
  */
+import { computed, ref, watch } from 'vue'
+import PageMusicMemories from '../pages/PageMusicMemories.vue'
+import PageMusicConnections from '../pages/PageMusicConnections.vue'
+import PageArtistEncyclopedia from '../pages/PageArtistEncyclopedia.vue'
+import PageArtistDiagnosis from '../pages/PageArtistDiagnosis.vue'
+import PageLogin from '../pages/PageLogin.vue'
+import PageRegister from '../pages/PageRegister.vue'
+import PagePlatformOpenChat from '../pages/PagePlatformOpenChat.vue'
+import PagePlatformMemoryBook from '../pages/PagePlatformMemoryBook.vue'
+import PageSnsFeed from '../pages/PageSnsFeed.vue'
+import PageSnsDiscover from '../pages/PageSnsDiscover.vue'
+import PageSnsProfile from '../pages/PageSnsProfile.vue'
+import PageSnsDm from '../pages/PageSnsDm.vue'
+import PageQuiz from '../pages/PageQuiz.vue'
+import PageNotifications from '../pages/PageNotifications.vue'
+import SnsStoryViewer from '../pages/sns/SnsStoryViewer.vue'
 import { computed, ref, watch, defineAsyncComponent } from 'vue'
 import HeaderAccountMenu from './HeaderAccountMenu.vue'
 import PlatformDrawerNav from './PlatformDrawerNav.vue'
@@ -70,6 +86,7 @@ const navItems = [
   { id: 'connections', label: '曲の繋がり' },
   { id: 'artist-encyclopedia', label: 'アーティスト図鑑' },
   { id: 'artist-diagnosis', label: 'アーティスト診断' },
+  { id: 'quiz', label: 'クイズ' },
   { id: 'memory-book', label: '思い出帳' },
 ]
 
@@ -274,6 +291,19 @@ function onUserUpdated(account) {
             <UiIco name="spark" :size="14" />
             アーティスト診断
           </button>
+
+
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'quiz' }"
+            @click="setView('quiz')"
+          >
+            <UiIco name="quiz" :size="14" />
+            クイズ
+          </button>
+
+
           <button
             type="button"
             class="platform-shell__nav-btn"
@@ -400,6 +430,8 @@ function onUserUpdated(account) {
       @enter-site="(siteId) => emit('enter-site', siteId)"
       @open-encyclopedia="setView('artist-encyclopedia')"
     />
+
+    <PageQuiz v-else-if="view === 'quiz'" />
 
     <PagePlatformOpenChat
       v-else-if="view === 'open-chat'"
