@@ -40,8 +40,15 @@ HASHTAG_SANITIZE_RE = re.compile(r"[^\w぀-ヿ一-鿿０-９Ａ-Ｚａ-ｚ-]")
 os.makedirs(SNS_UPLOAD_FOLDER, exist_ok=True)
 
 
+def _extract_extension(filename):
+    """secure_filename 前後どちらでも使えるよう、元ファイル名から拡張子だけ取り出す。"""
+    if not filename or "." not in filename:
+        return ""
+    return filename.rsplit(".", 1)[-1].lower()
+
+
 def _get_media_type(filename):
-    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    ext = _extract_extension(filename)
     if ext in ALLOWED_IMAGE_EXTENSIONS:
         return "image", ext
     if ext in ALLOWED_VIDEO_EXTENSIONS:
@@ -49,12 +56,23 @@ def _get_media_type(filename):
     return None, None
 
 
+def _media_file_path(item):
+    """フロントの path / file_path 両方を受け付ける。"""
+    if not isinstance(item, dict):
+        return None
+    return item.get("file_path") or item.get("path")
+
+
 def _save_media_file(file_storage):
     if not file_storage or not file_storage.filename:
         raise ValueError("ファイルがありません")
 
-    original_name = secure_filename(file_storage.filename)
-    media_type, ext = _get_media_type(original_name)
+    # 日本語ファイル名は secure_filename で空になることがあるため、拡張子は元名から判定する
+    original_filename = file_storage.filename
+    media_type, ext = _get_media_type(original_filename)
+    if not media_type:
+        safe_name = secure_filename(original_filename)
+        media_type, ext = _get_media_type(safe_name)
     if not media_type:
         raise ValueError("対応していないファイル形式です（画像: jpg/png/gif/webp、動画: mp4/webm/mov）")
 
@@ -114,6 +132,7 @@ def _serialize_post(row, media_by_post, viewer_account_id):
     }
 
 
+# LIMIT 付き一覧では相関サブクエリの方が全件GROUP BYより安全（出力行のみ評価される）
 POST_SELECT_BASE = """
     SELECT
         p.post_id, p.post_type, p.body, p.hashtags, p.comments_enabled,
@@ -205,9 +224,13 @@ def register_sns_post_routes(app, engine, **deps):
         file = request.files.get("file")
         try:
             path, media_type = _save_media_file(file)
-            return jsonify({"path": path, "media_type": media_type})
+            # path と file_path を併用し、投稿作成側とのキー不一致を防ぐ
+            return jsonify({"path": path, "file_path": path, "media_type": media_type})
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
+        except OSError as e:
+            print(e)
+            return jsonify({"error": "サーバーへの保存に失敗しました"}), 500
         except Exception as e:
             print(e)
             return jsonify({"error": "アップロードに失敗しました"}), 500
@@ -285,27 +308,34 @@ def register_sns_post_routes(app, engine, **deps):
         if not isinstance(media, list):
             return jsonify({"error": "メディア情報が不正です"}), 400
 
+        normalized_media = []
+        for m in media:
+            if not isinstance(m, dict):
+                return jsonify({"error": "メディア情報が不正です"}), 400
+            file_path = _media_file_path(m)
+            media_type = m.get("media_type")
+            if not file_path or media_type not in ("image", "video"):
+                return jsonify({"error": "メディア情報が不正です"}), 400
+            normalized_media.append({"file_path": file_path, "media_type": media_type})
+
         if post_type == "text":
-            if not body and not media:
+            if not body and not normalized_media:
                 return jsonify({"error": "本文または画像を入力してください"}), 400
             if len(body) > MAX_TEXT_POST_LENGTH:
                 return jsonify({"error": f"本文は{MAX_TEXT_POST_LENGTH}文字以内で入力してください"}), 400
-            if len(media) > 1 or any(m.get("media_type") != "image" for m in media):
+            if len(normalized_media) > 1 or any(m["media_type"] != "image" for m in normalized_media):
                 return jsonify({"error": "ひとこと投稿に添付できる画像は1枚までです"}), 400
         else:
-            if not media:
+            if not normalized_media:
                 return jsonify({"error": "画像または動画を選択してください"}), 400
             if len(body) > MAX_PHOTO_POST_BODY_LENGTH:
                 return jsonify({"error": f"本文は{MAX_PHOTO_POST_BODY_LENGTH}文字以内で入力してください"}), 400
-            video_count = sum(1 for m in media if m.get("media_type") == "video")
-            image_count = sum(1 for m in media if m.get("media_type") == "image")
+            video_count = sum(1 for m in normalized_media if m["media_type"] == "video")
+            image_count = sum(1 for m in normalized_media if m["media_type"] == "image")
             if video_count and (video_count > 1 or image_count):
                 return jsonify({"error": "動画は1件のみ、画像との同時投稿はできません"}), 400
             if not video_count and image_count > MAX_IMAGES_PER_POST:
                 return jsonify({"error": f"画像は{MAX_IMAGES_PER_POST}枚までです"}), 400
-            for m in media:
-                if not m.get("file_path") or m.get("media_type") not in ("image", "video"):
-                    return jsonify({"error": "メディア情報が不正です"}), 400
 
         membership = get_membership_for_account(account_id)
         try:
@@ -328,7 +358,7 @@ def register_sns_post_routes(app, engine, **deps):
                     "comments_enabled": comments_enabled,
                 },
             )
-            for index, m in enumerate(media):
+            for index, m in enumerate(normalized_media):
                 execute(
                     """
                     INSERT INTO sns_post_media (post_id, media_type, file_path, sort_order)
@@ -336,8 +366,8 @@ def register_sns_post_routes(app, engine, **deps):
                     """,
                     {
                         "post_id": post_id,
-                        "media_type": m.get("media_type"),
-                        "file_path": m.get("file_path"),
+                        "media_type": m["media_type"],
+                        "file_path": m["file_path"],
                         "sort_order": index,
                     },
                 )

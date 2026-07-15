@@ -79,7 +79,13 @@ function onMenuAction(action) {
         :alt="post.body ? post.body.slice(0, 60) : `${post.author_name}の投稿画像`"
         loading="lazy"
       />
-      <video v-else :src="media[activeMediaIndex].file_path" muted playsinline />
+      <video
+        v-else
+        :src="media[activeMediaIndex].file_path"
+        muted
+        playsinline
+        preload="none"
+      />
       <span v-if="media.length > 1" class="sns-card__media-count">{{ media.length }}枚</span>
     </button>
 

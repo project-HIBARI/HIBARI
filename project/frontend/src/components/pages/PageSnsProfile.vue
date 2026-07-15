@@ -2,7 +2,7 @@
 /**
  * ページ: SNSプロフィール（自分 / 他ユーザー共通）
  */
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import UiIco from '../ui/UiIco.vue'
 import TabBar from '../ui/TabBar.vue'
@@ -52,11 +52,17 @@ const followBusy = ref(false)
 const activeTab = ref('photo')
 const posts = ref([])
 const postsLoading = ref(false)
+const postsLoadingMore = ref(false)
 const postsError = ref('')
 const nextBeforeId = ref(null)
 
 const storyArchive = ref([])
 const archiveLoading = ref(false)
+const archiveError = ref('')
+
+let profileRequestId = 0
+let tabRequestId = 0
+let disposed = false
 
 const detailPost = ref(null)
 const showFollowModal = ref(null) // 'following' | 'followers' | null
@@ -176,44 +182,82 @@ const tabs = computed(() => {
 })
 
 async function loadProfile() {
+  const requestId = ++profileRequestId
   profileLoading.value = true
   profileError.value = ''
   try {
-    profile.value = await fetchSnsProfile(props.accountId)
+    const data = await fetchSnsProfile(props.accountId)
+    if (disposed || requestId !== profileRequestId) return
+    profile.value = data
   } catch (err) {
+    if (disposed || requestId !== profileRequestId) return
     profileError.value = err?.message || 'プロフィールの取得に失敗しました'
   } finally {
-    profileLoading.value = false
+    if (requestId === profileRequestId) profileLoading.value = false
   }
 }
 
 async function loadTabContent({ reset = true } = {}) {
+  const requestId = ++tabRequestId
+  const tab = activeTab.value
   postsError.value = ''
+  archiveError.value = ''
   if (reset) {
     postsLoading.value = true
     nextBeforeId.value = null
+    if (tab !== 'archive') posts.value = []
   }
   try {
-    if (activeTab.value === 'archive') {
+    if (tab === 'archive') {
       archiveLoading.value = true
       const data = await fetchSnsStoryArchive()
-      storyArchive.value = data.stories
-      archiveLoading.value = false
+      if (disposed || requestId !== tabRequestId || activeTab.value !== 'archive') return
+      storyArchive.value = data.stories || []
       return
     }
-    if (activeTab.value === 'saved') {
+    if (tab === 'saved') {
       const data = await fetchSnsSavedPosts()
-      posts.value = data.posts
+      if (disposed || requestId !== tabRequestId || activeTab.value !== 'saved') return
+      posts.value = data.posts || []
       nextBeforeId.value = data.next_before_id
       return
     }
-    const data = await fetchSnsProfilePosts(props.accountId, { type: activeTab.value })
-    posts.value = data.posts
+    const data = await fetchSnsProfilePosts(props.accountId, { type: tab })
+    if (disposed || requestId !== tabRequestId || activeTab.value !== tab) return
+    posts.value = data.posts || []
     nextBeforeId.value = data.next_before_id
   } catch (err) {
-    postsError.value = err?.message || '投稿の取得に失敗しました'
+    if (disposed || requestId !== tabRequestId) return
+    if (tab === 'archive') {
+      archiveError.value = err?.message || 'アーカイブの取得に失敗しました'
+    } else {
+      postsError.value = err?.message || '投稿の取得に失敗しました'
+    }
   } finally {
-    postsLoading.value = false
+    if (requestId === tabRequestId) {
+      postsLoading.value = false
+      archiveLoading.value = false
+    }
+  }
+}
+
+async function loadMorePosts() {
+  if (!nextBeforeId.value || postsLoadingMore.value || postsLoading.value) return
+  if (activeTab.value === 'archive') return
+  postsLoadingMore.value = true
+  const tab = activeTab.value
+  const beforeId = nextBeforeId.value
+  try {
+    const data = tab === 'saved'
+      ? await fetchSnsSavedPosts({ beforeId })
+      : await fetchSnsProfilePosts(props.accountId, { type: tab, beforeId })
+    if (disposed || activeTab.value !== tab) return
+    posts.value = [...posts.value, ...(data.posts || [])]
+    nextBeforeId.value = data.next_before_id
+  } catch (err) {
+    if (!disposed) postsError.value = err?.message || '追加の読み込みに失敗しました'
+  } finally {
+    postsLoadingMore.value = false
   }
 }
 
@@ -305,9 +349,16 @@ watch(() => props.accountId, () => {
 })
 
 onMounted(() => {
+  disposed = false
   loadProfile()
   loadTabContent()
   if (isSelf.value) refreshUsage()
+})
+
+onUnmounted(() => {
+  disposed = true
+  profileRequestId += 1
+  tabRequestId += 1
 })
 </script>
 
@@ -403,6 +454,10 @@ onMounted(() => {
 
       <section v-if="activeTab === 'archive'" class="sns-profile__archive" aria-label="ストーリーズのアーカイブ">
         <SnsSkeletonCard v-if="archiveLoading" variant="story" :count="4" />
+        <div v-else-if="archiveError" class="sns-profile__error-card">
+          <p class="sns-profile__state sns-profile__state--error">{{ archiveError }}</p>
+          <UiButton variant="outline" size="sm" @click="loadTabContent">もう一度試す</UiButton>
+        </div>
         <SnsEmptyState
           v-else-if="!storyArchive.length"
           icon="story-ring"
@@ -413,8 +468,13 @@ onMounted(() => {
         />
         <div v-else class="sns-profile__archive-grid">
           <div v-for="s in storyArchive" :key="s.story_id" class="sns-profile__archive-item">
-            <img v-if="s.media_type === 'image'" :src="s.file_path" :alt="s.caption || 'ストーリーズ'" />
-            <video v-else :src="s.file_path" muted playsinline />
+            <img
+              v-if="s.media_type === 'image'"
+              :src="s.file_path"
+              :alt="s.caption || 'ストーリーズ'"
+              loading="lazy"
+            />
+            <video v-else :src="s.file_path" muted playsinline preload="none" />
             <span v-if="!s.is_active" class="sns-profile__archive-expired">期限切れ</span>
           </div>
         </div>
@@ -422,7 +482,7 @@ onMounted(() => {
 
       <section v-else-if="activeTab === 'photo'" class="sns-profile__grid" aria-label="写真・動画投稿">
         <SnsSkeletonCard v-if="postsLoading" variant="post" :count="2" />
-        <div v-else-if="postsError" class="sns-profile__error-card">
+        <div v-else-if="postsError && !posts.length" class="sns-profile__error-card">
           <p class="sns-profile__state sns-profile__state--error">読み込みに失敗しました</p>
           <UiButton variant="outline" size="sm" @click="loadTabContent">もう一度試す</UiButton>
         </div>
@@ -434,27 +494,41 @@ onMounted(() => {
           :action-label="isSelf ? '最初の投稿を作成する' : ''"
           @action="openCreate('photo')"
         />
-        <div v-else class="sns-profile__grid-inner">
-          <button
-            v-for="post in posts"
-            :key="post.post_id"
-            type="button"
-            class="sns-profile__grid-cell"
-            @click="detailPost = post"
-          >
-            <img
-              v-if="post.media[0]?.media_type === 'image'"
-              :src="post.media[0].file_path"
-              :alt="post.body ? post.body.slice(0, 40) : '投稿画像'"
-            />
-            <video v-else-if="post.media[0]" :src="post.media[0].file_path" muted />
-          </button>
-        </div>
+        <template v-else>
+          <div class="sns-profile__grid-inner">
+            <button
+              v-for="post in posts"
+              :key="post.post_id"
+              type="button"
+              class="sns-profile__grid-cell"
+              @click="detailPost = post"
+            >
+              <img
+                v-if="post.media[0]?.media_type === 'image'"
+                :src="post.media[0].file_path"
+                :alt="post.body ? post.body.slice(0, 40) : '投稿画像'"
+                loading="lazy"
+              />
+              <video
+                v-else-if="post.media[0]"
+                :src="post.media[0].file_path"
+                muted
+                playsinline
+                preload="none"
+              />
+            </button>
+          </div>
+          <div v-if="nextBeforeId" class="sns-profile__more">
+            <UiButton variant="outline" size="sm" :disabled="postsLoadingMore" @click="loadMorePosts">
+              {{ postsLoadingMore ? '読み込み中…' : 'さらに読み込む' }}
+            </UiButton>
+          </div>
+        </template>
       </section>
 
       <section v-else class="sns-profile__list" aria-label="ひとこと投稿">
         <SnsSkeletonCard v-if="postsLoading" variant="post" :count="2" />
-        <div v-else-if="postsError" class="sns-profile__error-card">
+        <div v-else-if="postsError && !posts.length" class="sns-profile__error-card">
           <p class="sns-profile__state sns-profile__state--error">読み込みに失敗しました</p>
           <UiButton variant="outline" size="sm" @click="loadTabContent">もう一度試す</UiButton>
         </div>
@@ -480,6 +554,11 @@ onMounted(() => {
             @report="onReport"
             @block="onBlockPost"
           />
+          <div v-if="nextBeforeId" class="sns-profile__more">
+            <UiButton variant="outline" size="sm" :disabled="postsLoadingMore" @click="loadMorePosts">
+              {{ postsLoadingMore ? '読み込み中…' : 'さらに読み込む' }}
+            </UiButton>
+          </div>
         </template>
       </section>
 
@@ -731,6 +810,11 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+.sns-profile__more {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 4px;
 }
 .sns-profile__archive-grid {
   display: grid;

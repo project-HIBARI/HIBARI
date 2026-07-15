@@ -348,15 +348,6 @@ function onUserUpdated(account) {
       </button>
       <button
         type="button"
-        class="platform-shell__tab"
-        :class="{ 'platform-shell__tab--active': view === 'hub' }"
-        @click="setView('hub')"
-      >
-        <UiIco name="disc" :size="20" />
-        <span>Music Memories</span>
-      </button>
-      <button
-        type="button"
         class="platform-shell__tab platform-shell__tab--post"
         aria-label="投稿する"
         @click="setView('sns'); snsCreateIntent++"
@@ -619,50 +610,69 @@ function onUserUpdated(account) {
 }
 
 .platform-shell__tabbar {
+  /* .sp-only の display:flex !important を上書きし、画面幅に対する均等5列にする */
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 50;
-  align-items: center;
-  justify-content: space-around;
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
   min-height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   background: rgba(22, 15, 24, 0.96);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--sns-border-soft);
+  overflow: visible;
 }
 
 .platform-shell__tab {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  height: 100%;
+  margin: 0;
+  padding: 4px 2px;
   background: transparent;
   border: 0;
   color: var(--sns-text-muted);
   font-family: var(--ff-sans-jp);
   font-size: 10px;
-  padding: 4px 4px;
-  min-height: 44px;
-  min-width: 46px;
+  line-height: 1.2;
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
-.platform-shell__tab span {
-  max-width: 54px;
+.platform-shell__tab > span:not(.platform-shell__tab-icon) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .platform-shell__tab-icon {
   position: relative;
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
+  width: 20px;
+  height: 20px;
   overflow: visible;
 }
 
@@ -686,17 +696,30 @@ function onUserUpdated(account) {
   color: var(--sns-gold);
 }
 
+.platform-shell__tab :deep(svg) {
+  display: block;
+  flex-shrink: 0;
+}
+
 .platform-shell__tab--post {
-  min-width: 48px;
   width: 48px;
   height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  justify-self: center;
   border-radius: 50%;
   background: var(--sns-purple);
   border: 1px solid rgba(228, 190, 99, 0.4);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  /* 水平は Grid 3列目の中央。浮きは縦方向のみ */
   transform: translateY(-8px);
   align-items: center;
   justify-content: center;
+  line-height: 0;
+  overflow: visible;
 }
 
 @media (max-width: 767px) {
@@ -796,14 +819,20 @@ function onUserUpdated(account) {
     gap: 4px;
   }
 
-  .platform-shell__tab {
-    min-width: 40px;
+  .platform-shell__tabbar {
     padding-inline: 2px;
   }
 
-  .platform-shell__tab span {
-    max-width: 44px;
+  .platform-shell__tab {
+    padding-inline: 1px;
     font-size: 8.5px;
+  }
+
+  .platform-shell__tab--post {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 </style>
