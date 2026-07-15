@@ -82,6 +82,17 @@ export const MUSIC_MEMORIES_ARTISTS = [
   },
 ]
 
+/**
+ * 今日のアーティスト（日替わり紹介枠・新規集客用）
+ * 暫定: 美空ひばりを固定表示。後日ローテーションに差し替え予定。
+ */
+export const TODAYS_ARTIST = {
+  ...MUSIC_MEMORIES_ARTISTS.find((a) => a.id === 'hibari'),
+  headline: '昭和の歌姫を、いま改めて知る',
+  blurb:
+    '可憐さと力強さをあわせ持つ歌声で、時代を超えて愛され続ける美空ひばり。ファンクラブでは楽曲・映像・思い出の記録にふれられます。',
+}
+
 /** Music Memories オープンチャットのアーティストフィルタ */
 export const PLATFORM_CHAT_ARTISTS = [
   { id: 'all', label: 'すべて' },
