@@ -2,31 +2,77 @@
 /**
  * 部品名: Music Memory Book — 思い出詳細
  */
+import { computed } from 'vue'
 import MemoryBookBreadcrumb from './MemoryBookBreadcrumb.vue'
 import UiButton from '../../ui/UiButton.vue'
 import UiIco from '../../ui/UiIco.vue'
-import { MEMORY_BOOK_DETAIL_SAMPLE } from '../../../data/memoryBookData.js'
 import { aosAttrs } from '../../../lib/aos.js'
 
-const memory = MEMORY_BOOK_DETAIL_SAMPLE
+const props = defineProps({
+  loading: { type: Boolean, default: false },
+  error: { type: String, default: '' },
+  memory: { type: Object, default: null },
+})
 
-const emit = defineEmits(['back', 'back-year', 'open-fanclub', 'coming-soon'])
+const emit = defineEmits(['back', 'back-year', 'open-detail', 'open-fanclub', 'coming-soon', 'retry'])
 
-const crumbs = [
+const displayMemory = computed(() => props.memory ?? {
+  title: '思い出が見つかりません',
+  body: '',
+  categoryLabel: '',
+  dateDisplay: '—',
+  location: '—',
+  visibility: '—',
+  mainImage: '/images/page/misorahibari-chair.png',
+  photos: [],
+  aiMessage: '',
+  year: new Date().getFullYear(),
+  monthLabel: '',
+  memo: '—',
+  prevId: null,
+  nextId: null,
+  indexInMonth: 0,
+  totalInMonth: 0,
+})
+
+const crumbs = computed(() => [
   { label: 'Music Memory Book', action: 'top' },
   { label: '年別アルバム一覧', action: 'top' },
-  { label: `${memory.year}年のMusic Memories`, action: 'year' },
+  { label: `${displayMemory.value.year}年のMusic Memories`, action: 'year' },
   { label: '思い出の詳細' },
-]
+])
 
 function onCrumb(action) {
   if (action === 'top') emit('back')
   if (action === 'year') emit('back-year')
 }
+
+function goPrev() {
+  if (displayMemory.value.prevId) emit('open-detail', displayMemory.value.prevId)
+}
+
+function goNext() {
+  if (displayMemory.value.nextId) emit('open-detail', displayMemory.value.nextId)
+}
 </script>
 
 <template>
   <div class="mmb-detail">
+    <div v-if="loading && !memory" class="mmb-state mmb-state--loading">
+      読み込み中です…
+    </div>
+
+    <div v-else-if="error" class="mmb-state mmb-state--error">
+      <p>{{ error }}</p>
+      <UiButton variant="outline" size="sm" @click="emit('retry')">もう一度お試しください</UiButton>
+    </div>
+
+    <div v-else-if="!memory" class="mmb-state mmb-state--error">
+      <p>思い出が見つかりませんでした。</p>
+      <UiButton variant="outline" size="sm" @click="emit('back-year')">一覧に戻る</UiButton>
+    </div>
+
+    <template v-else>
     <div class="mmb-detail__toolbar">
       <UiButton variant="ghost" size="sm" @click="emit('back-year')">
         ‹ 戻る
@@ -48,46 +94,46 @@ function onCrumb(action) {
     <div class="mmb-detail__layout">
       <main class="mmb-detail__main">
         <article class="mmb-detail__card" v-bind="aosAttrs(80)">
-          <span class="mmb-detail__cat">{{ memory.categoryLabel }}</span>
-          <h2 class="mmb-detail__memory-title">{{ memory.title }}</h2>
+          <span class="mmb-detail__cat">{{ displayMemory.categoryLabel }}</span>
+          <h2 class="mmb-detail__memory-title">{{ displayMemory.title }}</h2>
           <dl class="mmb-detail__meta-row">
-            <div><dt>日付</dt><dd>{{ memory.dateDisplay }}</dd></div>
-            <div><dt>場所</dt><dd>{{ memory.location }}</dd></div>
-            <div><dt>公開範囲</dt><dd>{{ memory.visibility }}</dd></div>
+            <div><dt>日付</dt><dd>{{ displayMemory.dateDisplay }}</dd></div>
+            <div><dt>場所</dt><dd>{{ displayMemory.location }}</dd></div>
+            <div><dt>公開範囲</dt><dd>{{ displayMemory.visibility }}</dd></div>
           </dl>
-          <p class="mmb-detail__body">{{ memory.body }}</p>
+          <p class="mmb-detail__body">{{ displayMemory.body }}</p>
 
           <figure class="mmb-detail__hero-img">
-            <img :src="memory.mainImage" :alt="memory.title" class="mmb-detail__hero-photo" decoding="async" />
+            <img :src="displayMemory.mainImage" :alt="displayMemory.title" class="mmb-detail__hero-photo" decoding="async" />
             <div class="mmb-detail__ribbon" aria-hidden="true" />
           </figure>
 
-          <section class="mmb-detail__photos" aria-label="添付写真">
+          <section v-if="displayMemory.photos.length" class="mmb-detail__photos" aria-label="添付写真">
             <h3 class="mmb-detail__photos-title">添付写真</h3>
             <div class="mmb-detail__photos-grid">
-              <figure v-for="(ph, i) in memory.photos" :key="i" class="mmb-detail__photo">
+              <figure v-for="(ph, i) in displayMemory.photos" :key="i" class="mmb-detail__photo">
                 <img :src="ph.src" :alt="ph.alt" loading="lazy" decoding="async" />
                 <figcaption>{{ ph.alt }}</figcaption>
               </figure>
             </div>
           </section>
 
-          <aside class="mmb-detail__ai" aria-label="AIからのメッセージ">
+          <aside v-if="displayMemory.aiMessage" class="mmb-detail__ai" aria-label="AIからのメッセージ">
             <div class="mmb-detail__ai-head">
               <UiIco name="chat" :size="16" color="var(--murasaki-700)" />
               <h3>AIからのメッセージ</h3>
             </div>
-            <p class="mmb-detail__ai-body">{{ memory.aiMessage }}</p>
+            <p class="mmb-detail__ai-body">{{ displayMemory.aiMessage }}</p>
             <p class="mmb-detail__ai-note">※ AIからのメッセージは自動生成された内容です</p>
           </aside>
         </article>
 
         <nav class="mmb-detail__pager" aria-label="思い出ナビゲーション" v-bind="aosAttrs(200)">
-          <UiButton variant="outline" size="sm" :disabled="!memory.prevId" @click="emit('coming-soon', 'prev')">
+          <UiButton variant="outline" size="sm" :disabled="!displayMemory.prevId" @click="goPrev">
             前の思い出
           </UiButton>
           <UiButton variant="ghost" size="sm" @click="emit('back-year')">一覧に戻る</UiButton>
-          <UiButton variant="outline" size="sm" @click="emit('coming-soon', 'next')">
+          <UiButton variant="outline" size="sm" :disabled="!displayMemory.nextId" @click="goNext">
             次の思い出
           </UiButton>
         </nav>
@@ -97,11 +143,11 @@ function onCrumb(action) {
         <section class="mmb-detail__panel">
           <h3 class="mmb-detail__panel-title">この思い出の情報</h3>
           <dl class="mmb-detail__panel-dl">
-            <div><dt>日付</dt><dd>{{ memory.dateDisplay }}</dd></div>
-            <div><dt>場所</dt><dd>{{ memory.location }}</dd></div>
-            <div><dt>カテゴリ</dt><dd>{{ memory.categoryLabel }}</dd></div>
-            <div><dt>公開範囲</dt><dd>{{ memory.visibility }}</dd></div>
-            <div><dt>メモ</dt><dd>{{ memory.memo }}</dd></div>
+            <div><dt>日付</dt><dd>{{ displayMemory.dateDisplay }}</dd></div>
+            <div><dt>場所</dt><dd>{{ displayMemory.location }}</dd></div>
+            <div><dt>カテゴリ</dt><dd>{{ displayMemory.categoryLabel }}</dd></div>
+            <div><dt>公開範囲</dt><dd>{{ displayMemory.visibility }}</dd></div>
+            <div><dt>メモ</dt><dd>{{ displayMemory.memo }}</dd></div>
           </dl>
         </section>
 
@@ -116,15 +162,16 @@ function onCrumb(action) {
 
         <section class="mmb-detail__panel mmb-detail__panel--accent">
           <h3 class="mmb-detail__panel-title">アルバム内での位置</h3>
-          <p class="mmb-detail__album-ref">{{ memory.year }}年のMusic Memories</p>
-          <p class="mmb-detail__album-month">{{ memory.monthLabel }}の思い出</p>
-          <p class="mmb-detail__album-pos">{{ memory.totalInMonth }}件中{{ memory.indexInMonth }}件目</p>
+          <p class="mmb-detail__album-ref">{{ displayMemory.year }}年のMusic Memories</p>
+          <p class="mmb-detail__album-month">{{ displayMemory.monthLabel }}の思い出</p>
+          <p class="mmb-detail__album-pos">{{ displayMemory.totalInMonth }}件中{{ displayMemory.indexInMonth }}件目</p>
           <UiButton variant="outline" size="sm" class="mmb-detail__month-btn" @click="emit('back-year')">
             この月の一覧を見る
           </UiButton>
         </section>
       </aside>
     </div>
+    </template>
   </div>
 </template>
 
@@ -459,5 +506,24 @@ function onCrumb(action) {
 .mmb-detail__month-btn {
   width: 100%;
   margin-top: var(--sp-4);
+}
+
+.mmb-state {
+  padding: var(--sp-8) var(--sp-6);
+  text-align: center;
+  border-radius: var(--site-radius-lg);
+  border: 1px solid var(--site-border);
+  background: var(--site-surface);
+}
+
+.mmb-state--loading {
+  color: var(--site-text-muted);
+  font-size: 14px;
+}
+
+.mmb-state--error p {
+  margin: 0 0 var(--sp-4);
+  color: var(--beni-600);
+  font-size: 14px;
 }
 </style>
