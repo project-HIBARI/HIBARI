@@ -392,7 +392,6 @@ function onUserUpdated(account) {
       embedded
       @enter-site="(siteId) => emit('enter-site', siteId)"
       @open-chat="setView('open-chat')"
-      @open-connections="setView('connections')"
     />
 
     <PageMusicConnections

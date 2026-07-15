@@ -19,7 +19,7 @@ const query = ref('')
 const role = ref('all')
 const sort = ref('featured')
 
-const activeConnectionId = ref(props.connections[0]?.id ?? '')
+const activeConnectionId = ref(null)
 
 const SORT_LABELS = {
   'year-asc': '年代が古い順',
@@ -90,20 +90,14 @@ function resetFilters() {
   sort.value = 'featured'
 }
 
-watch(
-  filteredConnections,
-  (list) => {
-    if (!list.some((connection) => connection.id === activeConnectionId.value)) {
-      activeConnectionId.value = list[0]?.id ?? ''
-    }
-  },
-  { immediate: true }
-)
+watch(filteredConnections, (list) => {
+  if (activeConnectionId.value && !list.some((connection) => connection.id === activeConnectionId.value)) {
+    activeConnectionId.value = null
+  }
+})
 
 const activeConnection = computed(
-  () =>
-    filteredConnections.value.find((connection) => connection.id === activeConnectionId.value) ??
-    filteredConnections.value[0]
+  () => filteredConnections.value.find((connection) => connection.id === activeConnectionId.value) ?? null
 )
 
 function selectConnection(id) {
@@ -207,91 +201,112 @@ function onArtistNav(artistId) {
         </li>
       </ul>
 
-      <div class="mc-board__diagram">
-      <div class="mc-board__column">
-        <p class="mc-board__column-head mc-board__column-head--origin">起点となる楽曲：美空ひばり</p>
-        <ul class="mc-board__songs mc-board__songs--origin">
-          <li class="mc-board__song mc-board__song--origin">
+      <p v-if="!activeConnection" class="mc-board__hint">
+        曲を選択すると、つながりの詳細が表示されます
+      </p>
+
+      <template v-else>
+      <div class="mc-board__panel">
+        <aside class="mc-board__creator">
+          <div class="mc-board__creator-photo">
             <img
-              v-if="artistInfo(activeConnection.originSong.artistId)?.image"
-              :src="artistInfo(activeConnection.originSong.artistId).image"
-              :alt="artistInfo(activeConnection.originSong.artistId).name"
-              class="mc-board__song-image"
+              v-if="activeConnection.creatorImage"
+              :src="activeConnection.creatorImage"
+              :alt="activeConnection.creator"
               loading="lazy"
               decoding="async"
             />
-            <div class="mc-board__song-body">
-              <p class="mc-board__song-title">
-                {{ artistInfo(activeConnection.originSong.artistId)?.name }} - {{ activeConnection.originSong.title }} ({{ activeConnection.originSong.year }})
-              </p>
-              <p class="mc-board__song-credit">
-                [作詞：{{ activeConnection.originSong.lyric }} ／ 作曲：{{ activeConnection.originSong.music }}]
-              </p>
-              <UiButton
-                v-if="artistInfo(activeConnection.originSong.artistId)?.status === 'open'"
-                variant="gold"
-                size="sm"
-                class="mc-board__song-cta"
-                @click="onArtistNav(activeConnection.originSong.artistId)"
-              >
-                → このアーティストを見る
-              </UiButton>
-              <span v-else class="mc-board__song-badge">準備中</span>
-            </div>
-          </li>
-        </ul>
-      </div>
+            <span v-else class="mc-board__creator-photo-fallback" aria-hidden="true">
+              {{ activeConnection.creator.charAt(0) }}
+            </span>
+          </div>
+          <p class="mc-board__creator-role">{{ activeConnection.creatorRole }}</p>
+          <h3 class="mc-board__creator-name">{{ activeConnection.creator }}</h3>
+          <p v-if="activeConnection.creatorYears" class="mc-board__creator-years">{{ activeConnection.creatorYears }}</p>
+          <p v-if="activeConnection.creatorBio" class="mc-board__creator-bio">{{ activeConnection.creatorBio }}</p>
+        </aside>
 
-      <div class="mc-board__hub">
-        <span class="mc-board__hub-mark" aria-hidden="true">縁</span>
-        <p class="mc-board__hub-role">{{ activeConnection.creatorRole }}：{{ activeConnection.creator }}</p>
-        <p class="mc-board__hub-desc">同じ{{ activeConnection.creatorRole }}が<br />手がけた楽曲たち</p>
-      </div>
+        <div class="mc-board__songs-panel">
+          <div class="mc-board__column">
+            <p class="mc-board__column-head mc-board__column-head--origin">起点となる楽曲：美空ひばり</p>
+            <ul class="mc-board__songs mc-board__songs--origin">
+              <li class="mc-board__song mc-board__song--origin">
+                <img
+                  v-if="artistInfo(activeConnection.originSong.artistId)?.image"
+                  :src="artistInfo(activeConnection.originSong.artistId).image"
+                  :alt="artistInfo(activeConnection.originSong.artistId).name"
+                  class="mc-board__song-image"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div class="mc-board__song-body">
+                  <p class="mc-board__song-title">
+                    {{ artistInfo(activeConnection.originSong.artistId)?.name }} - {{ activeConnection.originSong.title }} ({{ activeConnection.originSong.year }})
+                  </p>
+                  <p class="mc-board__song-credit">
+                    [作詞：{{ activeConnection.originSong.lyric }} ／ 作曲：{{ activeConnection.originSong.music }}]
+                  </p>
+                  <UiButton
+                    v-if="artistInfo(activeConnection.originSong.artistId)?.status === 'open'"
+                    variant="gold"
+                    size="sm"
+                    class="mc-board__song-cta"
+                    @click="onArtistNav(activeConnection.originSong.artistId)"
+                  >
+                    → このアーティストを見る
+                  </UiButton>
+                  <span v-else class="mc-board__song-badge">準備中</span>
+                </div>
+              </li>
+            </ul>
+          </div>
 
-      <div class="mc-board__column">
-        <p class="mc-board__column-head mc-board__column-head--target">
-          同じ{{ activeConnection.creatorRole }}でつながる楽曲
-        </p>
-        <ul class="mc-board__songs mc-board__songs--target">
-          <li
-            v-for="song in activeConnection.targetSongs"
-            :key="song.artistId + song.title"
-            class="mc-board__song mc-board__song--target"
-          >
-            <img
-              v-if="artistInfo(song.artistId)?.image"
-              :src="artistInfo(song.artistId).image"
-              :alt="artistInfo(song.artistId).name"
-              class="mc-board__song-image"
-              loading="lazy"
-              decoding="async"
-            />
-            <div class="mc-board__song-body">
-              <p class="mc-board__song-title">
-                {{ artistInfo(song.artistId)?.name }} - {{ song.title }} ({{ song.year }})
-              </p>
-              <p class="mc-board__song-credit">
-                [作詞：{{ song.lyric }} ／ 作曲：{{ song.music }}]
-              </p>
-              <UiButton
-                v-if="artistInfo(song.artistId)?.status === 'open'"
-                variant="gold"
-                size="sm"
-                class="mc-board__song-cta"
-                @click="onArtistNav(song.artistId)"
+          <div class="mc-board__column">
+            <p class="mc-board__column-head mc-board__column-head--target">
+              同じ{{ activeConnection.creatorRole }}でつながる楽曲
+            </p>
+            <ul class="mc-board__songs mc-board__songs--target">
+              <li
+                v-for="song in activeConnection.targetSongs"
+                :key="song.artistId + song.title"
+                class="mc-board__song mc-board__song--target"
               >
-                → このアーティストを見る
-              </UiButton>
-              <span v-else class="mc-board__song-badge">準備中</span>
-            </div>
-          </li>
-        </ul>
+                <img
+                  v-if="artistInfo(song.artistId)?.image"
+                  :src="artistInfo(song.artistId).image"
+                  :alt="artistInfo(song.artistId).name"
+                  class="mc-board__song-image"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div class="mc-board__song-body">
+                  <p class="mc-board__song-title">
+                    {{ artistInfo(song.artistId)?.name }} - {{ song.title }} ({{ song.year }})
+                  </p>
+                  <p class="mc-board__song-credit">
+                    [作詞：{{ song.lyric }} ／ 作曲：{{ song.music }}]
+                  </p>
+                  <UiButton
+                    v-if="artistInfo(song.artistId)?.status === 'open'"
+                    variant="gold"
+                    size="sm"
+                    class="mc-board__song-cta"
+                    @click="onArtistNav(song.artistId)"
+                  >
+                    → このアーティストを見る
+                  </UiButton>
+                  <span v-else class="mc-board__song-badge">準備中</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
-    </div>
 
       <p v-if="activeConnection.note" class="mc-board__note">
         {{ activeConnection.note }}
       </p>
+      </template>
     </template>
   </div>
 </template>
@@ -478,15 +493,23 @@ function onArtistNav(artistId) {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  justify-content: center;
   gap: 8px;
+}
+
+.mc-board__list > li {
+  min-width: 0;
 }
 
 .mc-board__list-item {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 10px 16px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -513,23 +536,120 @@ function onArtistNav(artistId) {
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.03em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mc-board__list-meta {
   font-size: 10.5px;
   letter-spacing: 0.03em;
   color: rgba(248, 244, 239, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mc-board__list-item--active .mc-board__list-meta {
   color: rgba(217, 189, 125, 0.75);
 }
 
-.mc-board__diagram {
+.mc-board__hint {
+  margin: 0;
+  padding: clamp(32px, 6vw, 48px) 20px;
+  text-align: center;
+  font-family: var(--ff-sans-jp);
+  font-size: 13px;
+  color: rgba(248, 244, 239, 0.5);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: var(--site-radius-lg);
+}
+
+.mc-board__panel {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 20px;
-  align-items: start;
+  grid-template-columns: minmax(200px, 260px) 1fr;
+  gap: clamp(20px, 3vw, 32px);
+  padding: clamp(20px, 3vw, 28px);
+  border: 1px solid rgba(201, 169, 97, 0.28);
+  border-radius: var(--site-radius-lg);
+  background: linear-gradient(160deg, rgba(122, 80, 136, 0.12), rgba(26, 20, 24, 0.5));
+}
+
+.mc-board__creator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding-right: clamp(16px, 3vw, 24px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mc-board__creator-photo {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(201, 169, 97, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201, 169, 97, 0.12);
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.mc-board__creator-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.mc-board__creator-photo-fallback {
+  font-family: var(--ff-mincho);
+  font-size: 2.25rem;
+  color: var(--kin-400);
+}
+
+.mc-board__creator-role {
+  margin: 0;
+  font-family: var(--ff-sans-jp);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--kin-400);
+}
+
+.mc-board__creator-name {
+  margin: 0;
+  font-family: var(--ff-mincho);
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
+  color: #f8f4ef;
+}
+
+.mc-board__creator-years {
+  margin: 0;
+  font-family: var(--ff-latin);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: rgba(248, 244, 239, 0.5);
+}
+
+.mc-board__creator-bio {
+  margin: 10px 0 0;
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  line-height: 1.8;
+  color: rgba(248, 244, 239, 0.72);
+  text-align: left;
+}
+
+.mc-board__songs-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
 }
 
 .mc-board__column {
@@ -632,41 +752,6 @@ function onArtistNav(artistId) {
   color: rgba(248, 244, 239, 0.5);
 }
 
-.mc-board__hub {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 20px;
-  min-width: 140px;
-  border: 1px solid rgba(201, 169, 97, 0.45);
-  border-radius: var(--site-radius-lg);
-  background: rgba(201, 169, 97, 0.08);
-  text-align: center;
-}
-
-.mc-board__hub-mark {
-  font-family: var(--ff-mincho);
-  font-size: 1.5rem;
-  color: var(--kin-400);
-}
-
-.mc-board__hub-role {
-  margin: 0;
-  font-family: var(--ff-mincho);
-  font-size: 0.95rem;
-  color: #f8f4ef;
-}
-
-.mc-board__hub-desc {
-  margin: 0;
-  font-family: var(--ff-sans-jp);
-  font-size: 11px;
-  line-height: 1.6;
-  color: rgba(248, 244, 239, 0.6);
-}
-
 .mc-board__note {
   margin: 0;
   padding-top: 20px;
@@ -686,12 +771,15 @@ function onArtistNav(artistId) {
     width: 100%;
   }
 
-  .mc-board__diagram {
+  .mc-board__panel {
     grid-template-columns: 1fr;
   }
 
-  .mc-board__hub {
-    order: -1;
+  .mc-board__creator {
+    padding-right: 0;
+    padding-bottom: 20px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .mc-board__songs {

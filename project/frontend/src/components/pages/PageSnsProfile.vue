@@ -32,6 +32,8 @@ import {
   deleteSnsPost,
   toggleSnsBlock,
 } from '../../api/sns.js'
+import { fetchAccountSongMemories } from '../../api/songMemories.js'
+import { memoryTypeMeta, VISIBILITY_OPTIONS } from '../../constants/songMemory.js'
 
 const props = defineProps({
   accountId: { type: Number, required: true },
@@ -60,6 +62,14 @@ const nextBeforeId = ref(null)
 const storyArchive = ref([])
 const archiveLoading = ref(false)
 const archiveError = ref('')
+
+const songMemories = ref([])
+const songMemoriesLoading = ref(false)
+const songMemoriesError = ref('')
+
+function visibilityLabel(value) {
+  return VISIBILITY_OPTIONS.find((opt) => opt.value === value)?.label || value
+}
 
 let profileRequestId = 0
 let tabRequestId = 0
@@ -178,6 +188,7 @@ const tabs = computed(() => {
   if (isSelf.value) {
     base.push({ id: 'saved', label: '保存済み' })
     base.push({ id: 'archive', label: 'ストーリーズ' })
+    base.push({ id: 'song_memories', label: '曲の思い出' })
   }
   return base
 })
@@ -203,6 +214,7 @@ async function loadTabContent({ reset = true } = {}) {
   const tab = activeTab.value
   postsError.value = ''
   archiveError.value = ''
+  songMemoriesError.value = ''
   if (reset) {
     postsLoading.value = true
     nextBeforeId.value = null
@@ -214,6 +226,13 @@ async function loadTabContent({ reset = true } = {}) {
       const data = await fetchSnsStoryArchive()
       if (disposed || requestId !== tabRequestId || activeTab.value !== 'archive') return
       storyArchive.value = data.stories || []
+      return
+    }
+    if (tab === 'song_memories') {
+      songMemoriesLoading.value = true
+      const data = await fetchAccountSongMemories(props.accountId)
+      if (disposed || requestId !== tabRequestId || activeTab.value !== 'song_memories') return
+      songMemories.value = data.memories || []
       return
     }
     if (tab === 'saved') {
@@ -231,6 +250,8 @@ async function loadTabContent({ reset = true } = {}) {
     if (disposed || requestId !== tabRequestId) return
     if (tab === 'archive') {
       archiveError.value = err?.message || 'アーカイブの取得に失敗しました'
+    } else if (tab === 'song_memories') {
+      songMemoriesError.value = err?.message || '曲の思い出の取得に失敗しました'
     } else {
       postsError.value = err?.message || '投稿の取得に失敗しました'
     }
@@ -238,6 +259,7 @@ async function loadTabContent({ reset = true } = {}) {
     if (requestId === tabRequestId) {
       postsLoading.value = false
       archiveLoading.value = false
+      songMemoriesLoading.value = false
     }
   }
 }
@@ -536,6 +558,40 @@ onUnmounted(() => {
         </template>
       </section>
 
+      <section v-else-if="activeTab === 'song_memories'" class="sns-profile__song-memories" aria-label="曲の思い出">
+        <SnsSkeletonCard v-if="songMemoriesLoading" variant="post" :count="2" />
+        <div v-else-if="songMemoriesError" class="sns-profile__error-card">
+          <p class="sns-profile__state sns-profile__state--error">{{ songMemoriesError }}</p>
+          <UiButton variant="outline" size="sm" @click="loadTabContent">もう一度試す</UiButton>
+        </div>
+        <SnsEmptyState
+          v-else-if="!songMemories.length"
+          icon="disc"
+          title="まだ曲の思い出が登録されていません"
+          :message="isSelf ? 'ディスコグラフィの曲詳細から、思い出を登録してみましょう' : ''"
+        />
+        <ul v-else class="sns-profile__song-memory-list">
+          <li v-for="m in songMemories" :key="m.memory_id" class="sns-profile__song-memory-item">
+            <span class="sns-profile__song-memory-icon" aria-hidden="true">
+              <UiIco
+                v-if="memoryTypeMeta(m.memory_type)"
+                :name="memoryTypeMeta(m.memory_type).icon"
+                :size="18"
+                color="var(--sns-gold, var(--kin-500))"
+              />
+            </span>
+            <span class="sns-profile__song-memory-body">
+              <span class="sns-profile__song-memory-title">{{ m.title }}</span>
+              <span class="sns-profile__song-memory-meta">
+                {{ m.release_year }}年 ・ {{ memoryTypeMeta(m.memory_type)?.label }}
+                <span v-if="m.comment">「{{ m.comment }}」</span>
+              </span>
+            </span>
+            <span class="sns-profile__song-memory-visibility">{{ visibilityLabel(m.visibility) }}</span>
+          </li>
+        </ul>
+      </section>
+
       <section v-else class="sns-profile__list" aria-label="ひとこと投稿">
         <SnsSkeletonCard v-if="postsLoading" variant="post" :count="2" />
         <div v-else-if="postsError && !posts.length" class="sns-profile__error-card">
@@ -808,6 +864,70 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   padding: 12px 0 4px;
+}
+.sns-profile__song-memories {
+  display: flex;
+  flex-direction: column;
+}
+.sns-profile__song-memory-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sns-profile__song-memory-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--sns-border);
+  border-radius: var(--site-radius-lg);
+  background: var(--sns-card);
+}
+.sns-profile__song-memory-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--sns-border);
+}
+.sns-profile__song-memory-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sns-profile__song-memory-title {
+  font-family: var(--ff-sans-jp);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sns-ivory);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sns-profile__song-memory-meta {
+  font-size: 11px;
+  color: var(--sns-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sns-profile__song-memory-visibility {
+  flex-shrink: 0;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--sns-text-muted);
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--sns-border);
 }
 .sns-profile__archive-grid {
   display: grid;
