@@ -51,8 +51,10 @@ export function sendOpenChatMessage(roomId, { body = '', message_type = 'text', 
 }
 
 export async function uploadOpenChatMedia(roomId, file) {
+  const { compressImageFile } = await import('../lib/compressImageFile.js')
+  const prepared = file?.type?.startsWith('image/') ? await compressImageFile(file) : file
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append('file', prepared)
 
   const response = await fetch(`/api/open-chats/${roomId}/upload`, {
     method: 'POST',

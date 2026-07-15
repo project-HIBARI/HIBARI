@@ -677,7 +677,9 @@ def register_open_chat_routes(
         if not file_path.is_file():
             return jsonify({"error": "ファイルが見つかりません"}), 404
 
-        return send_from_directory(str(OPEN_CHAT_UPLOAD_FOLDER), safe_name)
+        response = send_from_directory(str(OPEN_CHAT_UPLOAD_FOLDER), safe_name)
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
 
     @app.route("/api/open-chats/media/<path:filename>")
     def serve_open_chat_media(filename):

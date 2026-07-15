@@ -9,6 +9,7 @@ const POLL_MS = 15000
 
 const unreadCount = ref(0)
 let pollTimer = null
+let visibilityBound = false
 
 async function refresh() {
   const { isLoggedIn } = useAuth()
@@ -24,16 +25,31 @@ async function refresh() {
   }
 }
 
+function onVisibilityChange() {
+  if (!document.hidden) refresh()
+}
+
 function startPolling() {
   stopPolling()
   refresh()
-  pollTimer = window.setInterval(refresh, POLL_MS)
+  pollTimer = window.setInterval(() => {
+    if (document.hidden) return
+    refresh()
+  }, POLL_MS)
+  if (!visibilityBound) {
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    visibilityBound = true
+  }
 }
 
 function stopPolling() {
   if (pollTimer) {
     clearInterval(pollTimer)
     pollTimer = null
+  }
+  if (visibilityBound) {
+    document.removeEventListener('visibilitychange', onVisibilityChange)
+    visibilityBound = false
   }
 }
 

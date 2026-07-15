@@ -39,6 +39,8 @@ const box = ref('inbox')
 const threads = ref([])
 const threadsLoading = ref(true)
 const threadsError = ref('')
+const threadsNextBeforeId = ref(null)
+const loadingMoreThreads = ref(false)
 
 const activeThreadId = ref(null)
 const activeThread = ref(null)
@@ -108,27 +110,72 @@ const searching = ref(false)
 
 const MAX_MESSAGE = 2000
 
-async function loadThreads() {
-  threadsLoading.value = true
-  threadsError.value = ''
+async function loadThreads({ append = false } = {}) {
+  if (append) {
+    if (!threadsNextBeforeId.value || loadingMoreThreads.value) return
+    loadingMoreThreads.value = true
+  } else {
+    threadsLoading.value = true
+    threadsError.value = ''
+  }
   try {
-    const data = await fetchDmThreads(box.value)
-    threads.value = data.threads
+    const data = await fetchDmThreads(box.value, {
+      beforeId: append ? threadsNextBeforeId.value : null,
+    })
+    threads.value = append ? [...threads.value, ...(data.threads || [])] : (data.threads || [])
+    threadsNextBeforeId.value = data.next_before_id || null
   } catch (err) {
     threadsError.value = err?.message || 'DM一覧の取得に失敗しました'
   } finally {
     threadsLoading.value = false
+    loadingMoreThreads.value = false
   }
 }
 
 function onBoxChange(next) {
   box.value = next
+  threadsNextBeforeId.value = null
   loadThreads()
 }
 
 async function scrollToBottom() {
   await nextTick()
   messagesEndRef.value?.scrollIntoView({ block: 'end' })
+}
+
+function touchThreadPreview(threadId, lastMessage) {
+  const idx = threads.value.findIndex((t) => t.thread_id === threadId)
+  if (idx < 0) {
+    loadThreads()
+    return
+  }
+  const current = threads.value[idx]
+  threads.value.splice(idx, 1)
+  threads.value.unshift({
+    ...current,
+    last_message: lastMessage,
+    updated_at: lastMessage?.created_at || new Date().toISOString(),
+    unread_count: 0,
+  })
+}
+
+function appendSentMessage(result) {
+  const message = result?.message
+  if (!message) {
+    openThread(result.thread_id || activeThreadId.value)
+    return
+  }
+  if (!activeThreadId.value) activeThreadId.value = result.thread_id
+  messages.value = [...messages.value, message]
+  touchThreadPreview(activeThreadId.value, {
+    body: message.body,
+    message_type: message.message_type,
+    reaction_emoji: message.reaction_emoji,
+    is_mine: true,
+    created_at: message.created_at,
+  })
+  scrollToBottom()
+  refreshUnread()
 }
 
 async function openThread(threadId) {
@@ -141,8 +188,11 @@ async function openThread(threadId) {
     messages.value = data.messages
     nextBeforeId.value = data.next_before_id
     await markDmThreadRead(threadId)
+    const idx = threads.value.findIndex((t) => t.thread_id === threadId)
+    if (idx >= 0 && threads.value[idx].unread_count) {
+      threads.value[idx] = { ...threads.value[idx], unread_count: 0 }
+    }
     refreshUnread()
-    loadThreads()
     scrollToBottom()
   } catch (err) {
     threadError.value = err?.message || 'DMの取得に失敗しました'
@@ -203,10 +253,7 @@ async function sendMessage() {
       result = await sendDm({ recipient_id: activeThread.value.other.account_id, message_type: 'text', body })
     }
     messageInput.value = ''
-    if (!activeThreadId.value) {
-      activeThreadId.value = result.thread_id
-    }
-    await openThread(activeThreadId.value)
+    appendSentMessage(result)
   } catch (err) {
     threadError.value = err?.message || 'メッセージの送信に失敗しました'
   } finally {
@@ -231,8 +278,7 @@ async function onImageSelect(e) {
         media_path: uploaded.path,
       })
     }
-    if (!activeThreadId.value) activeThreadId.value = result.thread_id
-    await openThread(activeThreadId.value)
+    appendSentMessage(result)
   } catch (err) {
     threadError.value = err?.message || '画像の送信に失敗しました'
   } finally {
@@ -244,7 +290,25 @@ async function onDeleteMessage(messageId) {
   if (!window.confirm('このメッセージを削除しますか？')) return
   try {
     await deleteDmMessage(messageId)
-    await openThread(activeThreadId.value)
+    const idx = messages.value.findIndex((m) => m.message_id === messageId)
+    if (idx >= 0) {
+      messages.value[idx] = {
+        ...messages.value[idx],
+        message_type: 'deleted',
+        body: '',
+        media_path: null,
+      }
+    }
+    const last = [...messages.value].reverse().find((m) => m.message_type !== 'deleted')
+    if (activeThreadId.value) {
+      touchThreadPreview(activeThreadId.value, last ? {
+        body: last.body,
+        message_type: last.message_type,
+        reaction_emoji: last.reaction_emoji,
+        is_mine: last.is_mine,
+        created_at: last.created_at,
+      } : null)
+    }
   } catch (err) {
     threadError.value = err?.message || '削除に失敗しました'
   }
@@ -353,6 +417,16 @@ onMounted(() => {
             </button>
           </li>
         </ul>
+        <div v-if="threadsNextBeforeId" class="sns-dm__more-wrap">
+          <UiButton
+            variant="outline"
+            size="sm"
+            :disabled="loadingMoreThreads"
+            @click="loadThreads({ append: true })"
+          >
+            {{ loadingMoreThreads ? '読み込み中…' : 'さらに読み込む' }}
+          </UiButton>
+        </div>
 
         <section class="sns-dm__chat-cta">
           <p>みんなで美空ひばりさんの思い出を語りませんか？</p>
@@ -418,11 +492,23 @@ onMounted(() => {
             >
               <div class="sns-dm__bubble">
                 <p v-if="m.message_type === 'deleted'" class="sns-dm__deleted">メッセージは削除されました</p>
-                <img v-else-if="m.message_type === 'image'" :src="m.media_path" alt="送信された画像" />
+                <img
+                  v-else-if="m.message_type === 'image'"
+                  :src="m.media_path"
+                  alt="送信された画像"
+                  loading="lazy"
+                  decoding="async"
+                />
                 <p v-else-if="m.message_type === 'post_share'" class="sns-dm__shared">投稿を共有しました</p>
                 <div v-else-if="m.message_type === 'story_reply' || m.message_type === 'story_reaction'" class="sns-dm__story-ref">
                   <div class="sns-dm__story-ref-thumb">
-                    <img v-if="m.story_file_path && m.story_media_type === 'image'" :src="m.story_file_path" alt="ストーリーズ" />
+                    <img
+                      v-if="m.story_file_path && m.story_media_type === 'image'"
+                      :src="m.story_file_path"
+                      alt="ストーリーズ"
+                      loading="lazy"
+                      decoding="async"
+                    />
                     <video v-else-if="m.story_file_path && m.story_media_type === 'video'" :src="m.story_file_path" muted playsinline preload="metadata" />
                     <span v-else class="sns-dm__story-ref-fallback" aria-hidden="true">
                       <UiIco name="story-ring" :size="16" />
@@ -653,6 +739,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.sns-dm__more-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 8px;
 }
 .sns-dm__chat-cta {
   margin-top: 12px;

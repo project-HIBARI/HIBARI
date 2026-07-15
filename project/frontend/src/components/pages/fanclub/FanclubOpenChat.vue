@@ -68,10 +68,25 @@ const messagesEl = ref(null)
 const bottomAnchor = ref(null)
 const isNearBottom = ref(true)
 const pendingNewCount = ref(0)
+const mobileView = ref('rooms')
+const isMobile = ref(false)
 let pollTimer = null
 
 const SCROLL_THRESHOLD = 96
 const showJumpToBottom = computed(() => pendingNewCount.value > 0 && !isNearBottom.value)
+
+function updateMobile() {
+  isMobile.value = window.matchMedia('(max-width: 767px)').matches
+  if (!isMobile.value) mobileView.value = 'chat'
+}
+
+function showMobileChat() {
+  if (isMobile.value) mobileView.value = 'chat'
+}
+
+function showMobileRooms() {
+  mobileView.value = 'rooms'
+}
 
 const activeRoom = computed(() => rooms.value.find((r) => r.room_id === activeRoomId.value) || null)
 
@@ -178,6 +193,7 @@ async function loadRooms() {
       }
       if (rooms.value.some((r) => r.room_id === initialId)) {
         activeRoomId.value = initialId
+        showMobileChat()
         return
       }
     }
@@ -185,6 +201,7 @@ async function loadRooms() {
     if (!activeRoomId.value && rooms.value.length) {
       const joined = rooms.value.find((r) => r.is_joined)
       activeRoomId.value = (joined || rooms.value[0]).room_id
+      if (!isMobile.value) showMobileChat()
     } else if (activeRoomId.value && !rooms.value.some((r) => r.room_id === activeRoomId.value)) {
       activeRoomId.value = rooms.value[0]?.room_id || null
     }
@@ -305,6 +322,7 @@ function stopPolling() {
 }
 
 async function selectRoom(roomId) {
+  showMobileChat()
   if (activeRoomId.value === roomId) return
   activeRoomId.value = roomId
   setActiveRoomId(roomId)
@@ -447,6 +465,8 @@ watch(activeRoomId, async (roomId) => {
 })
 
 onMounted(async () => {
+  updateMobile()
+  window.addEventListener('resize', updateMobile)
   if (!canUseChat.value) {
     loading.value = false
     return
@@ -454,6 +474,7 @@ onMounted(async () => {
   setActiveRoomId(activeRoomId.value)
   await loadRooms()
   if (activeRoomId.value) setActiveRoomId(activeRoomId.value)
+  if (props.initialRoomId && activeRoomId.value) showMobileChat()
   if (activeRoom.value?.is_joined) {
     await loadMessages(true)
     startPolling()
@@ -462,6 +483,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateMobile)
   stopPolling()
   setActiveRoomId(null)
   clearPendingMedia()
@@ -469,7 +491,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="open-chat" :class="{ 'open-chat--platform': platformTheme }">
+  <div
+    class="open-chat"
+    :class="{
+      'open-chat--platform': platformTheme,
+      'open-chat--mobile': isMobile,
+    }"
+  >
     <MemberGate
       v-if="!canUseChat"
       :permission="PERMISSION.OPEN_CHAT"
@@ -479,13 +507,16 @@ onUnmounted(() => {
     />
 
     <template v-else>
-      <p v-if="platformTheme" class="open-chat__platform-lead">
+      <p v-if="platformTheme && !isMobile" class="open-chat__platform-lead">
         複数アーティストのファンが交流できるプラットフォーム共通のオープンチャットです。
       </p>
       <p v-if="error" class="open-chat__error" role="alert">{{ error }}</p>
 
       <div class="open-chat__layout">
-        <aside class="open-chat__rooms">
+        <aside
+          v-show="!isMobile || mobileView === 'rooms'"
+          class="open-chat__rooms"
+        >
           <div class="open-chat__rooms-head">
             <h3 class="open-chat__rooms-title">{{ chatTitle }}</h3>
             <span v-if="totalUnread > 0" class="open-chat__rooms-badge">{{ totalUnread }}</span>
@@ -546,14 +577,28 @@ onUnmounted(() => {
           </ul>
         </aside>
 
-        <section v-if="activeRoom" class="open-chat__panel">
+        <section
+          v-if="activeRoom"
+          v-show="!isMobile || mobileView === 'chat'"
+          class="open-chat__panel"
+        >
           <header class="open-chat__header">
-            <div>
-              <h3 class="open-chat__title">
-                <span aria-hidden="true">{{ activeRoom.icon_emoji }}</span>
-                {{ activeRoom.name }}
-              </h3>
-              <p class="open-chat__desc">{{ activeRoom.description }}</p>
+            <div class="open-chat__header-main">
+              <button
+                v-if="isMobile"
+                type="button"
+                class="open-chat__back"
+                @click="showMobileRooms"
+              >
+                ← ルーム一覧
+              </button>
+              <div>
+                <h3 class="open-chat__title">
+                  <span aria-hidden="true">{{ activeRoom.icon_emoji }}</span>
+                  {{ activeRoom.name }}
+                </h3>
+                <p class="open-chat__desc">{{ activeRoom.description }}</p>
+              </div>
             </div>
             <div class="open-chat__header-actions">
               <button type="button" class="open-chat__meta-btn" @click="toggleMembers">
@@ -881,6 +926,23 @@ onUnmounted(() => {
   padding: 14px 18px;
   border-bottom: 1px solid var(--site-border);
   background: linear-gradient(180deg, var(--murasaki-100) 0%, var(--site-surface) 100%);
+}
+.open-chat__header-main {
+  min-width: 0;
+  flex: 1;
+}
+.open-chat__back {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--ff-sans-jp);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--murasaki-700);
+  cursor: pointer;
 }
 .open-chat__chat-body {
   position: relative;
@@ -1271,20 +1333,43 @@ onUnmounted(() => {
   color: #f8f4ef;
 }
 
-@media (max-width: 900px) {
+.open-chat--platform .open-chat__back {
+  color: #f8f4ef;
+}
+
+@media (max-width: 767px) {
   .open-chat__layout {
     grid-template-columns: 1fr;
-    height: min(78vh, 720px);
-    max-height: min(78vh, 720px);
+    height: min(70dvh, 640px);
+    max-height: min(70dvh, 640px);
+    min-height: 0;
   }
-  .open-chat__rooms {
+  .open-chat--mobile .open-chat__rooms,
+  .open-chat--mobile .open-chat__panel {
+    height: 100%;
+    max-height: none;
     border-right: 0;
-    border-bottom: 1px solid var(--site-border);
-    max-height: 200px;
-    flex: 0 0 auto;
+    border-bottom: 0;
   }
   .open-chat__room-list {
-    max-height: 120px;
+    max-height: none;
+  }
+  .open-chat__header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: 12px 14px;
+  }
+  .open-chat__header-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .open-chat__desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 </style>
