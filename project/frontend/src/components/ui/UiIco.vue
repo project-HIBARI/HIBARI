@@ -140,5 +140,9 @@ const common = computed(() => ({
       <polyline points="7,10 12,15 17,10" />
       <path d="M4 19h16" />
     </template>
+    <template v-else-if="name === 'copy'">
+      <rect x="3" y="3" width="13" height="13" rx="1.5" />
+      <path d="M8 16v3a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-3" />
+    </template>
   </svg>
 </template>

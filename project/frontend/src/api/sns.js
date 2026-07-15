@@ -237,6 +237,30 @@ export function deleteSnsComment(commentId) {
   return apiRequest(`/api/sns/comments/${commentId}`, { method: 'DELETE' })
 }
 
+export function fetchSnsSearchTop(q) {
+  return apiRequest(`/api/sns/search/top?q=${encodeURIComponent(q)}`)
+}
+
+export function fetchSnsSearchUsers(q, { offset = 0, limit = 20 } = {}) {
+  const params = new URLSearchParams({ q, offset: String(offset), limit: String(limit) })
+  return apiRequest(`/api/sns/search/users?${params.toString()}`)
+}
+
+export function fetchSnsSearchPosts(q, { offset = 0, limit = 20 } = {}) {
+  const params = new URLSearchParams({ q, offset: String(offset), limit: String(limit) })
+  return apiRequest(`/api/sns/search/posts?${params.toString()}`)
+}
+
+export function fetchSnsSearchHashtags(q, { offset = 0, limit = 20 } = {}) {
+  const params = new URLSearchParams({ q, offset: String(offset), limit: String(limit) })
+  return apiRequest(`/api/sns/search/hashtags?${params.toString()}`)
+}
+
+export function fetchSnsDiscoverPosts({ offset = 0, limit = 21 } = {}) {
+  const params = new URLSearchParams({ offset: String(offset), limit: String(limit) })
+  return apiRequest(`/api/sns/discover/posts?${params.toString()}`)
+}
+
 /**
  * SNS用メディア（画像・動画）をアップロード
  * @returns {Promise<{ path: string, media_type: 'image'|'video' }>}
