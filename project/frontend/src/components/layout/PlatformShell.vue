@@ -5,6 +5,8 @@
  */
 import { ref, watch } from 'vue'
 import PageMusicMemories from '../pages/PageMusicMemories.vue'
+import PageArtistEncyclopedia from '../pages/PageArtistEncyclopedia.vue'
+import PageArtistDiagnosis from '../pages/PageArtistDiagnosis.vue'
 import PageLogin from '../pages/PageLogin.vue'
 import PageRegister from '../pages/PageRegister.vue'
 import PagePlatformOpenChat from '../pages/PagePlatformOpenChat.vue'
@@ -168,6 +170,24 @@ function onUserUpdated(account) {
             <UiIco name="chat" :size="14" />
             オープンチャット
           </button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'artist-encyclopedia' }"
+            @click="setView('artist-encyclopedia')"
+          >
+            <UiIco name="book" :size="14" />
+            アーティスト図鑑
+          </button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'artist-diagnosis' }"
+            @click="setView('artist-diagnosis')"
+          >
+            <UiIco name="spark" :size="14" />
+            アーティスト診断
+          </button>
         </nav>
 
         <nav class="platform-shell__desktop-actions" aria-label="SNS quick menu">
@@ -222,6 +242,17 @@ function onUserUpdated(account) {
       embedded
       @enter-site="(siteId) => emit('enter-site', siteId)"
       @open-chat="setView('open-chat')"
+    />
+
+    <PageArtistEncyclopedia
+      v-else-if="view === 'artist-encyclopedia'"
+      @enter-site="(siteId) => emit('enter-site', siteId)"
+    />
+
+    <PageArtistDiagnosis
+      v-else-if="view === 'artist-diagnosis'"
+      @enter-site="(siteId) => emit('enter-site', siteId)"
+      @open-encyclopedia="setView('artist-encyclopedia')"
     />
 
     <PagePlatformOpenChat
@@ -708,14 +739,14 @@ function onUserUpdated(account) {
 
   .platform-shell__nav {
     grid-area: nav;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 6px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     width: 100%;
   }
 
   .platform-shell__nav-btn {
-    flex: 1 1 0;
+    flex: 1 1 calc(50% - 6px);
     justify-content: center;
     padding: 7px 4px;
     min-height: 44px;
