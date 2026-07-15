@@ -77,14 +77,14 @@ const emit = defineEmits(['update:modelValue'])
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: var(--site-text) !important;
+  color: var(--murasaki-700) !important;
 }
 .reg-opt__required {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: #fff;
-  background: var(--murasaki-600);
+  background: var(--murasaki-700);
   padding: 1px 7px;
   border-radius: 999px;
 }

@@ -558,12 +558,22 @@ function onAgreeTerms() {
 
 .reg-card--platform :deep(.reg-field__label),
 .reg-card--platform :deep(.reg-opt__label),
-.reg-card--platform :deep(.reg-opt__name),
 .reg-card--platform :deep(.reg-field__hint),
 .reg-card--platform :deep(.pay-bank__search-label),
 .reg-card--platform :deep(.pay-bank__selected),
 .reg-card--platform :deep(.pay-bank__note) {
   color: var(--site-text) !important;
+}
+
+.reg-card--platform :deep(.reg-field__label),
+.reg-card--platform :deep(.reg-opt__label) {
+  color: var(--murasaki-700) !important;
+}
+
+.reg-card--platform :deep(.reg-field__required),
+.reg-card--platform :deep(.reg-opt__required) {
+  background: var(--murasaki-700) !important;
+  color: #fff !important;
 }
 
 .reg-card--platform :deep(.register-desc),
