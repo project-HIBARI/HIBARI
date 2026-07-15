@@ -10,6 +10,7 @@ import PageLogin from '../pages/PageLogin.vue'
 import PageRegister from '../pages/PageRegister.vue'
 import PagePlatformOpenChat from '../pages/PagePlatformOpenChat.vue'
 import PageSnsFeed from '../pages/PageSnsFeed.vue'
+import PageSnsDiscover from '../pages/PageSnsDiscover.vue'
 import PageSnsProfile from '../pages/PageSnsProfile.vue'
 import PageSnsDm from '../pages/PageSnsDm.vue'
 import HeaderAccountMenu from './HeaderAccountMenu.vue'
@@ -153,6 +154,15 @@ function onUserUpdated(account) {
           <button
             type="button"
             class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'discover' }"
+            @click="setView('discover')"
+          >
+            <UiIco name="search" :size="14" />
+            検索
+          </button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
             :class="{ 'platform-shell__nav-btn--active': view === 'open-chat' }"
             @click="setView('open-chat')"
           >
@@ -207,6 +217,12 @@ function onUserUpdated(account) {
       @need-auth="onSnsNeedAuth"
       @open-chat="setView('open-chat')"
       @open-dm="openDm()"
+      @open-profile="openProfile"
+    />
+
+    <PageSnsDiscover
+      v-else-if="view === 'discover'"
+      @need-auth="onSnsNeedAuth"
       @open-profile="openProfile"
     />
 
@@ -271,6 +287,15 @@ function onUserUpdated(account) {
       >
         <UiIco name="home" :size="20" />
         <span>ホーム</span>
+      </button>
+      <button
+        type="button"
+        class="platform-shell__tab"
+        :class="{ 'platform-shell__tab--active': view === 'discover' }"
+        @click="setView('discover')"
+      >
+        <UiIco name="search" :size="20" />
+        <span>検索</span>
       </button>
       <button
         type="button"
@@ -510,16 +535,16 @@ function onUserUpdated(account) {
   color: var(--sns-text-muted);
   font-family: var(--ff-sans-jp);
   font-size: 10px;
-  padding: 4px 6px;
+  padding: 4px 4px;
   min-height: 44px;
-  min-width: 56px;
+  min-width: 46px;
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
 }
 
 .platform-shell__tab span {
-  max-width: 64px;
+  max-width: 54px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -652,13 +677,13 @@ function onUserUpdated(account) {
   }
 
   .platform-shell__tab {
-    min-width: 50px;
-    padding-inline: 4px;
+    min-width: 40px;
+    padding-inline: 2px;
   }
 
   .platform-shell__tab span {
-    max-width: 54px;
-    font-size: 9px;
+    max-width: 44px;
+    font-size: 8.5px;
   }
 }
 </style>
