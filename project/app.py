@@ -54,7 +54,7 @@ from password_utils import (
 # 初期設定（app.py と同じディレクトリの .env / env を読み込む）
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR / ".env")
-app = Flask(__name__)
+app = Flask(__name__, static_folder="frontend/dist", static_url_path="")
 app.secret_key = "qawsedrftgyhujikolp"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=365)
 
