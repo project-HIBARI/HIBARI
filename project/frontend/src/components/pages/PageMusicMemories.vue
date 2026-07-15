@@ -5,7 +5,8 @@
  */
 import UiButton from '../ui/UiButton.vue'
 import MusicMemoriesLogo from '../brand/MusicMemoriesLogo.vue'
-import { MUSIC_MEMORIES_ARTISTS, PLATFORM_CHAT_ARTISTS } from '../../data/musicMemoriesData.js'
+import MusicMemoriesArtistCard from './music-memories/MusicMemoriesArtistCard.vue'
+import { MUSIC_MEMORIES_ARTISTS, TODAYS_ARTIST } from '../../data/musicMemoriesData.js'
 import { SITE_NAME, SITE_TAGLINE } from '../../constants/site.js'
 
 defineProps({
@@ -18,6 +19,10 @@ const emit = defineEmits(['enter-site', 'open-chat'])
 function onArtistClick(artist) {
   if (artist.status !== 'open') return
   emit('enter-site', artist.siteId)
+}
+
+function onEnterSite(siteId) {
+  emit('enter-site', siteId)
 }
 </script>
 
@@ -60,6 +65,38 @@ function onArtistClick(artist) {
         </div>
       </section>
 
+      <section class="music-memories__today-section" aria-labelledby="mm-today-title">
+        <div class="music-memories__today">
+          <div class="music-memories__today-visual" aria-hidden="true">
+            <img
+              v-if="TODAYS_ARTIST.image"
+              :src="TODAYS_ARTIST.image"
+              :alt="TODAYS_ARTIST.name"
+              class="music-memories__today-image"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <div class="music-memories__today-body">
+            <p class="music-memories__today-eyebrow">Today's Artist</p>
+            <h2 id="mm-today-title" class="music-memories__today-title">今日のアーティスト</h2>
+            <p class="music-memories__today-en">{{ TODAYS_ARTIST.nameEn }}</p>
+            <h3 class="music-memories__today-name">{{ TODAYS_ARTIST.name }}</h3>
+            <p class="music-memories__today-headline">{{ TODAYS_ARTIST.headline }}</p>
+            <p class="music-memories__today-blurb">{{ TODAYS_ARTIST.blurb }}</p>
+            <UiButton
+              v-if="TODAYS_ARTIST.status === 'open'"
+              variant="gold"
+              size="md"
+              class="music-memories__today-cta"
+              @click="onArtistClick(TODAYS_ARTIST)"
+            >
+              ファンクラブをみる
+            </UiButton>
+          </div>
+        </div>
+      </section>
+
       <section class="music-memories__grid-section" aria-labelledby="mm-grid-title">
         <div class="music-memories__grid-head">
           <h2 id="mm-grid-title" class="music-memories__grid-title">ファンクラブ一覧</h2>
@@ -72,44 +109,7 @@ function onArtistClick(artist) {
             :key="artist.id"
             class="music-memories__card-wrap"
           >
-            <article
-              class="music-memories__card"
-              :class="{
-                'music-memories__card--open': artist.status === 'open',
-                'music-memories__card--soon': artist.status === 'soon',
-              }"
-            >
-              <div class="music-memories__card-visual" aria-hidden="true">
-                <img
-                  v-if="artist.image"
-                  :src="artist.image"
-                  :alt="artist.name"
-                  class="music-memories__card-image"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <div v-else class="music-memories__card-placeholder">
-                  <span>♪</span>
-                </div>
-              </div>
-
-              <div class="music-memories__card-body">
-                <p class="music-memories__card-en">{{ artist.nameEn }}</p>
-                <h3 class="music-memories__card-name">{{ artist.name }}</h3>
-                <p class="music-memories__card-tagline">{{ artist.tagline }}</p>
-
-                <UiButton
-                  v-if="artist.status === 'open'"
-                  variant="gold"
-                  size="md"
-                  class="music-memories__card-cta"
-                  @click="onArtistClick(artist)"
-                >
-                  ファンクラブへ
-                </UiButton>
-                <span v-else class="music-memories__card-badge">準備中</span>
-              </div>
-            </article>
+            <MusicMemoriesArtistCard :artist="artist" @enter-site="onEnterSite" />
           </li>
         </ul>
       </section>
@@ -257,6 +257,93 @@ function onArtistClick(artist) {
   color: rgba(248, 244, 239, 0.68);
 }
 
+.music-memories__today-section {
+  margin-bottom: clamp(40px, 7vw, 64px);
+}
+
+.music-memories__today {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid rgba(201, 169, 97, 0.28);
+  border-radius: var(--site-radius-lg);
+  background: linear-gradient(120deg, rgba(26, 20, 24, 0.55), rgba(122, 80, 136, 0.18));
+}
+
+.music-memories__today-visual {
+  min-height: 220px;
+  background: linear-gradient(145deg, rgba(90, 58, 107, 0.4), rgba(26, 20, 24, 0.7));
+  overflow: hidden;
+}
+
+.music-memories__today-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.music-memories__today-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(24px, 4vw, 36px) clamp(22px, 4vw, 36px);
+}
+
+.music-memories__today-eyebrow {
+  margin: 0 0 8px;
+  font-family: var(--ff-latin);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--kin-400);
+}
+
+.music-memories__today-title {
+  margin: 0 0 18px;
+  font-family: var(--ff-mincho);
+  font-size: 1.35rem;
+  letter-spacing: 0.08em;
+}
+
+.music-memories__today-en {
+  margin: 0 0 4px;
+  font-family: var(--ff-latin);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(201, 169, 97, 0.85);
+}
+
+.music-memories__today-name {
+  margin: 0 0 10px;
+  font-family: var(--ff-mincho);
+  font-size: clamp(1.5rem, 3vw, 1.85rem);
+  letter-spacing: 0.06em;
+}
+
+.music-memories__today-headline {
+  margin: 0 0 10px;
+  font-family: var(--ff-sans-jp);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: rgba(248, 244, 239, 0.88);
+}
+
+.music-memories__today-blurb {
+  margin: 0 0 20px;
+  font-family: var(--ff-sans-jp);
+  font-size: 13px;
+  line-height: 1.85;
+  color: rgba(248, 244, 239, 0.65);
+}
+
+.music-memories__today-cta {
+  align-self: flex-start;
+}
+
 .music-memories__grid-title {
   margin: 0 0 8px;
   font-family: var(--ff-mincho);
@@ -280,97 +367,6 @@ function onArtistClick(artist) {
   gap: 24px;
 }
 
-.music-memories__card {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--site-radius-lg);
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s, border-color 0.35s;
-}
-
-.music-memories__card--open:hover {
-  transform: translateY(-4px);
-  border-color: rgba(201, 169, 97, 0.45);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
-}
-
-.music-memories__card--soon {
-  opacity: 0.65;
-}
-
-.music-memories__card-visual {
-  aspect-ratio: 16 / 10;
-  background: linear-gradient(145deg, rgba(90, 58, 107, 0.35), rgba(26, 20, 24, 0.6));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.music-memories__card-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-}
-
-.music-memories__card-placeholder {
-  font-size: 2.5rem;
-  color: rgba(255, 255, 255, 0.2);
-}
-
-.music-memories__card-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20px 22px 24px;
-  gap: 6px;
-}
-
-.music-memories__card-en {
-  margin: 0;
-  font-family: var(--ff-latin);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--kin-400);
-}
-
-.music-memories__card-name {
-  margin: 0;
-  font-family: var(--ff-mincho);
-  font-size: 1.35rem;
-  letter-spacing: 0.06em;
-}
-
-.music-memories__card-tagline {
-  margin: 0 0 12px;
-  flex: 1;
-  font-family: var(--ff-sans-jp);
-  font-size: 13px;
-  line-height: 1.7;
-  color: rgba(248, 244, 239, 0.65);
-}
-
-.music-memories__card-cta {
-  align-self: flex-start;
-}
-
-.music-memories__card-badge {
-  align-self: flex-start;
-  display: inline-flex;
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  font-family: var(--ff-sans-jp);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  color: rgba(248, 244, 239, 0.5);
-}
-
 .music-memories__footer {
   padding: 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -383,6 +379,17 @@ function onArtistClick(artist) {
   font-size: 11px;
   color: rgba(248, 244, 239, 0.4);
   letter-spacing: 0.08em;
+}
+
+@media (max-width: 720px) {
+  .music-memories__today {
+    grid-template-columns: 1fr;
+  }
+
+  .music-memories__today-visual {
+    aspect-ratio: 16 / 10;
+    min-height: 0;
+  }
 }
 
 @media (max-width: 640px) {

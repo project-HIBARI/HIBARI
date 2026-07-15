@@ -12,7 +12,7 @@ defineProps({
   emptyType: { type: String, default: 'search' },
 })
 
-const emit = defineEmits(['open', 'toggle-favorite'])
+const emit = defineEmits(['open', 'toggle-favorite', 'download'])
 
 const emptyMessages = {
   search: '該当する楽曲が見つかりませんでした',
@@ -39,6 +39,7 @@ const emptyMessages = {
         :is-favorite="favorites.has(song.id)"
         @open="emit('open', $event)"
         @toggle-favorite="emit('toggle-favorite', $event)"
+        @download="emit('download', $event)"
       />
     </div>
   </section>

@@ -12,6 +12,7 @@ import DiscoPagination from './disco/DiscoPagination.vue'
 import DiscoAiCard from './disco/DiscoAiCard.vue'
 import DiscoRelatedCards from './disco/DiscoRelatedCards.vue'
 import DiscoDetailDialog from './disco/DiscoDetailDialog.vue'
+import DiscoDownloadDialog from './disco/DiscoDownloadDialog.vue'
 import { HIBARU_DATA } from '../../data/hibaruData.js'
 import { refreshAosHard } from '../../lib/aos.js'
 
@@ -28,6 +29,7 @@ const yearStart = ref(HIBARU_DATA.discographyStats.yearStart)
 const yearEnd = ref(HIBARU_DATA.discographyStats.yearEnd)
 const currentPage = ref(1)
 const detail = ref(null)
+const downloadSong = ref(null)
 const favorites = ref(new Set())
 
 onMounted(() => {
@@ -112,6 +114,10 @@ watch(currentPage, () => {
 function openDetail(song) {
   detail.value = song
 }
+
+function onDownload(song) {
+  downloadSong.value = song
+}
 </script>
 
 <template>
@@ -149,6 +155,7 @@ function openDetail(song) {
       :empty-type="emptyType"
       @open="openDetail"
       @toggle-favorite="toggleFavorite"
+      @download="onDownload"
     />
 
     <DiscoPagination
@@ -167,6 +174,11 @@ function openDetail(song) {
     />
 
     <DiscoDetailDialog :detail="detail" @close="detail = null" />
+    <DiscoDownloadDialog
+      :song="downloadSong"
+      @close="downloadSong = null"
+      @need-auth="(m) => emit('open-auth', m)"
+    />
   </div>
 </template>
 

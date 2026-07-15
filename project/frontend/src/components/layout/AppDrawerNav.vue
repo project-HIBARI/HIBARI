@@ -19,7 +19,15 @@ const props = defineProps({
   authOnPlatformOnly: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['close', 'navigate', 'open-modal', 'open-auth', 'exit-platform'])
+const emit = defineEmits([
+  'close',
+  'navigate',
+  'open-modal',
+  'open-auth',
+  'open-account',
+  'logout',
+  'exit-platform',
+])
 
 const panelActive = ref(false)
 

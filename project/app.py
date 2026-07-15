@@ -42,6 +42,7 @@ from sns_stories import register_sns_story_routes
 from sns_profile import register_sns_profile_routes
 from sns_dm import register_sns_dm_routes
 from sns_moderation import register_sns_moderation_routes
+from sns_search import register_sns_search_routes
 from password_utils import (
     hash_password,
     normalize_email,
@@ -53,10 +54,13 @@ from password_utils import (
 # 初期設定（app.py と同じディレクトリの .env / env を読み込む）
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR / ".env")
-load_dotenv(APP_DIR / "env")
 app = Flask(__name__)
 app.secret_key = "qawsedrftgyhujikolp"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=365)
+
+
+def keep_login_session():
+    session.permanent = True
 
 # DB接続設定
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -72,10 +76,17 @@ engine = create_engine(
 
 # Gemini API設定（AIチャット用）
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
+_genai_client = None
 
 def get_genai_client():
-    """AIチャット利用時のみ google-genai を読み込む（認証APIは未インストールでも起動可能）"""
+    """AIチャット利用時のみ google-genai を読み込む（認証APIは未インストールでも起動可能）。
+
+    Client は再利用する。毎回生成してチェーン呼び出しすると、一時 Client が GC され
+    httpx が閉じられて ``Cannot send a request, as the client has been closed.`` になる。
+    """
+    global _genai_client
+    if _genai_client is not None:
+        return _genai_client
     if not GEMINI_API_KEY:
         raise RuntimeError(
             "GEMINI_API_KEY が未設定です。"
@@ -88,7 +99,8 @@ def get_genai_client():
             "AIチャットには google-genai パッケージが必要です。"
             " pip install google-genai を実行してください。"
         ) from exc
-    return genai.Client(api_key=GEMINI_API_KEY)
+    _genai_client = genai.Client(api_key=GEMINI_API_KEY)
+    return _genai_client
 
 from zoneinfo import ZoneInfo
 
@@ -589,6 +601,7 @@ def create_account():
 
         membership = "premium" if is_premium_val else "general"
 
+        keep_login_session()
         session["account_id"] = account_id
         session["name"] = name_val
         session["email"] = email_val
@@ -628,6 +641,7 @@ def complete_login(user, password, stored_hash, cached=False):
             print("password upgrade:", e)
 
     membership = get_membership_for_account(user["account_id"])
+    keep_login_session()
     session["account_id"] = user["account_id"]
     session["name"] = user["name"]
     session["email"] = user["email"]
@@ -719,6 +733,7 @@ def me():
             "login": False
         }), 401
 
+    keep_login_session()
     return jsonify({
         "login": True,
         "user": build_user_response(
@@ -1137,12 +1152,13 @@ def chat():
                 {user_input}
             """
 
-            title_response = get_genai_client().models.generate_content(
+            genai_client = get_genai_client()
+            title_response = genai_client.models.generate_content(
                 model="gemini-3.1-flash-lite",
                 contents=title_prompt
             )
 
-            room_name = title_response.text.strip() or "新しいチャット"
+            room_name = (title_response.text or "").strip() or "新しいチャット"
 
             room_id = execute_insert(
                 """
@@ -1238,13 +1254,16 @@ def chat():
             }
         )
 
-        # AI応答生成
-        response = get_genai_client().models.generate_content(
+        # AI応答生成（Client 参照を保持してから呼ぶ）
+        genai_client = get_genai_client()
+        response = genai_client.models.generate_content(
             model="gemini-3.1-flash-lite",
             contents=prompt
         )
 
-        ai_text = response.text.strip()
+        ai_text = (response.text or "").strip()
+        if not ai_text:
+            raise RuntimeError("Gemini から空の応答が返りました")
 
         # assistantメッセージ保存
         execute(
@@ -1275,7 +1294,7 @@ def chat():
         })
 
     except Exception as e:
-        print(e)
+        print(f"AI chat error: {type(e).__name__}: {e}")
         return jsonify({
             "error": "AIエラー"
         }), 500
@@ -2002,7 +2021,20 @@ register_sns_moderation_routes(
     to_jst_str=to_jst_str,
 )
 
- 
+register_sns_search_routes(
+    app,
+    engine,
+    fetch_all=fetch_all,
+    execute=execute,
+    execute_insert=execute_insert,
+    row_to_dict=row_to_dict,
+    get_session_account_id=get_session_account_id,
+    get_membership_for_account=get_membership_for_account,
+    fetch_account_row=fetch_account_row,
+    to_jst_str=to_jst_str,
+)
+
+
 ############################################################################
 ### 実行制御
 ############################################################################
