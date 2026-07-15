@@ -10,6 +10,7 @@ import RegisterField from '../pages/register/RegisterField.vue'
 import { applyToEvent } from '../../api/events.js'
 import { useMemberAccess } from '../../composables/useMemberAccess.js'
 import { PERMISSION } from '../../constants/membership.js'
+import { EVENT_HERO_IMAGES, pageImageUrl } from '../../lib/pageImages.js'
 
 const props = defineProps({
   event: { type: Object, default: null },
@@ -37,6 +38,11 @@ const eventKey = computed(() => {
 })
 
 const typeLabel = computed(() => eventTypes[props.event?.type] || props.event?.type || '')
+
+const heroImage = computed(() => {
+  const filename = EVENT_HERO_IMAGES[eventKey.value]
+  return filename ? pageImageUrl(filename) : null
+})
 
 watch(
   () => props.event,
@@ -83,6 +89,7 @@ function goToMap() {
 <template>
   <ModalShell v-if="event" :title="event.title" wide @close="emit('close')">
     <div class="event-apply">
+      <img v-if="heroImage" :src="heroImage" :alt="event.title" class="event-apply__hero" />
       <div v-if="success" class="event-apply__success">
         <p class="event-apply__success-title">申込を受け付けました</p>
         <p class="event-apply__success-text">
@@ -153,6 +160,16 @@ function goToMap() {
 </template>
 
 <style scoped>
+.event-apply__hero {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2832 / 411;
+  object-fit: cover;
+  border-radius: var(--site-radius-lg);
+  border: 1px solid var(--site-border);
+  margin-bottom: 16px;
+}
 .event-apply__meta {
   display: flex;
   gap: 8px;

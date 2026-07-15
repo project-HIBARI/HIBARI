@@ -5,6 +5,7 @@
  */
 import { computed, ref, watch } from 'vue'
 import PageMusicMemories from '../pages/PageMusicMemories.vue'
+import PageMusicConnections from '../pages/PageMusicConnections.vue'
 import PageArtistEncyclopedia from '../pages/PageArtistEncyclopedia.vue'
 import PageArtistDiagnosis from '../pages/PageArtistDiagnosis.vue'
 import PageLogin from '../pages/PageLogin.vue'
@@ -38,6 +39,7 @@ const props = defineProps({
   userName: { type: String, default: '' },
   membership: { type: String, default: null },
   registerPlan: { type: String, default: MEMBERSHIP.GENERAL },
+  pendingDiscoverSong: { type: Object, default: null },
 })
 
 const emit = defineEmits([
@@ -48,6 +50,7 @@ const emit = defineEmits([
   'logout',
   'open-auth',
   'user-updated',
+  'discover-song-consumed',
 ])
 
 const modal = ref(null)
@@ -63,6 +66,7 @@ const navItems = [
   { id: 'sns', label: 'みんなの投稿' },
   { id: 'discover', label: '検索' },
   { id: 'open-chat', label: 'オープンチャット' },
+  { id: 'connections', label: '曲の繋がり' },
   { id: 'artist-encyclopedia', label: 'アーティスト図鑑' },
   { id: 'artist-diagnosis', label: 'アーティスト診断' },
   { id: 'memory-book', label: '思い出帳' },
@@ -245,6 +249,15 @@ function onUserUpdated(account) {
           <button
             type="button"
             class="platform-shell__nav-btn"
+            :class="{ 'platform-shell__nav-btn--active': view === 'connections' }"
+            @click="setView('connections')"
+          >
+            <UiIco name="disc" :size="14" />
+            曲の繋がり
+          </button>
+          <button
+            type="button"
+            class="platform-shell__nav-btn"
             :class="{ 'platform-shell__nav-btn--active': view === 'artist-encyclopedia' }"
             @click="setView('artist-encyclopedia')"
           >
@@ -363,6 +376,12 @@ function onUserUpdated(account) {
       embedded
       @enter-site="(siteId) => emit('enter-site', siteId)"
       @open-chat="setView('open-chat')"
+      @open-connections="setView('connections')"
+    />
+
+    <PageMusicConnections
+      v-else-if="view === 'connections'"
+      @enter-site="(siteId) => emit('enter-site', siteId)"
     />
 
     <PagePlatformMemoryBook
@@ -399,8 +418,10 @@ function onUserUpdated(account) {
 
     <PageSnsDiscover
       v-else-if="view === 'discover'"
+      :pending-song="pendingDiscoverSong"
       @need-auth="onSnsNeedAuth"
       @open-profile="openProfile"
+      @song-consumed="emit('discover-song-consumed')"
     />
 
     <PageSnsProfile

@@ -7,6 +7,7 @@ import MemberGate from '../../common/MemberGate.vue'
 import UiButton from '../../ui/UiButton.vue'
 import {
   fetchOpenChatRooms,
+  fetchOpenChatRoom,
   joinOpenChatRoom,
   leaveOpenChatRoom,
   fetchOpenChatMessages,
@@ -30,6 +31,8 @@ const props = defineProps({
   /** artist_site = ファンクラブサイト内 / platform = Music Memories */
   chatScope: { type: String, default: 'artist_site' },
   platformTheme: { type: Boolean, default: false },
+  /** 楽曲チャット等、一覧に出ない特定ルームへ直接遷移したい場合の room_id */
+  initialRoomId: { type: [Number, String], default: null },
 })
 
 const { isLoggedIn, canUse } = useMemberAccess()
@@ -162,6 +165,23 @@ async function loadRooms() {
       : undefined
     const data = await fetchOpenChatRooms({ scope: props.chatScope, artist })
     rooms.value = data?.rooms || []
+
+    if (props.initialRoomId) {
+      const initialId = Number(props.initialRoomId)
+      if (!rooms.value.some((r) => r.room_id === initialId)) {
+        try {
+          const room = await fetchOpenChatRoom(initialId)
+          if (room) rooms.value = [room, ...rooms.value]
+        } catch {
+          /* ルームが取得できない場合は通常一覧のみ表示 */
+        }
+      }
+      if (rooms.value.some((r) => r.room_id === initialId)) {
+        activeRoomId.value = initialId
+        return
+      }
+    }
+
     if (!activeRoomId.value && rooms.value.length) {
       const joined = rooms.value.find((r) => r.is_joined)
       activeRoomId.value = (joined || rooms.value[0]).room_id

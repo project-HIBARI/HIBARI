@@ -1,7 +1,7 @@
 <script setup>
 /**
- * 驛ｨ蜩∝錐: 繧｢繧､繧ｳ繝ｳ・育ｷ夂判 SVG 繧ｻ繝・ヨ・・
- * 逕ｨ騾・ 讀懃ｴ｢繝ｻ蜀咲函繝ｻ遏｢蜊ｰ縺ｪ縺ｩ UI 蜈ｨ菴薙〒蜈ｱ騾壼茜逕ｨ
+ * 部品名: アイコン（線画 SVG セット）
+ * 用途: 検索・再生・矢印など UI 全体で共通利用
  */
 import { computed } from 'vue'
 
@@ -170,6 +170,25 @@ const common = computed(() => ({
       <path d="M19 5l-2.5 2.5" />
       <path d="M7.5 16.5 5 19" />
       <circle cx="12" cy="12" r="2.2" />
+    </template>
+    <template v-else-if="name === 'tear'">
+      <path d="M12 2s6 8 6 12.5a6 6 0 0 1-12 0C6 10 12 2 12 2z" />
+    </template>
+    <template v-else-if="name === 'nostalgic'">
+      <circle cx="12" cy="13" r="7" />
+      <path d="M12 9v4l3 2" />
+      <path d="M9 3l-2 2" />
+      <path d="M15 3l2 2" />
+    </template>
+    <template v-else-if="name === 'loved-one'">
+      <path d="M12 20.5s-7-4.5-7-10a4 4 0 0 1 7-2.5 4 4 0 0 1 7 2.5c0 5.5-7 10-7 10z" />
+    </template>
+    <template v-else-if="name === 'energized'">
+      <polygon points="13,2 4,14 11,14 10,22 20,9 13,9" />
+    </template>
+    <template v-else-if="name === 'special-moment'">
+      <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18" />
+      <circle cx="12" cy="12" r="3" />
     </template>
   </svg>
 </template>

@@ -22,6 +22,7 @@ import { useOpenChatNotifications } from '../../composables/useOpenChatNotificat
 
 const props = defineProps({
   activeSection: { type: String, default: 'overview' },
+  initialChatRoomId: { type: [Number, String], default: null },
 })
 
 const emit = defineEmits(['navigate', 'open-modal', 'open-auth', 'section-change'])
@@ -195,7 +196,10 @@ watch(section, () => {
       <p class="page-fc-site__board-lead">
         LINEのオープンチャットのように、参加したいルームを選んでファン同士で会話できます。
       </p>
-      <FanclubOpenChat @need-auth="(m) => emit('open-auth', m)" />
+      <FanclubOpenChat
+        :initial-room-id="initialChatRoomId"
+        @need-auth="(m) => emit('open-auth', m)"
+      />
     </section>
 
     <section v-else-if="section === 'chat'" class="page-fc-site__panel">

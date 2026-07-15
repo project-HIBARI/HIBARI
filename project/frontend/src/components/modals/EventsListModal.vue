@@ -28,7 +28,7 @@ function getFee(id) {
 }
 
 function canPreorder(ev) {
-  return ev.id === 'b3' && canUse(PERMISSION.TICKET_PREORDER)
+  return ev.type !== 'broadcast' && canUse(PERMISSION.TICKET_PREORDER)
 }
 
 function openApply(ev) {

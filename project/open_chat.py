@@ -391,6 +391,48 @@ def register_open_chat_routes(
         )
         return bool(rows)
 
+    def get_or_create_song_room(song_id):
+        rows = fetch_all(
+            "SELECT room_id FROM open_chat_rooms WHERE song_id = :song_id AND is_active = TRUE",
+            {"song_id": song_id},
+        )
+        if rows:
+            return _row_mapping(rows[0])["room_id"]
+
+        song_rows = fetch_all(
+            "SELECT title FROM songs WHERE song_id = :song_id",
+            {"song_id": song_id},
+        )
+        if not song_rows:
+            return None
+        title = _row_mapping(song_rows[0])["title"]
+        slug = f"song-{song_id}"
+
+        room_id = execute_insert(
+            """
+            INSERT INTO open_chat_rooms (slug, name, description, icon_emoji, scope, song_id)
+            VALUES (:slug, :name, :description, :icon_emoji, 'song', :song_id)
+            ON CONFLICT (slug) DO NOTHING
+            RETURNING room_id
+            """,
+            {
+                "slug": slug,
+                "name": f"「{title}」が好きな人の部屋",
+                "description": f"「{title}」の思い出を語り合うオープンチャットです。",
+                "icon_emoji": "🎵",
+                "song_id": song_id,
+            },
+        )
+        if room_id:
+            return room_id
+
+        # 同時アクセスでON CONFLICT DO NOTHINGに落ちた場合は再取得
+        rows = fetch_all(
+            "SELECT room_id FROM open_chat_rooms WHERE slug = :slug",
+            {"slug": slug},
+        )
+        return _row_mapping(rows[0])["room_id"] if rows else None
+
     def serialize_room_row(mapping, account_id):
         artist_slug = mapping.get("artist_slug")
         return {
@@ -721,6 +763,23 @@ def register_open_chat_routes(
         except Exception as e:
             print(e)
             return jsonify({"error": "ルーム情報の取得に失敗しました"}), 500
+
+    @app.route("/api/open-chats/by-song/<int:song_id>", methods=["GET"])
+    def get_song_chat_room(song_id):
+        try:
+            try:
+                get_session_account_id()
+            except ValueError:
+                return jsonify({"error": "ログインが必要です"}), 401
+
+            room_id = get_or_create_song_room(song_id)
+            if not room_id:
+                return jsonify({"error": "曲が見つかりません"}), 404
+
+            return jsonify({"room_id": room_id})
+        except Exception as e:
+            print(e)
+            return jsonify({"error": "チャットルームの取得に失敗しました"}), 500
 
     @app.route("/api/open-chats/<int:room_id>/join", methods=["POST"])
     def join_open_chat(room_id):

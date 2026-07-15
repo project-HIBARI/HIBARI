@@ -1,3 +1,6 @@
 .env
+.venv
+.Claude
 **/__pycache__/
 *.pyc
+node_modules/
