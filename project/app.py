@@ -54,8 +54,16 @@ from password_utils import (
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR / ".env")
 app = Flask(__name__)
-app.secret_key = "qawsedrftgyhujikolp"
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "qawsedrftgyhujikolp")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=365)
+
+# Cloud Run + Firebase Hosting プロキシ経由の HTTPS / Cookie 設定
+if os.environ.get("K_SERVICE"):
+    from werkzeug.middleware.proxy_fix import ProxyFix
+
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+    app.config["SESSION_COOKIE_SECURE"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 # DB接続設定
 DATABASE_URL = os.environ.get("DATABASE_URL")
