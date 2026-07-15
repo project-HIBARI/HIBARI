@@ -24,7 +24,9 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'need-auth', 'open-song-chat', 'search-song-fans'])
 
-const { isLoggedIn, canUse, PERMISSION } = useMemberAccess()
+const { isLoggedIn, isFanclubMember, canUse, getPerkState, PERMISSION } = useMemberAccess()
+
+const chatPerkState = computed(() => getPerkState({ permission: PERMISSION.OPEN_CHAT }))
 
 const memoriesLoading = ref(false)
 const memoriesError = ref('')
@@ -74,6 +76,15 @@ watch(
 )
 
 const commentLength = computed(() => comment.value.length)
+
+function isVisibilityLocked(value) {
+  return value === 'members' && !isFanclubMember.value
+}
+
+function onSelectVisibility(value) {
+  if (isVisibilityLocked(value)) return
+  visibility.value = value
+}
 
 async function onSubmit() {
   if (!props.detail?.songId || !selectedType.value) return
@@ -204,12 +215,20 @@ async function onJoinChat() {
               :key="opt.value"
               type="button"
               class="disco-memory__visibility-opt"
-              :class="{ 'disco-memory__visibility-opt--on': visibility === opt.value }"
-              @click="visibility = opt.value"
+              :class="{
+                'disco-memory__visibility-opt--on': visibility === opt.value,
+                'disco-memory__visibility-opt--locked': isVisibilityLocked(opt.value),
+              }"
+              :disabled="isVisibilityLocked(opt.value)"
+              @click="onSelectVisibility(opt.value)"
             >
               {{ opt.label }}
+              <span v-if="isVisibilityLocked(opt.value)" aria-hidden="true">🔒</span>
             </button>
           </fieldset>
+          <p v-if="!isFanclubMember" class="disco-memory__visibility-hint">
+            有料会員になると、会員限定で思い出を公開できます。
+          </p>
 
           <p v-if="submitError" class="disco-memory__error">{{ submitError }}</p>
           <p v-if="submitted" class="disco-memory__success">思い出を登録しました</p>
@@ -231,6 +250,9 @@ async function onJoinChat() {
           >
             <UiIco name="chat" :size="15" color="var(--murasaki-700)" />
             この曲について語り合う
+            <span v-if="!chatPerkState.unlocked" class="disco-memory__chat-lock" aria-hidden="true">
+              🔒 {{ chatPerkState.lockLabel }}
+            </span>
           </button>
 
           <button
@@ -419,6 +441,18 @@ async function onJoinChat() {
   background: rgba(232, 223, 240, 0.45);
   color: var(--site-text);
 }
+.disco-memory__visibility-opt--locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.disco-memory__visibility-opt--locked:hover {
+  border-color: var(--site-border);
+}
+.disco-memory__visibility-hint {
+  margin: -4px 0 var(--sp-4);
+  font-size: 11px;
+  color: var(--site-text-muted);
+}
 .disco-memory__error {
   margin: 0 0 10px;
   font-size: var(--font-size-caption);
@@ -473,6 +507,11 @@ async function onJoinChat() {
 .disco-memory__chat:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.disco-memory__chat-lock {
+  margin-left: 4px;
+  font-size: 11px;
+  color: var(--site-text-muted);
 }
 .disco-memory__list-hint {
   margin: 0;

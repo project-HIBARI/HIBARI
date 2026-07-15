@@ -8,6 +8,8 @@ from __future__ import annotations
 from flask import jsonify, request
 from sqlalchemy import text
 
+from open_chat import is_fanclub_member
+
 MEMORY_TYPES = {"tears", "nostalgic", "loved_one", "energized", "special_moment"}
 VISIBILITY_VALUES = {"public", "members", "private"}
 MAX_COMMENT_LENGTH = 20
@@ -131,7 +133,7 @@ def register_song_memory_routes(app, engine, **deps):
         try:
             viewer_id = _optional_account_id()
             visibility_clause = "sm.visibility = 'public'"
-            if viewer_id:
+            if viewer_id and is_fanclub_member(fetch_all, viewer_id):
                 visibility_clause = "sm.visibility IN ('public', 'members')"
 
             rows = fetch_all(
@@ -172,7 +174,7 @@ def register_song_memory_routes(app, engine, **deps):
             viewer_id = _optional_account_id()
             if viewer_id == account_id:
                 visibility_clause = "TRUE"
-            elif viewer_id:
+            elif viewer_id and is_fanclub_member(fetch_all, viewer_id):
                 visibility_clause = "sm.visibility IN ('public', 'members')"
             else:
                 visibility_clause = "sm.visibility = 'public'"
