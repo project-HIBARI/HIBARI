@@ -2,20 +2,24 @@
 /**
  * 部品名: Music Memory Book — TOP
  */
+import { computed } from 'vue'
 import MemoryBookAlbumCover from './MemoryBookAlbumCover.vue'
 import MemoryBookPremiumBand from './MemoryBookPremiumBand.vue'
 import UiButton from '../../ui/UiButton.vue'
 import UiIco from '../../ui/UiIco.vue'
 import { pageImageUrl, PROFILE_HERO_IMAGE } from '../../../lib/pageImages.js'
-import {
-  MEMORY_BOOK_SUMMARY,
-  MEMORY_BOOK_CATEGORIES,
-  MEMORY_BOOK_YEARS,
-} from '../../../data/memoryBookData.js'
 import { aosAttrs } from '../../../lib/aos.js'
 
-const summary = MEMORY_BOOK_SUMMARY
-const currentYear = MEMORY_BOOK_YEARS[0]
+const props = defineProps({
+  loading: { type: Boolean, default: false },
+  error: { type: String, default: '' },
+  summary: { type: Object, default: null },
+  categories: { type: Array, default: () => [] },
+  years: { type: Array, default: () => [] },
+  getCoverDesign: { type: Function, required: true },
+  coversByYear: { type: Object, default: () => ({}) },
+})
+
 const heroImg = pageImageUrl(PROFILE_HERO_IMAGE)
 
 const iconMap = {
@@ -25,11 +29,45 @@ const iconMap = {
   calendar: 'calendar',
 }
 
-const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-category'])
+const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-category', 'retry'])
+
+const displaySummary = computed(() => props.summary ?? {
+  total: 0,
+  startedAt: '—',
+  categories: { flowers: 0, posts: 0, songs: 0, aiChats: 0 },
+})
+
+const currentYear = computed(() => props.summary?.currentYear ?? {
+  year: new Date().getFullYear(),
+  total: 0,
+})
+
+const yearAlbums = computed(() =>
+  props.years.length
+    ? props.years
+    : [{ year: new Date().getFullYear(), total: 0, tone: 'purple' }],
+)
+
+function coverDesignForYear(year) {
+  void props.coversByYear
+  return props.getCoverDesign(year)
+}
+
+const heroCoverDesign = computed(() => coverDesignForYear(currentYear.value.year))
 </script>
 
 <template>
   <div class="mmb-top">
+    <div v-if="loading && !summary" class="mmb-state mmb-state--loading">
+      読み込み中です…
+    </div>
+
+    <div v-else-if="error" class="mmb-state mmb-state--error">
+      <p>{{ error }}</p>
+      <UiButton variant="outline" size="sm" @click="emit('retry')">もう一度お試しください</UiButton>
+    </div>
+
+    <template v-else>
     <!-- Hero -->
     <section class="mmb-top__hero" aria-labelledby="mmb-top-title">
       <div class="mmb-top__hero-bg" aria-hidden="true" />
@@ -63,14 +101,18 @@ const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-cate
             </span>
             <h2 class="mmb-top__stats-label">あなたの思い出総数</h2>
             <p class="mmb-top__stats-num">
-              {{ summary.total }}<span class="mmb-top__stats-unit">件</span>
+              {{ displaySummary.total }}<span class="mmb-top__stats-unit">件</span>
             </p>
             <hr class="hr-gold mmb-top__stats-rule" />
-            <p class="mmb-top__stats-since">はじめた日：{{ summary.startedAt }}</p>
+            <p class="mmb-top__stats-since">はじめた日：{{ displaySummary.startedAt }}</p>
           </article>
 
           <div class="mmb-top__hero-tile mmb-top__hero-album" aria-hidden="true">
-            <MemoryBookAlbumCover :year="2026" tone="purple" size="lg" />
+            <MemoryBookAlbumCover
+              :year="currentYear.year"
+              :design-id="heroCoverDesign"
+              size="lg"
+            />
           </div>
         </aside>
       </div>
@@ -79,7 +121,7 @@ const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-cate
     <!-- Category cards -->
     <section class="mmb-top__categories" aria-label="思い出カテゴリ">
       <button
-        v-for="(cat, i) in MEMORY_BOOK_CATEGORIES"
+        v-for="(cat, i) in categories"
         :key="cat.id"
         type="button"
         class="mmb-top__cat"
@@ -104,10 +146,10 @@ const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-cate
           <p class="mmb-top__year-eyebrow">THIS YEAR</p>
           <h2 class="mmb-top__year-title">{{ currentYear.year }}年のMusic Memories</h2>
           <ul class="mmb-top__year-stats">
-            <li>献花：<strong>{{ currentYear.total ? summary.categories.flowers : 0 }}</strong>件</li>
-            <li>投稿：<strong>{{ summary.categories.posts }}</strong>件</li>
-            <li>楽曲：<strong>{{ summary.categories.songs }}</strong>曲</li>
-            <li>AI会話：<strong>{{ summary.categories.aiChats }}</strong>件</li>
+            <li>献花：<strong>{{ displaySummary.categories.flowers }}</strong>件</li>
+            <li>投稿：<strong>{{ displaySummary.categories.posts }}</strong>件</li>
+            <li>楽曲：<strong>{{ displaySummary.categories.songs }}</strong>曲</li>
+            <li>AI会話：<strong>{{ displaySummary.categories.aiChats }}</strong>件</li>
             <li>思い出総数：<strong>{{ currentYear.total }}</strong>件</li>
           </ul>
           <UiButton variant="primary" size="md" @click="emit('open-year', currentYear.year)">
@@ -115,7 +157,11 @@ const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-cate
             <UiIco name="arrow" :size="14" color="#fff" />
           </UiButton>
         </div>
-        <MemoryBookAlbumCover :year="currentYear.year" tone="purple" size="md" />
+        <MemoryBookAlbumCover
+          :year="currentYear.year"
+          :design-id="heroCoverDesign"
+          size="md"
+        />
       </div>
     </section>
 
@@ -125,14 +171,18 @@ const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-cate
       <p class="mmb-top__shelf-desc">本棚のように、年ごとの思い出アルバムが並びます。</p>
       <div class="mmb-top__shelf-row">
         <button
-          v-for="(y, i) in MEMORY_BOOK_YEARS"
+          v-for="(y, i) in yearAlbums"
           :key="y.year"
           type="button"
           class="mmb-top__shelf-item"
           v-bind="aosAttrs(i * 80)"
           @click="emit('open-year', y.year)"
         >
-          <MemoryBookAlbumCover :year="y.year" :tone="y.tone" size="sm" />
+          <MemoryBookAlbumCover
+            :year="y.year"
+            :design-id="coverDesignForYear(y.year)"
+            size="sm"
+          />
           <p class="mmb-top__shelf-label">{{ y.year }}年 Music Memories</p>
           <p class="mmb-top__shelf-count">{{ y.total }}件の思い出</p>
         </button>
@@ -140,6 +190,7 @@ const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-cate
     </section>
 
     <MemoryBookPremiumBand @open-fanclub="emit('open-fanclub')" />
+    </template>
   </div>
 </template>
 
@@ -263,8 +314,8 @@ const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-cate
   -webkit-backdrop-filter: none;
 }
 
-.mmb-top__hero-album :deep(.mmb-cover) {
-  filter: drop-shadow(0 14px 28px rgba(61, 36, 80, 0.22));
+.mmb-top__hero-album :deep(.mmb-cover--with-design) {
+  filter: none;
 }
 
 .mmb-top__stats-badge {
@@ -512,5 +563,24 @@ const emit = defineEmits(['open-year', 'open-detail', 'open-fanclub', 'open-cate
   margin: 0;
   font-size: 11px;
   color: var(--site-text-muted);
+}
+
+.mmb-state {
+  padding: var(--sp-8) var(--sp-6);
+  text-align: center;
+  border-radius: var(--site-radius-lg);
+  border: 1px solid var(--site-border);
+  background: var(--site-surface);
+}
+
+.mmb-state--loading {
+  color: var(--site-text-muted);
+  font-size: 14px;
+}
+
+.mmb-state--error p {
+  margin: 0 0 var(--sp-4);
+  color: var(--beni-600);
+  font-size: 14px;
 }
 </style>

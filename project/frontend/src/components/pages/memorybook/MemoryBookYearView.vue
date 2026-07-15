@@ -2,15 +2,20 @@
 /**
  * 部品名: Music Memory Book — 年別アルバム詳細
  */
+import { computed } from 'vue'
 import MemoryBookAlbumCover from './MemoryBookAlbumCover.vue'
 import MemoryBookBreadcrumb from './MemoryBookBreadcrumb.vue'
 import MemoryBookPremiumBand from './MemoryBookPremiumBand.vue'
 import UiButton from '../../ui/UiButton.vue'
 import UiIco from '../../ui/UiIco.vue'
-import { MEMORY_BOOK_YEAR_2026 } from '../../../data/memoryBookData.js'
 import { aosAttrs } from '../../../lib/aos.js'
 
-const data = MEMORY_BOOK_YEAR_2026
+const props = defineProps({
+  loading: { type: Boolean, default: false },
+  error: { type: String, default: '' },
+  data: { type: Object, required: true },
+  coverDesignId: { type: Number, default: 1 },
+})
 
 const iconMap = {
   flower: 'flower',
@@ -18,13 +23,13 @@ const iconMap = {
   music: 'disc',
 }
 
-const emit = defineEmits(['back', 'open-detail', 'open-fanclub', 'coming-soon'])
+const emit = defineEmits(['back', 'open-detail', 'open-fanclub', 'coming-soon', 'change-cover', 'retry'])
 
-const crumbs = [
+const crumbs = computed(() => [
   { label: 'Music Memory Book', action: 'top' },
   { label: '年別アルバム', action: 'top' },
-  { label: `${data.year}年の思い出` },
-]
+  { label: `${props.data.year}年の思い出` },
+])
 
 function onCrumb(action) {
   if (action === 'top') emit('back')
@@ -37,6 +42,16 @@ function openItem(item) {
 
 <template>
   <div class="mmb-year">
+    <div v-if="loading && !data.timeline.length" class="mmb-state mmb-state--loading">
+      読み込み中です…
+    </div>
+
+    <div v-else-if="error" class="mmb-state mmb-state--error">
+      <p>{{ error }}</p>
+      <UiButton variant="outline" size="sm" @click="emit('retry')">もう一度お試しください</UiButton>
+    </div>
+
+    <template v-else>
     <MemoryBookBreadcrumb :items="crumbs" @navigate="onCrumb" />
 
     <header class="mmb-year__head" v-bind="aosAttrs()">
@@ -50,8 +65,8 @@ function openItem(item) {
     <div class="mmb-year__layout">
       <!-- Left: album -->
       <aside class="mmb-year__aside" v-bind="aosAttrs(80)">
-        <MemoryBookAlbumCover :year="data.year" tone="purple" size="lg" />
-        <UiButton variant="outline" size="sm" class="mmb-year__cover-btn" @click="emit('coming-soon', 'cover')">
+        <MemoryBookAlbumCover :year="data.year" :design-id="coverDesignId" size="lg" />
+        <UiButton variant="outline" size="sm" class="mmb-year__cover-btn" @click="emit('change-cover')">
           アルバムの表紙を変更する
         </UiButton>
       </aside>
@@ -78,6 +93,7 @@ function openItem(item) {
         </div>
 
         <section class="mmb-year__timeline" aria-label="月別タイムライン">
+          <p v-if="!data.timeline.length" class="mmb-year__empty">この年の思い出はまだありません。</p>
           <article
             v-for="(item, i) in data.timeline"
             :key="item.id"
@@ -118,6 +134,7 @@ function openItem(item) {
     </div>
 
     <MemoryBookPremiumBand compact @open-fanclub="emit('open-fanclub')" />
+    </template>
   </div>
 </template>
 
@@ -327,5 +344,30 @@ function openItem(item) {
   border-radius: var(--site-radius-lg);
   background: var(--site-surface-muted);
   border: 1px dashed var(--site-border-strong);
+}
+
+.mmb-year__empty,
+.mmb-state {
+  padding: var(--sp-8) var(--sp-6);
+  text-align: center;
+  border-radius: var(--site-radius-lg);
+  border: 1px solid var(--site-border);
+  background: var(--site-surface);
+}
+
+.mmb-year__empty {
+  color: var(--site-text-muted);
+  font-size: 14px;
+}
+
+.mmb-state--loading {
+  color: var(--site-text-muted);
+  font-size: 14px;
+}
+
+.mmb-state--error p {
+  margin: 0 0 var(--sp-4);
+  color: var(--beni-600);
+  font-size: 14px;
 }
 </style>
