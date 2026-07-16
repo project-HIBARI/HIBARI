@@ -195,16 +195,11 @@ export const MUSIC_MEMORIES_ARTISTS = [
 ]
 
 /**
- * 今日のアーティスト（日替わり紹介枠・新規集客用）
- * 日付（年内通算日）に応じてロースター内をローテーション表示する。
- * 同じ日であれば誰が見ても同じアーティストになるよう、日付だけで決定する
- * （ユーザーごとのランダム表示にはしない）。
+ * 今日のアーティスト（紹介枠・新規集客用）
+ * 公開中の美空ひばりファンクラブへ誘導するため、固定表示する。
  */
 function pickTodaysArtist() {
-  const now = new Date()
-  const startOfYear = new Date(now.getFullYear(), 0, 0)
-  const dayOfYear = Math.floor((now - startOfYear) / 86400000)
-  const artist = MUSIC_MEMORIES_ARTISTS[dayOfYear % MUSIC_MEMORIES_ARTISTS.length]
+  const artist = MUSIC_MEMORIES_ARTISTS.find((a) => a.id === 'hibari')
   return {
     ...artist,
     headline: artist.resultCatchphrase,
